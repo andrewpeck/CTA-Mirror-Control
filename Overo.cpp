@@ -1,6 +1,6 @@
 //-*-mode:c++; mode:font-lock;-*-
 
-/*! \file VerdexXM4.cpp
+/*! \file Overo.cpp
 
   Class which maps to Gumstix Verdex XM4 architecture, which mostly
   exposes the functionality of Marvell (formerly Intel) XScale PXA270
@@ -14,5 +14,5 @@
   \date       05/20/2008
 */
 
-#include "VerdexXM4.hpp"
+#include "Overo.hpp"
 
