@@ -778,3 +778,4 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
 
     return EXIT_SUCCESS;
 }
+
