@@ -93,7 +93,7 @@ class MappedRegisters
         return (0);                         \
         else                                \
         if (ipin<32)                        \
-        return(physBaseGPIO1()+OFFSET);      \
+        return(physBaseGPIO1()+OFFSET);     \
         else                                \
         if (ipin<64)                        \
         return(physBaseGPIO2()+OFFSET);     \
@@ -305,9 +305,12 @@ class MappedRegisters
         // Functions to return pointers to mapped GPIO registers
         // --------------------------------------------------------------------------
 
+        // Returns Virtual (memory mapped) address for a given GPIO pin 
         volatile uint32_t* phys2VirtGPIO32(off_t phys, const unsigned ipin) {
             if (ipin<32) {
-                printf("Physical Address: %08X", phys); 
+                //printf("\nPhysical Address: %08X\n", phys); 
+                //printf("\nm_gpio_base : %08X\n", m_gpio1_base); 
+                //printf("\nMapBaseGPIO1: %08X\n", mapBaseGPIO1()); 
                 return phys2Virt32(phys,m_gpio1_base,mapBaseGPIO1());
             }
             else if (ipin<64)
@@ -320,6 +323,8 @@ class MappedRegisters
                 return phys2Virt32(phys,m_gpio5_base,mapBaseGPIO5());
             else if (ipin<192)
                 return phys2Virt32(phys,m_gpio6_base,mapBaseGPIO6());
+            else
+                return 0; 
         }
 
         volatile uint32_t* ptrGPIOReadLevel(const unsigned ipin) {
@@ -348,10 +353,12 @@ class MappedRegisters
         //return phys2VirtGPIO32(physGPIOAltFunc(ipin)); }
 
         void gpioSetLevel(const unsigned ipin) {
-            *(ptrGPIOSetLevel(ipin)) = Bits::mask1Bit(ipin); }
+            *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | Bits::mask1Bit(ipin); 
+        }
 
         void gpioClrLevel(const unsigned ipin) {
-            *(ptrGPIOSetLevel(ipin)) &= ~Bits::mask1Bit(ipin); }
+            *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~Bits::mask1Bit(ipin); 
+        }
 
 
         // --------------------------------------------------------------------------
@@ -406,12 +413,12 @@ class MappedRegisters
         volatile void*  m_gpio5_base;
         volatile void*  m_gpio6_base;
 
-        volatile void*  m_mcspi1_base;
-        volatile void*  m_mcspi2_base;
-        volatile void*  m_mcspi3_base;
-        volatile void*  m_mcspi4_base;
+        //volatile void*  m_mcspi1_base;
+        //volatile void*  m_mcspi2_base;
+        //volatile void*  m_mcspi3_base;
+        //volatile void*  m_mcspi4_base;
 
-        volatile void*  m_clock_base;
+        //volatile void*  m_clock_base;
 };
 
 class SimulatedRegisters: private Bits
@@ -477,13 +484,11 @@ class SimulatedRegisters: private Bits
             return &m_gpio_fn[(ipin>>4)&0x7];
         }
 
-        void gpioSetLevel(const unsigned ipin)
-        {
+        void gpioSetLevel(const unsigned ipin) {
             *(ptrGPIOReadLevel(ipin)) |= Bits::mask1Bit(ipin);
         }
 
-        void gpioClrLevel(const unsigned ipin)
-        {
+        void gpioClrLevel(const unsigned ipin) {
             *(ptrGPIOReadLevel(ipin)) &= ~Bits::mask1Bit(ipin);
         }
 

@@ -213,7 +213,9 @@ class Overo: public OveroBase, public REV, public REG {
 
         // Read GPIO by ipin (0-192)
         bool gpioReadLevel(const unsigned ipin) {
-            return *(REG::ptrGPIOReadLevel(ipin)) & Bits::mask1Bit(ipin);
+            bool level = *(REG::ptrGPIOReadLevel(ipin)) & Bits::mask1Bit(ipin);
+            printf("Read %i from pin %i",level,ipin);
+            return level; 
         }
 
         // Write GPIO by ipin (0-192)
@@ -222,28 +224,27 @@ class Overo: public OveroBase, public REV, public REG {
                 REG::gpioSetLevel(ipin);
             else 
                 REG::gpioClrLevel(ipin);
-            printf("Writing %i to pin %i",level,ipin);
+            //printf("Writing %i to pin %i",level,ipin);
         }
 
         // Get GPIO Direction In/Out
         bool gpioGetDirection(const unsigned ipin) {
             volatile uint32_t* reg = REG::ptrGPIODirection(ipin);
             uint32_t val = *reg;
-            if(val & Bits::mask1Bit(ipin))
-                return GPIODIR_OUT;
-            else 
-                return GPIODIR_IN;
+            bool dir = !!(val & Bits::mask1Bit(ipin));
+            return dir; 
         }
 
         // Set GPIO Direction In/Out
         void gpioSetDirection(const unsigned ipin, bool dir) {
             volatile uint32_t* reg = REG::ptrGPIODirection(ipin);
             uint32_t val = *reg;
-            if(dir==GPIODIR_OUT)
+            if(dir==1)
                 val |= Bits::mask1Bit(ipin);
             else 
                 val &= ~Bits::mask1Bit(ipin);
             *reg = val;
+            printf("gpioSetDirection :: Writing %zu", val);
         }
 
         // figure out what this is used by

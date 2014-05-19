@@ -17,10 +17,10 @@
 
 #define MAKEMAP(PHYS,VIRT,TEXT) \
     if(makeMap(PHYS,VIRT) == MMAPFAIL)			\
-{							\
+    {							\
     perror("mmap(" TEXT ")");				\
     exit(EXIT_FAILURE);				\
-}
+    }
 
 MappedRegisters::MappedRegisters():
     m_mmap_fd(-1), 
@@ -43,12 +43,13 @@ MappedRegisters::MappedRegisters():
         exit(EXIT_FAILURE);
     }
 
-    MAKEMAP(m_gpio1_base,  mapBaseGPIO1(),  "GPI01");
-    MAKEMAP(m_gpio2_base,  mapBaseGPIO2(),  "GPI02");
-    MAKEMAP(m_gpio3_base,  mapBaseGPIO3(),  "GPI03");
-    MAKEMAP(m_gpio4_base,  mapBaseGPIO4(),  "GPI04");
-    MAKEMAP(m_gpio5_base,  mapBaseGPIO5(),  "GPI04");
-    MAKEMAP(m_gpio6_base,  mapBaseGPIO6(),  "GPI06");
+    //      physical       virtual          function
+    MAKEMAP(m_gpio1_base,  mapBaseGPIO1(),  "GPIO1");
+    MAKEMAP(m_gpio2_base,  mapBaseGPIO2(),  "GPIO2");
+    MAKEMAP(m_gpio3_base,  mapBaseGPIO3(),  "GPIO3");
+    MAKEMAP(m_gpio4_base,  mapBaseGPIO4(),  "GPIO4");
+    MAKEMAP(m_gpio5_base,  mapBaseGPIO5(),  "GPIO4");
+    MAKEMAP(m_gpio6_base,  mapBaseGPIO6(),  "GPIO6");
     //MAKEMAP(m_mcspi1_base, mapBaseMCSPI1(),   "SSP1" );
     //MAKEMAP(m_mcspi2_base, mapBaseMCSPI2(),   "SSP2" );
     //MAKEMAP(m_mcspi3_base, mapBaseMCSPI3(),   "SSP3" );
@@ -74,10 +75,8 @@ MappedRegisters::~MappedRegisters()
     //MUNMAP(m_clock_base );
 }
 
-volatile void* MappedRegisters::
-makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length)
+volatile void* MappedRegisters::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length)
 {
-    virtual_addr = mmap(0, length, PROT_READ|PROT_WRITE, MAP_SHARED, m_mmap_fd, 
-            physical_addr);
+    virtual_addr = mmap(0, length, PROT_READ|PROT_WRITE, MAP_SHARED, m_mmap_fd, physical_addr);
     return &virtual_addr;
 }

@@ -175,6 +175,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         }
 
         MirrorControlBoard mcb(&sys, false, 7, ssp_clk_div);
+        sys.gpioConfigureAll();  // Configure GPIOs
         mcb.powerUpBase();
         return EXIT_SUCCESS;
     }
@@ -254,9 +255,15 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
     }
     else if(command == "testusb")
     {
-        sys.gpioSetDirection(LO::igpioUSBOff1(), 1);
-        bool level = !!  sys.gpioReadLevel(LO::igpioUSBOff1());
-        sys.gpioWriteLevel(LO::igpioUSBOff1(),!level);
+        //sys.gpioSetDirection(LO::igpioUSBOff4(), 0);
+        //sys.gpioConfigureAll(); 
+        bool level = !!  sys.gpioReadLevel(LO::igpioUSBOff4());
+        for (int i=0; i<1000000; i++) {
+            if (i%2==0)
+                sys.gpioWriteLevel(LO::igpioUSBOff4(),1);
+            if (i%2==1)
+                sys.gpioWriteLevel(LO::igpioUSBOff4(),0);
+        }
     }
     else if(command == "disableUSB")
     {
