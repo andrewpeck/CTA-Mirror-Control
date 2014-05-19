@@ -267,6 +267,21 @@ class Overo: public OveroBase, public REV, public REG {
             gpioSetDirection(ipin, dir);
             //gpioSetAltFunc(ipin, fn);
         }
+        
+        void gpioConfigureAll() {
+        //Configure Input/Output directions for GPIOs
+            for (int i=0; i<192; i++) {
+                int config = REV::gpioConfiguration(i);
+                if (config==-1)      // don't use
+                    return; 
+                else if (config==0)  // input
+                    gpioSetDirection(i, 0);
+                else if (config==1)  //output
+                    gpioSetDirection(i, 1);
+                else 
+                    return;
+            }
+        }
 
         // --------------------------------------------------------------------------
         // SSP utility functions
