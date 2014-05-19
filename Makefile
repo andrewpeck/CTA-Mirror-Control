@@ -1,6 +1,6 @@
 # SJF
 
-LIBOBJECTS =  Registers.o VerdexXM4.o MirrorControlBoard.o
+LIBOBJECTS =  Registers.o Overo.o MirrorControlBoard.o
 #	  OmniORBHelper.o VSAssert.o VSDataConverter.o VSOptions.o 
 ALLOBJECTS = sctelescope.o cbc.o demo.o uboot_conf.o $(LIBOBJECTS)
 
@@ -12,8 +12,6 @@ MYLIBS     = #-lomniDynamic4 -lomniORB4
 #MYLDFLAGS  += -g
 
 all: demo sctelescope uboot_conf cbc
-
-
 
 sctelescope: sctelescope.o $(LIBOBJECTS)
 	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
@@ -29,8 +27,12 @@ demo: demo.o $(LIBOBJECTS)
 uboot_conf: uboot_conf.o $(LIBOBJECTS)
 	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
 
+iotest: iotest.o Registers.o
+	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
+
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(MYCXXFLAGS) -c $<
+
 
 .PHONY: clean tar
 

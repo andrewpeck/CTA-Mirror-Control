@@ -17,15 +17,15 @@
 #define MIRRORCONTROLBOARD_HPP
 
 #include <Layout.hpp>
-#include <VerdexXM4.hpp>
+#include <Overo.hpp>
 #include <TLCX5XX_ADC.hpp>
 #include <vector>
 
-#if defined(__arm__)
-typedef VerdexXM4<> Sys;
-#else
-typedef VerdexXM4<SimulatedRegisters> Sys;
-#endif
+//#if defined(__arm__)
+typedef Overo<> Sys;
+//#else
+//typedef Overo<SimulatedRegisters> Sys;
+//#endif
 
 typedef Layout<> LO;
 

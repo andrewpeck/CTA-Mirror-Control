@@ -14,14 +14,14 @@
 
 #include <iostream>
 #include <iomanip>
-#include "VerdexXM4.hpp"
+#include "Overo.hpp"
 #include "Layout.hpp"
 
 #define TESTSSP 2
 
 int main(int argc, char** argv)
 {
-  typedef VerdexXM4<SimulatedRegisters> Sys;
+  typedef Overo<SimulatedRegisters> Sys;
   Sys sys;  
 #if 0
 
@@ -138,14 +138,14 @@ int main(int argc, char** argv)
 #endif
 
 #if 1
-  //  VerdexXM4<MappedRegisters> sys;  
+  //  Overo<MappedRegisters> sys;  
   std::cout << std::dec;
   unsigned npin = sys.nGPIO();
   for(unsigned ipin=0;ipin<npin;ipin++)
     if(sys.hasGPIOPin(ipin))
       {
 	std::cout << ipin << ' ' << int(sys.gpioGetDirection(ipin)) << ' '
-		  << int(sys.gpioGetAltFunc(ipin)) << ' '
+		  //<< int(sys.gpioGetAltFunc(ipin)) << ' '
 		  << int(sys.gpioReadLevel(ipin)) << '\n';
       }
 #endif
@@ -218,18 +218,18 @@ int main(int argc, char** argv)
 
 
 #if 0
-  unsigned npin = VerdexXM4::nGPIO();
+  unsigned npin = Overo::nGPIO();
   for(unsigned ipin=0;ipin<npin;ipin++)
     {
       std::cout 
 	<< std::setfill('0')
 	<< std::dec << std::setw(3) << ipin << ' '
-	<< std::hex << std::setw(8) << VerdexXM4::physGPIODirection(ipin) << ' '
-	<< std::hex << std::setw(8) << VerdexXM4::mask1Bit(ipin) << ' '
-	<< std::dec << std::setw(2) << VerdexXM4::shift1Bit(ipin) << ' '
-	<< std::hex << std::setw(8) << VerdexXM4::physGPIOAltFunc(ipin) << ' '
-	<< std::hex << std::setw(8) << VerdexXM4::mask2Bit(ipin) << ' '
-	<< std::dec << std::setw(2) << VerdexXM4::shift2Bit(ipin) << '\n';
+	<< std::hex << std::setw(8) << Overo::physGPIODirection(ipin) << ' '
+	<< std::hex << std::setw(8) << Overo::mask1Bit(ipin) << ' '
+	<< std::dec << std::setw(2) << Overo::shift1Bit(ipin) << ' '
+	//<< std::hex << std::setw(8) << Overo::physGPIOAltFunc(ipin) << ' '
+	<< std::hex << std::setw(8) << Overo::mask2Bit(ipin) << ' '
+	<< std::dec << std::setw(2) << Overo::shift2Bit(ipin) << '\n';
 
       }
   
