@@ -5,415 +5,546 @@
   Layout of signals of UCLA board
 
   \author     Stephen Fegan               \n
-              UCLA                        \n
-              sfegan@astro.ucla.edu       \n
+  UCLA                        \n
+  sfegan@astro.ucla.edu       \n
 
   \version    3.0
   \date       09/11/2013
-*/
+  */
 
 #ifndef LAYOUT_HPP
 #define LAYOUT_HPP
 
-#include <VerdexXM4.hpp>
 #include <TLCX5XX_ADC.hpp>
+//#include <Overo.hpp>
+#define N(x) (sizeof(x)/sizeof(*x))
+#define GPIODIR_IN  0
+#define GPIODIR_OUT 1
 
-#define PIN60_GROUND_1             1
-
-#define PIN60_DR_SR_BAR            2
-#define PIN60_DR_MS1               3
-#define PIN60_DR_MS2               4
-#define PIN60_DR_SLEEP_BAR         5
-#define PIN60_DR_RESET_BAR         6
-
-#define PIN60_GROUND_7             7
-
-#define PIN60_ADC_SEL1             8
-
-#define PIN60_UNUSED_9             9
-#define PIN60_UNUSED_10            10
-
-#define PIN60_USBH_P2              11
-
-#define PIN60_UNUSED_12            12
-
-#define PIN60_DR4_DIR              13
-
-#define PIN60_DR5_ENABLE_BAR       14
-
-#define PIN60_USB2_ENABLE_BAR      15 
-#define PIN60_USB7_ENABLE_BAR      16 
-#define PIN60_USB1_ENABLE_BAR      17 
-
-#define PIN60_POWER_ADC            18
-
-#define PIN60_I2C_SCL              19
-#define PIN60_I2C_SDA              20
-
-#define PIN60_SSP_CLK_PIN          21
-#define PIN60_SSP_FRM_PIN          22
-#define PIN60_SSP_TXD_PIN          23
-
-#define PIN60_USB_OTG              24
-
-#define PIN60_SYSEN_25             25
-
-#define PIN60_CONSOLE_TXD          26
-
-#define PIN60_SSP_RXD_PIN          27
-
-#define PIN60_VBATT_28             28
-#define PIN60_VBATT_29             29
-#define PIN60_VBATT_30             30
-#define PIN60_GROUND_31            31
-
-#define PIN60_USB6_ENABLE_BAR      32
-
-#define PIN60_DR_POWER_INC_BAR     33
-
-#define PIN60_DR6_DIR              34
-#define PIN60_DR6_STEP             35
-#define PIN60_DR6_ENABLE_BAR       36
-
-#define PIN60_NM_RESET             37
-
-#define PIN60_DR2_ENABLE_BAR       38
-
-#define PIN60_DR5_DIR              39
-
-#define PIN60_ENCODER_ENABLE       40
-
-#define PIN60_USB_RESET            41
-
-#define PIN60_GROUND_42            42
-
-#define PIN60_USB4_ENABLE_BAR      43
-#define PIN60_USB3_ENABLE_BAR      44
-
-#define PIN60_DR5_STEP             45
-
-#define PIN60_DR4_ENABLE_BAR       46
-#define PIN60_DR4_STEP             47
-
-#define PIN60_DR3_DIR              48
-#define PIN60_DR3_STEP             49
-#define PIN60_DR3_ENABLE_BAR       50
-
-#define PIN60_USB5_ENABLE_BAR      51
-
-#define PIN60_DR2_DIR              52
-#define PIN60_DR2_STEP             53
-
-#define PIN60_CONSOLE_RXD          54
-
-#define PIN60_ADC_SEL2             55
-
-#define PIN60_DR1_DIR              56
-#define PIN60_DR1_STEP             57
-#define PIN60_DR1_ENABLE_BAR       58
-
-#define PIN60_USBH_N               59
-
-#define PIN60_GROUND_60            60
-
-#define LED_PWM                    2
-#define ADC_SSP                    1
-
+class OveroBase; 
 typedef TLC3548                    ADC;
 
-template<typename REV = CurrentRev> class Layout
-{
-public:
+class OveroGPIOMap {
+    public:
 
-  // --------------------------------------------------------------------------
-  // Functions mapping from function to pin on 60pin connector
-  // --------------------------------------------------------------------------
+        //Maps Overo output pins (J1 1-70, J 71-140) to GPIO Pins
+        //-1 is returned for a pin140 that is not a GPIO
+        static int pin140ToGPIO(unsigned ipin140) {
+            static const int igpio[] =  {
+                -1,  //N_MANUAL_RESET      1 
+                71,  //GPIO71_L_DD01       2
+                70,  //GPIO70_L_DD00       3
+                73,  //GPIO73_L_DD03       4
+                75,  //GPIO75_L_DD05       5
+                72,  //GPIO72_L_DD02       6
+                74,  //GPIO74_L_DD04       7
+                10,  //GPIO_10             8
+                -1,  //GPIO0_WAKEUP        9
+                185, //GPIO185_I2C3_SDA    10
+                80,  //GPIO80_L_DD10       11
+                81,  //GPIO81_L_DD11       12
+                184, //GPIO184_I2C3_SCL    13
+                186, //GPIO_186            14
+                92,  //GPIO92_L_DD22       15
+                147, //GPIO147_GPT8_PWM    16
+                83,  //GPIO83_L_DD13       17
+                144, //GPIO144_GPT9_PWM    18
+                84,  //GPIO84_L_DD14       19
+                85,  //GPIO85_L_DD15       20
+                146, //GPIO146_GPT11_PWM   21
+                163, //GPIO163_IR_CTS3     22
+                91,  //GPIO91_L_DD21       23
+                87,  //GPIO87_L_DD17       24
+                88,  //GPIO88_L_DD18       25
+                166, //GPIO166_IR_TXD3     26
+                89,  //GPIO89_L_DD19       27
+                79,  //GPIO79_L_DD09       28
+                77,  //GPIO77_L_DD07       29
+                78,  //GPIO78_L_DD08       30
+                165, //GPIO165_IR_RXD3     31
+                66,  //GPIO66_L_PCLK       32
+                76,  //GPIO76_L_DD06       33
+                68,  //GPIO68_L_FCLK       34
+                67,  //GPIO67_L_LCLK       35
+                -1,  //USBOTG_DP           36  
+                -1,  //USBOTG_DM           37  
+                -1,  //AUXLF               38  
+                -1,  //MIC_SUB_MF          39  
+                -1,  //ADCIN4              40  
+                -1,  //AUXRF               41  
+                -1,  //PWM0                42  
+                69,  //GPIO69_L_BIAS       43  
+                86,  //GPIO86_L_DD16       44  
+                90,  //GPIO90_L_DD20       45  
+                -1,  //USBOTG_ID           46  
+                170, //GPIO170_HDQ_1WIRE   47  
+                -1,  //ADCIN3              48  
+                -1,  //PWM1                49  
+                -1,  //AGND                50  
+                -1,  //ADCIN5              51  
+                -1,  //VBACKUP             52  
+                -1,  //ADCIN6              53  
+                -1,  //USBOTG_VBUS         54  
+                145, //GPIO145_GPT10_PWM   55  
+                -1,  //GND                 56  
+                -1,  //MIC_MAIN_MF         57  
+                -1,  //ADCIN2              58  
+                -1,  //SYSEN               59  
+                82,  //GPIO82_L_DD12       60  
+                93,  //GPIO93_L_DD23       61  
+                -1,  //TV_OUT2             62  
+                -1,  //TV_OUT1             63  
+                -1,  //ADCIN7              64  
+                -1,  //POWERON             65  
+                -1,  //VSYSTEM             66  
+                -1,  //VSYSTEM             67  
+                -1,  //HSOLF               68  
+                -1,  //HSORF               69  
+                -1,  //GND                 70  
 
-  static unsigned ipin60DRSRBar() { return PIN60_DR_SR_BAR; }
-  static unsigned ipin60DRMS1() { return PIN60_DR_MS1; }
-  static unsigned ipin60DRMS2() { return PIN60_DR_MS2; }
-  static unsigned ipin60DRSleepBar() { return PIN60_DR_SLEEP_BAR; }
-  static unsigned ipin60DRResetBar() { return PIN60_DR_RESET_BAR; }
-
-  static unsigned ipin60ADCSel1() { return PIN60_ADC_SEL1; }
-  static unsigned ipin60ADCSel2() { return PIN60_ADC_SEL2; }
-
-  static unsigned ipin60I2CSCL() { return PIN60_I2C_SCL; }
-  static unsigned ipin60I2CSDA() { return PIN60_I2C_SDA; }
-
-  static unsigned ipin60SSPClk() { return PIN60_SSP_CLK_PIN; }
-  static unsigned ipin60SSPFrm() { return PIN60_SSP_FRM_PIN; }
-  static unsigned ipin60SSPTXD() { return PIN60_SSP_TXD_PIN; }
-  static unsigned ipin60SSPRXD() { return PIN60_SSP_RXD_PIN; }
-
-  static unsigned ipin60ConsoleRXD() { return PIN60_CONSOLE_RXD; }
-  static unsigned ipin60ConsoleTXD() { return PIN60_CONSOLE_TXD; }
-
-  static unsigned ipin60DRPowerIncreaseBar() { return PIN60_DR_POWER_INC_BAR; }
-  static unsigned ipin60EncoderEnable() { return PIN60_ENCODER_ENABLE; }
-
-  static unsigned ipin60DR6Dir() { return PIN60_DR6_DIR; }
-  static unsigned ipin60DR6Step() { return PIN60_DR6_STEP; }
-  static unsigned ipin60DR6EnableBar() { return PIN60_DR6_ENABLE_BAR; }
-
-  static unsigned ipin60DR5Dir() { return PIN60_DR5_DIR; }
-  static unsigned ipin60DR5Step() { return PIN60_DR5_STEP; }
-  static unsigned ipin60DR5EnableBar() { return PIN60_DR5_ENABLE_BAR; }
-
-  static unsigned ipin60DR4Dir() { return PIN60_DR4_DIR; }
-  static unsigned ipin60DR4Step() { return PIN60_DR4_STEP; }
-  static unsigned ipin60DR4EnableBar() { return PIN60_DR4_ENABLE_BAR; }
-
-  static unsigned ipin60DR3Dir() { return PIN60_DR3_DIR; }
-  static unsigned ipin60DR3Step() { return PIN60_DR3_STEP; }
-  static unsigned ipin60DR3EnableBar() { return PIN60_DR3_ENABLE_BAR; }
-
-  static unsigned ipin60DR2Dir() { return PIN60_DR2_DIR; }
-  static unsigned ipin60DR2Step() { return PIN60_DR2_STEP; }
-  static unsigned ipin60DR2EnableBar() { return PIN60_DR2_ENABLE_BAR; }
-
-  static unsigned ipin60DR1Dir() { return PIN60_DR1_DIR; }
-  static unsigned ipin60DR1Step() { return PIN60_DR1_STEP; }
-  static unsigned ipin60DR1EnableBar() { return PIN60_DR1_ENABLE_BAR; }
-
-  static unsigned ipin60USBOTG() { return PIN60_USB_OTG; }
-  static unsigned ipin60USBReset() { return PIN60_USB_RESET; }
-  static unsigned ipin60USB1EnableBar() { return PIN60_USB1_ENABLE_BAR; }
-  static unsigned ipin60USB2EnableBar() { return PIN60_USB2_ENABLE_BAR; }
-  static unsigned ipin60USB3EnableBar() { return PIN60_USB3_ENABLE_BAR; }
-  static unsigned ipin60USB4EnableBar() { return PIN60_USB4_ENABLE_BAR; }
-  static unsigned ipin60USB5EnableBar() { return PIN60_USB5_ENABLE_BAR; }
-  static unsigned ipin60USB6EnableBar() { return PIN60_USB6_ENABLE_BAR; }
-  static unsigned ipin60USB7EnableBar() { return PIN60_USB7_ENABLE_BAR; }
-
-  static unsigned ipin60PowerADC() { return PIN60_POWER_ADC; }
-
-  static unsigned ipin60Unused9()  { return PIN60_UNUSED_9; }
-  static unsigned ipin60Unused10() { return PIN60_UNUSED_10; }
-  static unsigned ipin60Unused12() { return PIN60_UNUSED_12; }
-
-  static unsigned ipin60DRDir(const unsigned idrive)
-  {
-    static const unsigned ipin60[] = 
-      { ipin60DR1Dir(), ipin60DR2Dir(), ipin60DR3Dir(),
-	ipin60DR4Dir(), ipin60DR5Dir(), ipin60DR6Dir() };
-    return ipin60[idrive];
-  }
-
-  static unsigned ipin60DRStep(const unsigned idrive)
-  {
-    static const unsigned ipin60[] = 
-      { ipin60DR1Step(), ipin60DR2Step(), ipin60DR3Step(),
-	ipin60DR4Step(), ipin60DR5Step(), ipin60DR6Step() };
-    return ipin60[idrive];
-  }
-
-  static unsigned ipin60DREnableBar(const unsigned idrive)
-  {
-    static const unsigned ipin60[] = 
-      { ipin60DR1EnableBar(), ipin60DR2EnableBar(), ipin60DR3EnableBar(),
-	ipin60DR4EnableBar(), ipin60DR5EnableBar(), ipin60DR6EnableBar() };
-    return ipin60[idrive];
-  }
-
-  static unsigned ipin60USBEnableBar(const unsigned iusb)
-  {
-    static const unsigned ipin60[] = 
-      { ipin60USB1EnableBar(), ipin60USB2EnableBar(),
-	ipin60USB3EnableBar(), ipin60USB4EnableBar(),
-	ipin60USB5EnableBar(), ipin60USB6EnableBar(),
-	ipin60USB7EnableBar() };
-    return ipin60[iusb];
-  }
-
-
-  // --------------------------------------------------------------------------
-  // Functions mapping from function to GPIO number
-  // --------------------------------------------------------------------------
-
-  static unsigned igpioDRSRBar() { return REV::pin60ToGPIO(PIN60_DR_SR_BAR); }
-  static unsigned igpioDRMS1() { return REV::pin60ToGPIO(PIN60_DR_MS1); }
-  static unsigned igpioDRMS2() { return REV::pin60ToGPIO(PIN60_DR_MS2); }
-  static unsigned igpioDRSleepBar() { return REV::pin60ToGPIO(PIN60_DR_SLEEP_BAR); }
-  static unsigned igpioDRResetBar() { return REV::pin60ToGPIO(PIN60_DR_RESET_BAR); }
-
-  static unsigned igpioADCSel1() { return REV::pin60ToGPIO(PIN60_ADC_SEL1); }
-  static unsigned igpioADCSel2() { return REV::pin60ToGPIO(PIN60_ADC_SEL2); }
-
-  static unsigned igpioI2CSCL() { return REV::pin60ToGPIO(PIN60_I2C_SCL); }
-  static unsigned igpioI2CSDA() { return REV::pin60ToGPIO(PIN60_I2C_SDA); }
-
-  static unsigned igpioSSPClk() { return REV::pin60ToGPIO(PIN60_SSP_CLK_PIN); }
-  static unsigned igpioSSPFrm() { return REV::pin60ToGPIO(PIN60_SSP_FRM_PIN); }
-  static unsigned igpioSSPTXD() { return REV::pin60ToGPIO(PIN60_SSP_TXD_PIN); }
-  static unsigned igpioSSPRXD() { return REV::pin60ToGPIO(PIN60_SSP_RXD_PIN); }
-
-  static unsigned igpioConsoleRXD() { return REV::pin60ToGPIO(PIN60_CONSOLE_RXD); }
-  static unsigned igpioConsoleTXD() { return REV::pin60ToGPIO(PIN60_CONSOLE_TXD); }
-
-  static unsigned igpioDRPowerIncreaseBar() { return REV::pin60ToGPIO(PIN60_DR_POWER_INC_BAR); }
-  static unsigned igpioEncoderEnable() { return REV::pin60ToGPIO(PIN60_ENCODER_ENABLE); }
-
-  static unsigned igpioDR6Dir() { return REV::pin60ToGPIO(PIN60_DR6_DIR); }
-  static unsigned igpioDR6Step() { return REV::pin60ToGPIO(PIN60_DR6_STEP); }
-  static unsigned igpioDR6EnableBar() { return REV::pin60ToGPIO(PIN60_DR6_ENABLE_BAR); }
-
-  static unsigned igpioDR5Dir() { return REV::pin60ToGPIO(PIN60_DR5_DIR); }
-  static unsigned igpioDR5Step() { return REV::pin60ToGPIO(PIN60_DR5_STEP); }
-  static unsigned igpioDR5EnableBar() { return REV::pin60ToGPIO(PIN60_DR5_ENABLE_BAR); }
-
-  static unsigned igpioDR4Dir() { return REV::pin60ToGPIO(PIN60_DR4_DIR); }
-  static unsigned igpioDR4Step() { return REV::pin60ToGPIO(PIN60_DR4_STEP); }
-  static unsigned igpioDR4EnableBar() { return REV::pin60ToGPIO(PIN60_DR4_ENABLE_BAR); }
-
-  static unsigned igpioDR3Dir() { return REV::pin60ToGPIO(PIN60_DR3_DIR); }
-  static unsigned igpioDR3Step() { return REV::pin60ToGPIO(PIN60_DR3_STEP); }
-  static unsigned igpioDR3EnableBar() { return REV::pin60ToGPIO(PIN60_DR3_ENABLE_BAR); }
-
-  static unsigned igpioDR2Dir() { return REV::pin60ToGPIO(PIN60_DR2_DIR); }
-  static unsigned igpioDR2Step() { return REV::pin60ToGPIO(PIN60_DR2_STEP); }
-  static unsigned igpioDR2EnableBar() { return REV::pin60ToGPIO(PIN60_DR2_ENABLE_BAR); }
-
-  static unsigned igpioDR1Dir() { return REV::pin60ToGPIO(PIN60_DR1_DIR); }
-  static unsigned igpioDR1Step() { return REV::pin60ToGPIO(PIN60_DR1_STEP); }
-  static unsigned igpioDR1EnableBar() { return REV::pin60ToGPIO(PIN60_DR1_ENABLE_BAR); }
-
-  static unsigned igpioUSBOTG() { return REV::pin60ToGPIO(PIN60_USB_OTG); }
-  static unsigned igpioUSBReset() { return REV::pin60ToGPIO(PIN60_USB_RESET); }
-  static unsigned igpioUSB1EnableBar() { return REV::pin60ToGPIO(PIN60_USB1_ENABLE_BAR); }
-  static unsigned igpioUSB2EnableBar() { return REV::pin60ToGPIO(PIN60_USB2_ENABLE_BAR); }
-  static unsigned igpioUSB3EnableBar() { return REV::pin60ToGPIO(PIN60_USB3_ENABLE_BAR); }
-  static unsigned igpioUSB4EnableBar() { return REV::pin60ToGPIO(PIN60_USB4_ENABLE_BAR); }
-  static unsigned igpioUSB5EnableBar() { return REV::pin60ToGPIO(PIN60_USB5_ENABLE_BAR); }
-  static unsigned igpioUSB6EnableBar() { return REV::pin60ToGPIO(PIN60_USB6_ENABLE_BAR); }
-  static unsigned igpioUSB7EnableBar() { return REV::pin60ToGPIO(PIN60_USB7_ENABLE_BAR); }
-
-  static unsigned igpioPowerADC() { return REV::pin60ToGPIO(PIN60_POWER_ADC); }
-
-  static unsigned igpioUnused9() { return REV::pin60ToGPIO(PIN60_UNUSED_9); }
-  static unsigned igpioUnused10() { return REV::pin60ToGPIO(PIN60_UNUSED_10); }
-  static unsigned igpioUnused12() { return REV::pin60ToGPIO(PIN60_UNUSED_12); }
-
-  static unsigned igpioDRDir(const unsigned idrive)
-  {
-    static const unsigned igpio[] = 
-      { igpioDR1Dir(), igpioDR2Dir(), igpioDR3Dir(),
-	igpioDR4Dir(), igpioDR5Dir(), igpioDR6Dir() };
-    return igpio[idrive];
-  }
-
-  static unsigned igpioDRStep(const unsigned idrive)
-  {
-    static const unsigned igpio[] = 
-      { igpioDR1Step(), igpioDR2Step(), igpioDR3Step(),
-	igpioDR4Step(), igpioDR5Step(), igpioDR6Step() };
-    return igpio[idrive];
-  }
-
-  static unsigned igpioDREnableBar(const unsigned idrive)
-  {
-    static const unsigned igpio[] = 
-      { igpioDR1EnableBar(), igpioDR2EnableBar(), igpioDR3EnableBar(),
-	igpioDR4EnableBar(), igpioDR5EnableBar(), igpioDR6EnableBar() };
-    return igpio[idrive];
-  }
-
-  static unsigned igpioUSBEnableBar(const unsigned iusb)
-  {
-    static const unsigned igpio[] = 
-      { igpioUSB1EnableBar(), igpioUSB2EnableBar(), igpioUSB3EnableBar(),
-	igpioUSB4EnableBar(), igpioUSB5EnableBar(), igpioUSB6EnableBar(),
-	igpioUSB7EnableBar() };
-    return igpio[iusb];
-  }
-
-  // --------------------------------------------------------------------------
-  // Pin configuration
-  // --------------------------------------------------------------------------
-  
-  struct PinConf
-  {
-    unsigned               ipin;
-    int                    igpio;
-    VerdexXM4Base::GPIODir dir;
-    VerdexXM4Base::GPIOFn  fn;
-    bool                   val;
-  };
-
-#define DC60(IPIN,DIR,FN,VAL) { IPIN, REV::pin60ToGPIO(IPIN), VerdexXM4Base::DIR, VerdexXM4Base::FN, VAL }
-
-  static unsigned pin60Conf(const PinConf*& C)
-  {
-    static const PinConf PC[] = 
-      { 
-	DC60(PIN60_DR_SR_BAR            , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR_MS1               , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_DR_MS2               , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_DR_SLEEP_BAR         , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR_RESET_BAR         , GPIODIR_OUT, GPIOFN_IO,   1),
-
-	DC60(PIN60_ADC_SEL1             , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_ADC_SEL2             , GPIODIR_OUT, GPIOFN_IO,   1),
-
-	DC60(PIN60_USB_RESET            , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_USB_OTG              , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_USB1_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_USB2_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_USB3_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_USB4_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_USB5_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_USB6_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_USB7_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
-
-//	DC60(PIN60_I2C_SCL              , GPIODIR_IN,  GPIOFN_ALT1, 0),
-//	DC60(PIN60_I2C_SDA              , GPIODIR_IN,  GPIOFN_ALT1, 0),
-
-	DC60(PIN60_SSP_CLK_PIN          , GPIODIR_OUT, GPIOFN_ALT1, 0),
-	DC60(PIN60_SSP_FRM_PIN          , GPIODIR_OUT, GPIOFN_ALT3, 0),
-	DC60(PIN60_SSP_TXD_PIN          , GPIODIR_OUT, GPIOFN_ALT1, 0),
-	DC60(PIN60_SSP_RXD_PIN          , GPIODIR_IN,  GPIOFN_ALT1, 0),
-
-//	DC60(PIN60_CONSOLE_RXD          , GPIODIR_IN,  GPIOFN_ALT1, 0),
-//	DC60(PIN60_CONSOLE_TXD          , GPIODIR_OUT, GPIOFN_ALT2, 0),
-
-	DC60(PIN60_DR_POWER_INC_BAR     , GPIODIR_OUT, GPIOFN_IO,   1),
-	DC60(PIN60_ENCODER_ENABLE       , GPIODIR_OUT, GPIOFN_IO,   0),
-
-	DC60(PIN60_DR6_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR6_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR6_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
-	
-	DC60(PIN60_DR5_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR5_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR5_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
-
-	DC60(PIN60_DR4_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR4_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR4_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
-
-	DC60(PIN60_DR3_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR3_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR3_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
-
-	DC60(PIN60_DR2_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR2_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR2_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
-
-	DC60(PIN60_DR1_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR1_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
-	DC60(PIN60_DR1_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
-
-	DC60(PIN60_POWER_ADC            , GPIODIR_OUT, GPIOFN_IO,   0),
-
-	DC60(PIN60_UNUSED_9             , GPIODIR_IN,  GPIOFN_IO,   0),
-	DC60(PIN60_UNUSED_10            , GPIODIR_IN,  GPIOFN_IO,   0),
-	DC60(PIN60_UNUSED_12            , GPIODIR_IN,  GPIOFN_IO,   0),
-      };
-
-    C = PC;
-    return N(PC);
-  }
-
+                ////Connector J4 (70-pin): Extended Memory Bus & MMC Signals
+                -1,  //VSYSTEM             71 
+                -1,  //VSYSTEM             72 
+                -1,  //GND                 73 
+                -1,  //EM_NCS5_ETH0        74 
+                -1,  //EM_NCS4             75 
+                -1,  //EM_NWE              76 
+                -1,  //EM_NADV_ALE         77 
+                -1,  //EM_NOE              78 
+                65,  //GPIO65_ETH1_IRQ1    79 
+                64,  //GPIO64_ETH0_NRESET  80 
+                -1,  //EM_A2               81 
+                -1,  //EM_A8               82 
+                -1,  //EM_A5               83 
+                -1,  //EM_A7               84 
+                -1,  //EM_D2               85 
+                -1,  //EM_D10              86 
+                -1,  //EM_D3               87 
+                -1,  //EM_D11              88 
+                -1,  //EM_D4               89 
+                -1,  //EM_D12              90 
+                -1,  //EM_D5               91 
+                -1,  //EM_D15              92 
+                13,  //GPIO13_MMC3_CMD     93 
+                148, //GPIO148_TXD1        94 
+                176, //GPIO176_ETH0_IRQ    95 
+                18,  //GPIO18_MMC3_D0      96 
+                174, //GPIO174_SPI1_CS0    97 
+                168, //GPIO168_USBH_CPEN   98 
+                14,  //GPIO14_MMC3_DAT4    99 
+                21,  //GPIO21_MMC3_DAT7    100
+                17,  //GPIO17_MMC3_D3      101
+                -1,  //USBH_VBUS           102
+                -1,  //GND                 103
+                -1,  //USBH_DP             104
+                -1,  //USBH_DM             105
+                19,  //GPIO19_MMC3_D1      106
+                22,  //GPIO22_MMC3_DAT6    107
+                23,  //GPIO23_MMC3_DAT5    108
+                20,  //GPIO20_MMC3_D2      109
+                12,  //GPIO12_MMC3_CLK     110
+                114, //GPIO114_SPI1_NIRQ   111
+                175, //GPIO175_SPI1_CS1    112
+                171, //GPIO171_SPI1_CLK    113
+                172, //GPIO172_SPI1_MOSI   114
+                173, //GPIO173_SPI1_MISO   115
+                -1,  //4030GP2_N_MMC3_CD   116
+                150, //GPIO150_MMC3_WP     117
+                151, //GPIO151_RXD1        118
+                -1,  //EM_D7               119
+                -1,  //EM_D14              120
+                -1,  //EM_D6               121
+                -1,  //EM_D13              122
+                -1,  //EM_D1               123
+                -1,  //EM_D8               124
+                -1,  //EM_D9               125
+                -1,  //EM_D0               126
+                -1,  //EM_A6               127
+                -1,  //EM_A1               128
+                -1,  //EM_A3               129
+                -1,  //EM_A10              130
+                -1,  //EM_A4               131
+                -1,  //EM_A9               132
+                -1,  //EM_NWP              133
+                -1,  //EM_NCS1             134
+                -1,  //EM_NBE0             135
+                -1,  //EM_NCS0             136
+                -1,  //EM_NCS6             137
+                -1,  //EM_WAIT0            138
+                -1,  //EM_NBE1             139
+                -1,  //EM_CLK              140
+            };
+            if  ((ipin140>0) && ((--ipin140) < N(igpio)))
+                return igpio[ipin140];
+            else 
+                return -1;
+        } 
 };
+
+//typedef OveroGPIOMap GPIOMap; 
+
+template<typename MAP = OveroGPIOMap> class Layout {
+    public:
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // Layout Specific Pin Assignments for Overo
+        ////////////////////////////////////////////////////////////////////////////////
+
+        //Connector J1 (70-pin): LCD, PWM & Analog Signals
+        /////// SIGNAL                  PIN
+#define         N_MANUAL_RESET       1
+#define         GPIO71_L_DD01        2
+#define         GPIO70_L_DD00        3
+#define         GPIO73_L_DD03        4
+#define         GPIO75_L_DD05        5
+#define         GPIO72_L_DD02        6
+#define         GPIO74_L_DD04        7
+#define         GPIO_10              8
+#define         GPIO0_WAKEUP         9
+#define         GPIO185_I2C3_SDA     10
+#define         GPIO80_L_DD10        11
+#define         GPIO81_L_DD11        12
+#define         GPIO184_I2C3_SCL     13
+#define         GPIO_186             14
+#define         GPIO92_L_DD22        15
+#define         GPIO147_GPT8_PWM     16
+#define         GPIO83_L_DD13        17
+#define         GPIO144_GPT9_PWM     18
+#define         GPIO84_L_DD14        19
+#define         GPIO85_L_DD15        20
+#define         GPIO146_GPT11_PWM    21
+#define         GPIO163_IR_CTS3      22
+#define         GPIO91_L_DD21        23
+#define         GPIO87_L_DD17        24
+#define         GPIO88_L_DD18        25
+#define         GPIO166_IR_TXD3      26
+#define         GPIO89_L_DD19        27
+#define         GPIO79_L_DD09        28
+#define         GPIO77_L_DD07        29
+#define         GPIO78_L_DD08        30
+#define         GPIO165_IR_RXD3      31
+#define         GPIO66_L_PCLK        32
+#define         GPIO76_L_DD06        33
+#define         GPIO68_L_FCLK        34
+#define         GPIO67_L_LCLK        35
+#define         USBOTG_DP            36
+#define         USBOTG_DM            37
+#define         AUXLF                38
+#define         MIC_SUB_MF           39
+#define         ADCIN4               40
+#define         AUXRF                41
+#define         PWM0                 42
+#define         GPIO69_L_BIAS        43
+#define         GPIO86_L_DD16        44
+#define         GPIO90_L_DD20        45
+#define         USBOTG_ID            46
+#define         GPIO170_HDQ_1WIRE    47
+#define         ADCIN3               48
+#define         PWM1                 49
+#define         AGND                 50
+#define         ADCIN5               51
+#define         VBACKUP              52
+#define         ADCIN6               53
+#define         USBOTG_VBUS          54
+#define         GPIO145_GPT10_PWM    55
+#define         GND                  56
+#define         MIC_MAIN_MF          57
+#define         ADCIN2               58
+#define         SYSEN                59
+#define         GPIO82_L_DD12        60
+#define         GPIO93_L_DD23        61
+#define         TV_OUT2              62
+#define         TV_OUT1              63
+#define         ADCIN7               64
+#define         POWERON              65
+#define         VSYSTEM              66
+#define         VSYSTEM              67
+#define         HSOLF                68
+#define         HSORF                69
+#define         GND                  70
+
+        //Connector J4 (70-pin): Extended Memory Bus & MMC Signals
+        ///////  SIGNAL                 PIN
+#define VSYSTEM               71
+#define VSYSTEM               72
+#define GND                   73
+#define EM_NCS5_ETH0          74
+#define EM_NCS4               75
+#define EM_NWE                76
+#define EM_NADV_ALE           77
+#define EM_NOE                78
+#define GPIO65_ETH1_IRQ1      79
+#define GPIO64_ETH0_NRESET    80
+#define EM_A2                 81
+#define EM_A8                 82
+#define EM_A5                 83
+#define EM_A7                 84
+#define EM_D2                 85
+#define EM_D10                86
+#define EM_D3                 87
+#define EM_D11                88
+#define EM_D4                 89
+#define EM_D12                90
+#define EM_D5                 91
+#define EM_D15                92
+#define GPIO13_MMC3_CMD       93
+#define GPIO148_TXD1          94
+#define GPIO176_ETH0_IRQ      95
+#define GPIO18_MMC3_D0        96
+#define GPIO174_SPI1_CS0      97
+#define GPIO168_USBH_CPEN     98
+#define GPIO14_MMC3_DAT4      99
+#define GPIO21_MMC3_DAT7      100
+#define GPIO17_MMC3_D3        101
+#define USBH_VBUS             102
+#define GND                   103
+#define USBH_DP               104
+#define USBH_DM               105
+#define GPIO19_MMC3_D1        106
+#define GPIO22_MMC3_DAT6      107
+#define GPIO23_MMC3_DAT5      108
+#define GPIO20_MMC3_D2        109
+#define GPIO12_MMC3_CLK       110
+#define GPIO114_SPI1_NIRQ     111
+#define GPIO175_SPI1_CS1      112
+#define GPIO171_SPI1_CLK      113
+#define GPIO172_SPI1_MOSI     114
+#define GPIO173_SPI1_MISO     115
+#define _4030GP2_N_MMC3_CD     116
+#define GPIO150_MMC3_WP       117
+#define GPIO151_RXD1          118
+#define EM_D7                 119
+#define EM_D14                120
+#define EM_D6                 121
+#define EM_D13                122
+#define EM_D1                 123
+#define EM_D8                 124
+#define EM_D9                 125
+#define EM_D0                 126
+#define EM_A6                 127
+#define EM_A1                 128
+#define EM_A3                 129
+#define EM_A10                130
+#define EM_A4                 131
+#define EM_A9                 132
+#define EM_NWP                133
+#define EM_NCS1               134
+#define EM_NBE0               135
+#define EM_NCS0               136
+#define EM_NCS6               137
+#define EM_WAIT0              138
+#define EM_NBE1               139
+#define EM_CLK                140
+
+        // --------------------------------------------------------------------------
+        // Returns LAYOUT independent GPIO number 0-192 for Each Signal
+        // --------------------------------------------------------------------------
+
+        static unsigned igpioN_M_RESET()     { return MAP::pin140ToGPIO(N_MANUAL_RESET)     ;} 
+        static unsigned igpioEN_IO()         { return MAP::pin140ToGPIO(GPIO72_L_DD02)      ;}
+                                                      
+        static unsigned igpioPowerADC()      { return MAP::pin140ToGPIO(GPIO150_MMC3_WP)    ;} //PowerADC
+        static unsigned igpioADCSel1()       { return MAP::pin140ToGPIO(GPIO83_L_DD13)      ;} //ADCSel1
+        static unsigned igpioADCSel2()       { return MAP::pin140ToGPIO(GPIO77_L_DD07)      ;} //ADCSel2
+                                                      
+        static unsigned igpioEncoderEnable() { return MAP::pin140ToGPIO(GPIO71_L_DD01)      ;} //EncoderEnable
+                                                      
+        static unsigned igpioConsoleRXD()    { return MAP::pin140ToGPIO(GPIO165_IR_RXD3)    ;} //ConsoleRXD
+        static unsigned igpioConsoleTXD()    { return MAP::pin140ToGPIO(GPIO166_IR_TXD3)    ;} //ConsoleTXD
+                                                      
+        static unsigned igpioTP1()           { return MAP::pin140ToGPIO(GPIO69_L_BIAS)      ;}
+        static unsigned igpioTP2()           { return MAP::pin140ToGPIO(GPIO86_L_DD16)      ;}
+        static unsigned igpioTP3()           { return MAP::pin140ToGPIO(GPIO90_L_DD20)      ;}
+        static unsigned igpioTP4()           { return MAP::pin140ToGPIO(GPIO170_HDQ_1WIRE)  ;}
+        static unsigned igpioTP5()           { return MAP::pin140ToGPIO(GPIO145_GPT10_PWM)  ;}
+        static unsigned igpioTP6()           { return MAP::pin140ToGPIO(GPIO82_L_DD12)      ;}
+        static unsigned igpioTP7()           { return MAP::pin140ToGPIO(GPIO93_L_DD23)      ;}
+
+        // usb otg ? 
+        static unsigned igpioUSBReset()      { return MAP::pin140ToGPIO(GPIO74_L_DD04)      ;} //USBReset
+        static unsigned igpioUSBOff1()       { return MAP::pin140ToGPIO(GPIO14_MMC3_DAT4)   ;} //USB1EnableBar
+        static unsigned igpioUSBOff2()       { return MAP::pin140ToGPIO(GPIO18_MMC3_D0)     ;} //USB2EnableBar
+        static unsigned igpioUSBOff3()       { return MAP::pin140ToGPIO(GPIO80_L_DD10)      ;} //USB3EnableBar
+        static unsigned igpioUSBOff4()       { return MAP::pin140ToGPIO(GPIO_10)            ;} //USB4EnableBar
+        static unsigned igpioUSBOff5()       { return MAP::pin140ToGPIO(GPIO78_L_DD08)      ;} //USB5EnableBar
+        static unsigned igpioUSBOff6()       { return MAP::pin140ToGPIO(GPIO12_MMC3_CLK)    ;} //USB6EnableBar
+        static unsigned igpioUSBOff7()       { return MAP::pin140ToGPIO(GPIO17_MMC3_D3)     ;} //USB7EnableBar
+                                                      
+        static unsigned igpioMS1()           { return MAP::pin140ToGPIO(GPIO146_GPT11_PWM)  ;} //DRMS1
+        static unsigned igpioMS2()           { return MAP::pin140ToGPIO(GPIO85_L_DD15)      ;} //DRMS2
+        static unsigned igpioPwrIncBar()     { return MAP::pin140ToGPIO(GPIO175_SPI1_CS1)   ;} //DRPowerIncreaseBar
+        static unsigned igpioSR()            { return MAP::pin140ToGPIO(GPIO91_L_DD21)      ;} //DRSRBar
+        static unsigned igpioReset()         { return MAP::pin140ToGPIO(GPIO147_GPT8_PWM)   ;} //DRResetBar
+        static unsigned igpioSleep()         { return MAP::pin140ToGPIO(GPIO84_L_DD14)      ;} //DRSleepBar
+                                                      
+        static unsigned igpioStep1()         { return MAP::pin140ToGPIO(GPIO67_L_LCLK)      ;} //DR1Step
+        static unsigned igpioStep2()         { return MAP::pin140ToGPIO(GPIO66_L_PCLK)      ;} //DR2Step
+        static unsigned igpioStep3()         { return MAP::pin140ToGPIO(GPIO88_L_DD18)      ;} //DR3Step
+        static unsigned igpioStep4()         { return MAP::pin140ToGPIO(GPIO_186)           ;} //DR4Step
+        static unsigned igpioStep5()         { return MAP::pin140ToGPIO(GPIO145_GPT10_PWM)  ;} //DR5Step
+        static unsigned igpioStep6()         { return MAP::pin140ToGPIO(GPIO23_MMC3_DAT5)   ;} //DR6Step
+                                                      
+        static unsigned igpioDir1()          { return MAP::pin140ToGPIO(GPIO76_L_DD06)      ;} //DR1Dir
+        static unsigned igpioDir2()          { return MAP::pin140ToGPIO(GPIO79_L_DD09)      ;} //DR2Dir
+        static unsigned igpioDir3()          { return MAP::pin140ToGPIO(GPIO87_L_DD17)      ;} //DR3Dir
+        static unsigned igpioDir4()          { return MAP::pin140ToGPIO(GPIO144_GPT9_PWM)   ;} //DR4Dir
+        static unsigned igpioDir5()          { return MAP::pin140ToGPIO(GPIO70_L_DD00)      ;} //DR5Dir
+        static unsigned igpioDir6()          { return MAP::pin140ToGPIO(GPIO20_MMC3_D2)     ;} //DR6Dir
+                                                      
+        static unsigned igpioEnable1()       { return MAP::pin140ToGPIO(GPIO68_L_FCLK)      ;} //DR1EnableBar
+        static unsigned igpioEnable2()       { return MAP::pin140ToGPIO(GPIO73_L_DD03)      ;} //DR2EnableBar
+        static unsigned igpioEnable3()       { return MAP::pin140ToGPIO(GPIO89_L_DD19)      ;} //DR3EnableBar
+        static unsigned igpioEnable4()       { return MAP::pin140ToGPIO(GPIO81_L_DD11)      ;} //DR4EnableBar
+        static unsigned igpioEnable5()       { return MAP::pin140ToGPIO(GPIO92_L_DD22)      ;} //DR5EnableBar
+        static unsigned igpioEnable6()       { return MAP::pin140ToGPIO(GPIO75_L_DD05)      ;} //DR6EnableBar
+                                                      
+        static unsigned igpioSPI_Tx()        { return MAP::pin140ToGPIO(GPIO172_SPI1_MOSI)  ;} 
+        static unsigned igpioSPI_Rx()        { return MAP::pin140ToGPIO(GPIO173_SPI1_MISO)  ;}
+        static unsigned igpioSPI_Sclk()      { return MAP::pin140ToGPIO(GPIO171_SPI1_CLK)   ;}
+        static unsigned igpioSPI_SFRM_bar()  { return MAP::pin140ToGPIO(GPIO174_SPI1_CS0)   ;}
+
+        // Returns Motor Direction Control Pin GPIO Number for a given idrive
+        static unsigned igpioDir(const unsigned idrive) {
+            static const unsigned igpio[] = { 
+                igpioDir1(),
+                igpioDir2(),
+                igpioDir3(),
+                igpioDir4(),
+                igpioDir5(),
+                igpioDir6()
+            };
+            return igpio[idrive];
+        }
+
+        // Returns Motor Step Pin GPIO Number for a given idrive
+        static unsigned igpioStep(const unsigned idrive) {
+            static const unsigned igpio[] = { 
+                igpioStep1(),
+                igpioStep2(),
+                igpioStep3(),
+                igpioStep4(),
+                igpioStep5(),
+                igpioStep6()
+            };
+            return igpio[idrive];
+        }
+
+
+        // Returns Motor Enable Pin GPIO Number for a given idrive
+        static unsigned igpioEnable(const unsigned idrive) {
+            static const unsigned igpio[] = { 
+                igpioEnable1(),
+                igpioEnable2(),
+                igpioEnable3(),
+                igpioEnable4(),
+                igpioEnable5(),
+                igpioEnable6()
+            };
+            return igpio[idrive];
+        }
+
+        // Returns USB Power Enable Pin GPIO Number for a given iusb
+        static unsigned igpioUSBOff(const unsigned iusb) {
+            static const unsigned igpio[] = { 
+                igpioUSBOff1(),
+                igpioUSBOff2(),
+                igpioUSBOff3(),
+                igpioUSBOff4(),
+                igpioUSBOff5(),
+                igpioUSBOff6(),
+                igpioUSBOff7()
+            };
+            return igpio[iusb];
+        }
+
+        // --------------------------------------------------------------------------
+        // Pin configuration
+        // --------------------------------------------------------------------------
+
+        struct PinConf
+        {
+            unsigned                ipin;
+            int                     igpio;
+            int                     dir;
+            bool                    val;
+        };
+
+        //Configure Input/Output directions for GPIOs
+#define DC140(IPIN,DIR,FN,VAL) { IPIN, MAP::pin140ToGPIO(IPIN), DIR, VAL }
+
+        static unsigned pin140Conf(const PinConf*& C)
+        {
+            static const PinConf PC[] = 
+            { 
+                DC140(GPIO144_GPT9_PWM            , GPIODIR_OUT, 0,   0),
+                //DC60(PIN60_DR_SR_BAR            , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR_MS1               , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_DR_MS2               , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_DR_SLEEP_BAR         , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR_RESET_BAR         , GPIODIR_OUT, GPIOFN_IO,   1),
+
+                //DC60(PIN60_ADC_SEL1             , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_ADC_SEL2             , GPIODIR_OUT, GPIOFN_IO,   1),
+
+                //DC60(PIN60_USB_RESET            , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_USB_OTG              , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_USB1_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_USB2_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_USB3_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_USB4_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_USB5_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_USB6_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_USB7_ENABLE_BAR      , GPIODIR_OUT, GPIOFN_IO,   1),
+
+                ////	DC60(PIN60_I2C_SCL              , GPIODIR_IN,  GPIOFN_ALT1, 0),
+                ////	DC60(PIN60_I2C_SDA              , GPIODIR_IN,  GPIOFN_ALT1, 0),
+
+                //DC60(PIN60_SSP_CLK_PIN          , GPIODIR_OUT, GPIOFN_ALT1, 0),
+                //DC60(PIN60_SSP_FRM_PIN          , GPIODIR_OUT, GPIOFN_ALT3, 0),
+                //DC60(PIN60_SSP_TXD_PIN          , GPIODIR_OUT, GPIOFN_ALT1, 0),
+                //DC60(PIN60_SSP_RXD_PIN          , GPIODIR_IN,  GPIOFN_ALT1, 0),
+
+                //	DC60(PIN60_CONSOLE_RXD          , GPIODIR_IN,  GPIOFN_ALT1, 0),
+                //	DC60(PIN60_CONSOLE_TXD          , GPIODIR_OUT, GPIOFN_ALT2, 0),
+
+                //DC60(PIN60_DR_POWER_INC_BAR     , GPIODIR_OUT, GPIOFN_IO,   1),
+                //DC60(PIN60_ENCODER_ENABLE       , GPIODIR_OUT, GPIOFN_IO,   0),
+
+                //DC60(PIN60_DR6_DIR    VerdexXM4          , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR6_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR6_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
+
+                //DC60(PIN60_DR5_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR5_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR5_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
+
+                //DC60(PIN60_DR4_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR4_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR4_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
+
+                //DC60(PIN60_DR3_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR3_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR3_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
+
+                //DC60(PIN60_DR2_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR2_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR2_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
+
+                //DC60(PIN60_DR1_DIR              , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR1_STEP             , GPIODIR_OUT, GPIOFN_IO,   0),
+                //DC60(PIN60_DR1_ENABLE_BAR       , GPIODIR_OUT, GPIOFN_IO,   1),
+
+                //DC60(PIN60_POWER_ADC            , GPIODIR_OUT, GPIOFN_IO,   0),
+
+                //DC60(PIN60_UNUSED_9             , GPIODIR_IN,  GPIOFN_IO,   0),
+                //DC60(PIN60_UNUSED_10            , GPIODIR_IN,  GPIOFN_IO,   0),
+                //DC60(PIN60_UNUSED_12            , GPIODIR_IN,  GPIOFN_IO,   0),
+            };
+
+            C = PC;
+            return N(PC);
+        }
+};
+
 
 #endif // ndef LAYOUT_HPP
