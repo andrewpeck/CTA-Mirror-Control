@@ -18,7 +18,7 @@
 // x= 0 to 1 for MCSPI2 and MCSPI3.
 // x= 0      for MCSPI4.
 // in software let's enumerate these lines: 0,1,2,3,4,5,6,7,8
-
+//                            [0 1 2 3 4 5 6 7 8]
 static const int channel[] =  {0,1,2,3,0,1,0,1,0}; 
 
 class MappedRegisters
@@ -132,8 +132,7 @@ class MappedRegisters
         }
 
         static off_t physGPIOFallEdge(const unsigned ipin) {
-            __OFFSET2ADRGPIO(ipin,gpio_offset_fallingdetect());
-        }
+            __OFFSET2ADRGPIO(ipin,gpio_offset_fallingdetect()); }
 
         // need to figure out what this does....
         //static off_t physGPIOAltFunc(const unsigned ipin) { 
@@ -169,22 +168,22 @@ class MappedRegisters
         static off_t physBaseMCSPI4()             { return 0x480BA000; }
 
 
-        static off_t mcspi_offset_revision()     { return 0x00;}
-        static off_t mcspi_offset_sysconfig()    { return 0x10;}
-        static off_t mcspi_offset_sysstatus()    { return 0x14;}
-        static off_t mcspi_offset_irqstatus()    { return 0x18;}
-        static off_t mcspi_offset_irqenable()    { return 0x1C;}
-        static off_t mcspi_offset_wakeupenable() { return 0x20;}
-        static off_t mcspi_offset_syst()         { return 0x24;}
-        static off_t mcspi_offset_modulctrl()    { return 0x28;}
+        static off_t mcspi_offset_revision()      { return 0x00; }
+        static off_t mcspi_offset_sysconfig()     { return 0x10; }
+        static off_t mcspi_offset_sysstatus()     { return 0x14; }
+        static off_t mcspi_offset_irqstatus()     { return 0x18; }
+        static off_t mcspi_offset_irqenable()     { return 0x1C; }
+        static off_t mcspi_offset_wakeupenable()  { return 0x20; }
+        static off_t mcspi_offset_syst()          { return 0x24; }
+        static off_t mcspi_offset_modulctrl()     { return 0x28; }
 
-        static off_t mcspi_offset_chconf_base()  { return 0x2C;}
-        static off_t mcspi_offset_chstat_base()  { return 0x30;}
-        static off_t mcspi_offset_chctrl_base()  { return 0x34;}
-        static off_t mcspi_offset_tx_base()      { return 0x38;}
-        static off_t mcspi_offset_rx_base()      { return 0x3C;}
+        static off_t mcspi_offset_chconf_base()   { return 0x2C; }
+        static off_t mcspi_offset_chstat_base()   { return 0x30; }
+        static off_t mcspi_offset_chctrl_base()   { return 0x34; }
+        static off_t mcspi_offset_tx_base()       { return 0x38; }
+        static off_t mcspi_offset_rx_base()       { return 0x3C; }
 
-        static off_t mcspi_offset_xferlevel()    { return 0x7C;}
+        static off_t mcspi_offset_xferlevel()     { return 0x7C; }
 
         static off_t physMCSPI_revision(const unsigned ispi) {
             __OFFSET2ADRMCSPI(ispi,mcspi_offset_revision()); 
@@ -211,6 +210,14 @@ class MappedRegisters
         }
 
         static off_t physMCSPI_syst(const unsigned ispi) {
+            __OFFSET2ADRMCSPI(ispi,mcspi_offset_syst()); 
+        }
+
+        static off_t physMCSPI_tx(const unsigned ispi) {
+            __OFFSET2ADRMCSPI(ispi,mcspi_offset_syst()); 
+        }
+
+        static off_t physMCSPI_rx(const unsigned ispi) {
             __OFFSET2ADRMCSPI(ispi,mcspi_offset_syst()); 
         }
 
@@ -255,29 +262,42 @@ class MappedRegisters
 
         //static off_t mapBaseClock()     { return physBaseClock() & mapMask(); }
 
-        static off_t mapBaseMCSPI1()   { return physBaseMCSPI1() & mapMask(); }
-        static off_t mapBaseMCSPI2()   { return physBaseMCSPI2() & mapMask(); }
-        static off_t mapBaseMCSPI3()   { return physBaseMCSPI3() & mapMask(); }
-        static off_t mapBaseMCSPI4()   { return physBaseMCSPI4() & mapMask(); }
+        static off_t mapBaseMCSPI1()    { return physBaseMCSPI1() & mapMask(); }
+        static off_t mapBaseMCSPI2()    { return physBaseMCSPI2() & mapMask(); }
+        static off_t mapBaseMCSPI3()    { return physBaseMCSPI3() & mapMask(); }
+        static off_t mapBaseMCSPI4()    { return physBaseMCSPI4() & mapMask(); }
 
         // --------------------------------------------------------------------------
         // Generic Functions for Mapped Addresses
         // --------------------------------------------------------------------------
 
-        static off_t phys2Offset(off_t phys, off_t map_base_phys) {
-            return phys - map_base_phys; }
+        //static off_t phys2Offset(off_t phys, off_t map_base_phys) {
+        //    return phys - map_base_phys; }
 
-        template<typename T> static volatile T* offset2Virt(off_t map_offset, volatile void* map_base_virt) {
-            return reinterpret_cast<volatile T*>(static_cast<volatile uint8_t*>(map_base_virt) + map_offset); }
+        //template<typename T> static volatile T* offset2Virt(off_t map_offset, volatile void* map_base_virt) {
+        //    return reinterpret_cast<volatile T*>(static_cast<volatile uint8_t*>(map_base_virt) + map_offset); }
 
-        static volatile uint32_t* offset2Virt32(off_t map_offset, volatile void* map_base_virt) {
-            return offset2Virt<uint32_t>(map_offset, map_base_virt); }
+        //static volatile uint32_t* offset2Virt32(off_t map_offset, volatile void* map_base_virt) {
+        //    return offset2Virt<uint32_t>(map_offset, map_base_virt); }
 
-        template<typename T> static volatile T* phys2Virt(off_t phys, volatile void* map_base_virt, off_t map_base_phys) {
-            return offset2Virt<T>(phys2Offset(phys, map_base_phys), map_base_virt); }
+        //template<typename T> static volatile T* phys2Virt(off_t phys, volatile void* map_base_virt, off_t map_base_phys) {
+        //    return offset2Virt<T>(phys2Offset(phys, map_base_phys), map_base_virt); }
 
+        //static volatile uint32_t* phys2Virt32(off_t phys, volatile void* map_base_virt, off_t map_base_phys) {
+        //    return phys2Virt<uint32_t>(phys, map_base_virt, map_base_phys); }
+
+        // Takes Physical Address and Returns pointer to memory mapped virtual address
         static volatile uint32_t* phys2Virt32(off_t phys, volatile void* map_base_virt, off_t map_base_phys) {
-            return phys2Virt<uint32_t>(phys, map_base_virt, map_base_phys); }
+            static off_t map_offset; 
+            static volatile uint32_t* adr_virtual; 
+
+            map_offset = phys - map_base_phys; 
+            //printf("\nmap_offset: %02X", map_offset); 
+            adr_virtual = reinterpret_cast<volatile uint32_t*>(static_cast<volatile uint8_t*>(map_base_virt) + map_offset);
+            //printf("\nadr_virtual: %04X", adr_virtual); 
+
+            return adr_virtual; 
+        }
 
         // --------------------------------------------------------------------------
         // Functions to return pointers to mapped Clock registers
@@ -307,12 +327,8 @@ class MappedRegisters
 
         // Returns Virtual (memory mapped) address for a given GPIO pin 
         volatile uint32_t* phys2VirtGPIO32(off_t phys, const unsigned ipin) {
-            if (ipin<32) {
-                //printf("\nPhysical Address: %08X\n", phys); 
-                //printf("\nm_gpio_base : %08X\n", m_gpio1_base); 
-                //printf("\nMapBaseGPIO1: %08X\n", mapBaseGPIO1()); 
-                return phys2Virt32(phys,m_gpio1_base,mapBaseGPIO1());
-            }
+            if (ipin<32) 
+                return phys2Virt32(phys,m_gpio1_base,mapBaseGPIO1()); 
             else if (ipin<64)
                 return phys2Virt32(phys,m_gpio2_base,mapBaseGPIO2());
             else if (ipin<96)
@@ -336,21 +352,16 @@ class MappedRegisters
         }
 
         volatile uint32_t* ptrGPIOSetLevel(const unsigned ipin) { 
-            return phys2VirtGPIO32(physGPIOSetLevel(ipin),ipin); }
+            return phys2VirtGPIO32(physGPIOSetLevel(ipin),ipin); 
+        }
 
         volatile uint32_t* ptrGPIORiseEdge(const unsigned ipin) {
-            return phys2VirtGPIO32(physGPIORiseEdge(ipin),ipin); }
+            return phys2VirtGPIO32(physGPIORiseEdge(ipin),ipin); 
+        }
 
         volatile uint32_t* ptrGPIOFallEdge(const unsigned ipin) {
-            return phys2VirtGPIO32(physGPIOFallEdge(ipin),ipin); }
-
-        // unused ? 
-        //volatile uint32_t* ptrGPIOEdgeStat(const unsigned ipin) {
-        //return phys2VirtGPIO32(physGPIOEdgeStat(ipin)); }
-
-        //find out what this does
-        //volatile uint32_t* ptrGPIOAltFunc(const unsigned ipin) { 
-        //return phys2VirtGPIO32(physGPIOAltFunc(ipin)); }
+            return phys2VirtGPIO32(physGPIOFallEdge(ipin),ipin); 
+        }
 
         void gpioSetLevel(const unsigned ipin) {
             *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | Bits::mask1Bit(ipin); 
@@ -365,44 +376,66 @@ class MappedRegisters
         // Functions to return pointers to mapped SSP registers
         // --------------------------------------------------------------------------
 
-        //volatile uint32_t* phys2VirtMCSPI32(off_t phys, const unsigned ispi) {
-        //    if (ispi<4)
-        //        return phys2Virt32(phys,m_mcspi1_base,mapBaseSPI1());
-        //    else if (ispi<6)       
-        //        return phys2Virt32(phys,m_mcspi2_base,mapBaseSPI2());
-        //    else if (ispi<8)       
-        //        return phys2Virt32(phys,m_mcspi3_base,mapBaseSPI3());
-        //    else if (ispi=8)       
-        //        return phys2Virt32(phys,m_mcspi4_base,mapBaseSPI4());
-        //}
+        volatile uint32_t* phys2VirtMCSPI32(off_t adr_physical, const unsigned ispi) {
+            if (ispi<4)                     // Module 1 (Channels 0-3)
+                return phys2Virt32(adr_physical,m_mcspi1_base,mapBaseMCSPI1());
+            else if (ispi<6) {              // Module 2 (Channels 0,1,2)
+                //printf("\nm_mcspi2_base: %04X", m_mcspi2_base);
+                //printf("\nmapBaseMCSPI2: %04X", mapBaseMCSPI2());
+                return phys2Virt32(adr_physical,m_mcspi2_base,mapBaseMCSPI2());
+            }
+            else if (ispi<8)                // Module 3 (Channel 0,1)
+                return phys2Virt32(adr_physical,m_mcspi3_base,mapBaseMCSPI3());
+            else if (ispi==8)               // Module 4 (Channel 0)
+                return phys2Virt32(adr_physical,m_mcspi4_base,mapBaseMCSPI4());
+            else  
+                return 0;
+        }
 
-        //volatile uint32_t* ptrMCSPI_sysconfig(const unsigned ispi) {
-        //    return phys2VirtMCSPI32(physMCSPI_sysconfig(ispi),ispi); }
+        volatile uint32_t* ptrMCSPI_sysconfig(const unsigned ispi) {
+            return phys2VirtMCSPI32(physMCSPI_sysconfig(ispi),ispi); 
+        }
 
-        //volatile uint32_t* ptrMCSPI_wakeupenable(const unsigned ispi) {
-        //    return phys2VirtMCSPI32(physMCSPI_wakeupenable(ispi),ispi); }
+        volatile uint32_t* ptrMCSPI_wakeupenable(const unsigned ispi) {
+            return phys2VirtMCSPI32(physMCSPI_wakeupenable(ispi),ispi);
+        }
 
-        //volatile uint32_t* ptrMCSPI_modulctrl(const unsigned ispi) {
-        //    return phys2VirtMCSPI32(physMCSPI_modulctrl(ispi),ispi); }
+        volatile uint32_t* ptrMCSPI_modulctrl(const unsigned ispi) {
+            return phys2VirtMCSPI32(physMCSPI_modulctrl(ispi),ispi); 
+        }
 
-        //volatile uint32_t* ptrMCSPI_chconf(const unsigned issp) {
-        //    return phys2VirtMCSPI32(physMCSPI_chconf(ispi),ispi); }
+        volatile uint32_t* ptrMCSPI_chconf(const unsigned ispi) {
+            //printf("\nAddresses: ");
+            uint32_t  adr_physical = physMCSPI_chconf(ispi); 
+            //printf("\nPhysical Address: %04X", adr_physical);
+            //printf("\nispi            : %i", ispi);
+            volatile uint32_t* adr_virtual  = phys2VirtMCSPI32(adr_physical,ispi);
+            //printf("\nVirtual Address: %04X", adr_virtual);
+            return adr_virtual; 
+        }
 
-        //volatile uint32_t* ptrMCSPI_chstat(const unsigned issp) {
-        //    return phys2VirtMCSPI32(physMCSPI_chstat(ispi),ispi); }
+        volatile uint32_t* ptrMCSPI_chstat(const unsigned ispi) {
+            return phys2VirtMCSPI32(physMCSPI_chstat(ispi),ispi);
+        }
 
-        //volatile uint32_t* ptrMCSPI_chctrl(const unsigned issp) {
-        //    return phys2VirtMCSPI32(physMCSPI_chctrl(ispi),ispi); }
+        volatile uint32_t* ptrMCSPI_chctrl(const unsigned ispi) {
+            return phys2VirtMCSPI32(physMCSPI_chctrl(ispi),ispi);
+        }
 
-        //volatile uint32_t* ptrMCSPI_tx(const unsigned issp) {
-        //    return phys2VirtMCSPI32(physMCSPI_tx(ispi),ispi); }
+        volatile uint32_t* ptrMCSPI_tx(const unsigned ispi) {
+            return phys2VirtMCSPI32(physMCSPI_tx(ispi),ispi);
+        }
 
-        //volatile uint32_t* ptrMCSPI_rx(const unsigned issp) {
-        //    return phys2VirtMCSPI32(physMCSPI_rx(ispi),ispi); }
+        volatile uint32_t* ptrMCSPI_rx(const unsigned ispi) {
+            return phys2VirtMCSPI32(physMCSPI_rx(ispi),ispi);
+        }
+
+        volatile uint32_t* ptrMCSPI_irqstatus(const unsigned ispi) {
+            return phys2VirtMCSPI32(physMCSPI_irqstatus(ispi),ispi);
+        }
 
     private:
-        volatile void* makeMap(volatile void*& virtual_addr, off_t physical_addr, 
-                size_t length = mapSize());
+        volatile void* makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length = mapSize());
 
         int             m_mmap_fd;
 
@@ -413,16 +446,15 @@ class MappedRegisters
         volatile void*  m_gpio5_base;
         volatile void*  m_gpio6_base;
 
-        //volatile void*  m_mcspi1_base;
-        //volatile void*  m_mcspi2_base;
-        //volatile void*  m_mcspi3_base;
-        //volatile void*  m_mcspi4_base;
+        volatile void*  m_mcspi1_base;
+        volatile void*  m_mcspi2_base;
+        volatile void*  m_mcspi3_base;
+        volatile void*  m_mcspi4_base;
 
         //volatile void*  m_clock_base;
 };
 
-class SimulatedRegisters: private Bits
-{
+class SimulatedRegisters: private Bits {
     public:
         SimulatedRegisters()
         {

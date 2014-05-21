@@ -288,45 +288,218 @@ class Overo: public OveroBase, public REV, public REG {
         // SSP utility functions
         // --------------------------------------------------------------------------
 
-        //bool sspConfigure(unsigned issp, 
-        //        unsigned serial_clock_rate = 1,
-        //        unsigned data_size = 32,
-        //        SSPFrameFormat frame_format = SSP_FF_SPI,
-        //        uint32_t flags = SSP_FLAG_NONE,
-        //        SSPClockSelect clock_source = SSP_CS_INTERNAL,
-        //        uint32_t rx_fifo_threshold = 1,
-        //        uint32_t tx_fifo_threshold = 1,
-        //        uint32_t network_mode_frame_rate_divider = 0,
-        //        uint32_t psp_dmystop = 0,
-        //        uint32_t psp_sfrmwdth = 1,
-        //        uint32_t psp_sfrmdly = 0,
-        //        uint32_t psp_dmystrt = 0,
-        //        uint32_t psp_strtdly = 0,
-        //        SSPPSPSerialClockMode psp_clock_mode = SSP_PSP_SCMODE_FRL,
-        //        uint32_t psp_flags = SSP_PSP_FLAG_NONE);
+        void spiConfigure (int ispi, unsigned clk_phase, bool clk_polarity, bool clk_div, bool epol, int word_length) {
+            uint32_t data = 0x0000; 
 
-        //void sspEnable(unsigned issp, bool enable = true) {
-        //    if(enable) {
-        //        clockEnableSSP(issp);
-        //        *REG::ptrSSPControl0(issp) |= (0x1<<7);
-        //    }
-        //    else {
-        //        *REG::ptrSSPControl0(issp) &= ~(0x1<<7);
-        //        clockDisableSSP(issp);
-        //    }
+            // Set Clock Phase
+            data |= (clk_phase<<0);
+
+            // Set Clock Polarity
+            data |= (clk_polarity << 1);
+
+            // Set Clock Rate (1 = 48 Mhz)
+            data |= (clk_div<<2);
+            
+            // Set CS Polarity
+            // 0x0: spim_csx is held high during the active state.
+            // 0x1: spim_csx is held low during the active state.
+            data |= (epol<<6);
+
+            // Set SPI Word Length
+            // 0x1F = 32 bit length
+            data |= (word_length<<7);
+
+            // Set SPI Transmit/Receive Mode
+            // 0x0: Transmit and receive mode
+            // 0x1: Receive-only mode
+            // 0x2: Transmit-only mode
+            // 0x3: Reserved
+            data |= (0x00 << 12); 
+
+            // Set DMA Write Request
+            data |= (0x00 << 14); 
+            // Set DMA Read Request
+            data |= (0x00 << 15); 
+
+            // Transmission enable for data line 0 (spim_somi)
+            // 0x0: Data Line 0 (spim_somi) selected for transmission
+            // 0x1: No transmission on data Line 0 (spim_somi)
+            data |= (0x1 << 16); 
+
+            //Transmission enable for data line 1 (spim_simo)
+            // 0x0: Data Line 1 (spim_simo) selected for transmission
+            // 0x1: No transmission on data Line 1 (spim_simo)
+            data |= (0x0 << 17); 
+
+            //Input Select
+            //0x0: Data Line 0 (spim_somi) selected for reception
+            //0x1: Data Line 1 (spim_simo) selected for reception
+            data |= (0x1 << 18); 
+
+            //Turbo Mode
+            //0x0: Turbo is deactivated (recommended for single SPI word transfer)
+            //0x1: Turbo is activated to maximize the throughput for multi-SPI word transfers.
+            data |= (0x0 << 19); 
+
+            //Force
+            //Manual spim_csx assertion to keep spim_csx for channel x active 
+            //between SPI words (single channel master mode only). The
+            //MCSPI_MODULCTRL[0] SINGLE bit must bit set to 1.
+            //0x0: Writing 0 into this bit drives the spin_csx line low for
+            //     channel x when MCSPI_CHxCONF [6] EPOL = 0, and
+            //     drives it high when MCSPI_CHxCONF[6] EPOL = 1.
+            //0x1: Writing 1 into this bit drives the spim_csx line high for
+            //     channel x when MCSPI_CHxCONF[E6] EPOL = 0, and
+            //     drives it low when MCSPI_CHxCONF[6] EPOL = 1.
+            data |= (0x0 << 20); 
+
+            //Reserved Bits
+            data |= (0x0 << 21); 
+            data |= (0x0 << 22); 
+
+            //Start bit enable for SPI transfer
+            //0x0: Default SPI transfer length as specified by WL bit field
+            //0x1: Start bit D/CX added before SPI transfer. Polarity is
+            //     defined by MCSPI_CHxCONF[SBPOL].
+            data |= (0x0 << 23); 
+
+            //Start bit polarity RW 0x0
+            //0x0: Start bit polarity is held to 0 during SPI transfer.
+            //0x1: Start bit polarity is held to 1 during SPI transfer.
+            data |= (0x0 << 24); 
+
+            //Chip select time control
+            //Defines the number of interface clock cycles between CS toggling
+            //and first (or last) edge of SPI clock.
+            //0x0: 0.5 clock cycle
+            //0x1: 1.5 clock cycles
+            //0x2: 2.5 clock cycles
+            //0x3: 3.5 clock cycles
+            data |= (0x00 << 25); 
+
+            //FIFO enabled for Transmit. Only one channel can have this bit field set.
+            //0x0: The buffer is not used to Transmit data
+            //0x1: The buffer is used to Transmit data
+            data |= (0x00 << 27); 
+
+            //FIFO enabled for Receive. Only one channel can have this bit RW 0x0
+            //field set.
+            //0x0: The buffer is not used to Receive data
+            //0x1: The buffer is used to Receive data
+            data |= (0x00 << 28); 
+
+            //Clock divider granularity. This register defines the granularity of RW 0x0
+            //channel clock divider: power of two or one clock cycle granularity.
+            //When this bit is set, the MCSPI_CHxCTRL[15:8] EXTCLK bit field
+            //must be configured to reach a maximum of 4096 clock divider
+            //ratio. Then the clock divider ratio is a concatenation of
+            //MCSPI_CHxCONF[5:2] CLKD and EXTCLK values.
+            //0x0: Clock granularity of power of two
+            //0x1: One clock cycle ganularity
+            data |= (0x0 << 29); 
+
+            //Reserved Bits
+            data |= (0x00 << 30); 
+
+            //printf("\nData to Write: 0x%04X", data); 
+            
+            // Write Data To Register
+            //*REG::ptrMCSPI_chconf(ispi); 
+            //= data; 
+            printf("\nData Written to Bus: 0x%04X", data); 
+
+            data = *REG::ptrMCSPI_chconf(ispi); 
+            //printf("\nData on Bus: 0x%04X", data); 
+        }
+
+        //In multichannel, only one channel can use the FIFO. Before enabling the FIFO for a channel (FFExW and
+        //FFExR bits in the MCSPI_CHx_CONF register), the host must ensure that the FIFO is not enabled for
+        //another channel, even if these channels are not used.
+        void disableAllFIFOs() {
+            uint32_t data = 0x0000; 
+            data |= ~(0x1 << 27); 
+            data |= ~(0x1 << 28); 
+            data = ~data; 
+
+            for (int ispi=0; ispi<=8; ispi++) {
+                *REG::ptrMCSPI_chconf(ispi) &= data; 
+            }
+        }
+
+        //TransmitReceiveNoWordCount
+        uint32_t spiWriteRead (unsigned ispi, uint32_t wr_data) {
+            uint32_t rd_data=0; 
+
+            //Start Channel
+            *REG::ptrMCSPI_chctrl(ispi) |= 0x1;
+
+            //Read MCSPI_CHxStat
+            while (!spiEndofTransfer(ispi) && !spiTxFIFOisEmpty(ispi)) {
+                if (spiTxFIFOisEmpty(ispi)) {
+                    //write write_request_size words to MCSPI_TXx
+                    *REG::ptrMCSPI_tx(ispi)=wr_data; 
+                }
+                else {
+                    if (spiRxFIFOisFull(ispi)) 
+                        rd_data = *REG::ptrMCSPI_rx(ispi); 
+                }
+            }
+
+            //Stop Channel
+            *REG::ptrMCSPI_chctrl(ispi) &= 0x0; 
+
+            return rd_data; 
+        }
+
+        //void WriteData(unsigned ispi) {
+        //    uint32_t data = 0x0000; 
+        //    //Interrupt Initialization: 
+        //    //  1. Reset Status Bits in MCSPI_IRQSTATUS
+        //    *REG::ptrMCSPI_chconf(ispi) = 0x0000; 
+        //    //  2. Enable Interrupts in MCSPI_IRQENABLE
+        //    data = 0x0000; 
+        //    data |= 
+        //    *REG::ptrMCSPI_irqenable(ispi) = 0x0000; 
+
+
+
+        //    //Channel Configuration
+        //    //  1. Write MCSPI_CHXConf
+        //    //  2. Write MCSPI_XFERLEVEL
+
+        //    //Start Channel
+        //    //  1. Write 1 in MCSPI_CHXCtrl: ENx  
+        //    *REG::ptrMCSPI_chctrl(ispi) |= 0x1
+        //    //page 3036
+        //    
+        //    
+        //    data = *REG::ptrMCSPI_chstat(ispi); 
+        //    if (data 
+        //    //If Receive Only: 
+        //    //  1. Write Request (tx empty or dma write)
+        //    //  2. Transmit word: Write MCSPI_TXx
+
+        //    // see page 3033
+        //    // Host Event for the end of transfer
+        //    // Stop the channel: Write 0 in MCSPI_CHxCTRL: ENx
+        //    *REG::ptrMCSPI_chctrl(const unsigned issp) &= 0x0
         //}
 
-        //void sspDisable(unsigned issp) { 
-        //    sspEnable(issp,false);
-        //}
+        void spiEnable(unsigned ispi, bool enable = true) { 
+            if (enable) {
+                //clockEnableSSP(issp);
+                *REG::ptrMCSPI_chctrl(ispi) |= (0x1); 
+            }
+            else {
+                *REG::ptrMCSPI_chctrl(ispi) &= (0x0);
+                //clockDisableSSP(issp);
+            }
+        }
 
-        //void sspClearStatusBits(unsigned issp) {
-        //    *REG::ptrSSPStatus(issp) = (0x1<<23)|(0x1<<21)|(0x1<<20)|(0x1<<19)|(0x1<<18)|(0x1<<7);
-        //}
+        void spiDisable(unsigned ispi) { 
+            spiEnable(ispi,false);
+        }
 
-        //bool sspTestStatusBit(unsigned issp, unsigned ibit) {
-        //    return *REG::ptrSSPStatus(issp) & (0x1<<ibit);
-        //}
 
         //bool sspIsBitCountError(unsigned issp) { return sspTestStatusBit(issp,23); }
         //bool sspIsClockSynchBad(unsigned issp) { return sspTestStatusBit(issp,22); }
@@ -338,16 +511,30 @@ class Overo: public OveroBase, public REV, public REG {
         //bool sspIsRXServiceReqd(unsigned issp) { return sspTestStatusBit(issp,6); }
         //bool sspIsTXServiceReqd(unsigned issp) { return sspTestStatusBit(issp,5); }
         //bool sspIsBusy(unsigned issp) { return sspTestStatusBit(issp,4); }
-        //bool sspIsRXNotEmpty(unsigned issp) { return sspTestStatusBit(issp,3); }
-        //bool sspIsTXNotFull(unsigned issp) { return sspTestStatusBit(issp,2); }
+        
+        bool spiTestStatusBit(unsigned ispi, unsigned ibit) {
+            return *REG::ptrMCSPI_chstat(ispi) & (0x1<<ibit);
+        }
+
+        bool spiTxFIFOisFull  (unsigned ispi) { return spiTestStatusBit(ispi,4); }
+        bool spiTxFIFOisEmpty (unsigned ispi) { return spiTestStatusBit(ispi,3); }
+        bool spiRxFIFOisFull  (unsigned ispi) { return spiTestStatusBit(ispi,6); }
+        bool spiRxFIFOisEmpty (unsigned ispi) { return spiTestStatusBit(ispi,5); }
+        bool spiEndofTransfer (unsigned ispi) { return spiTestStatusBit(ispi,2); }
+        bool spiTxIsFull      (unsigned ispi) { return spiTestStatusBit(ispi,1); }
+        bool spiRxIsFull      (unsigned ispi) { return spiTestStatusBit(ispi,0); }
 
         //void sspGetTXRXLevels(unsigned issp, unsigned& ntx, unsigned& nrx)
         //{
-        //    unsigned val = *REG::ptrSSPStatus(issp);
-        //    if(val & (0x1<<3))nrx = ((val>>12)&0xF)+1;
-        //    else nrx = 16;
-        //    if(val & (0x1<<2))ntx = ((val>>8)&0xF);
-        //    else ntx = 16;
+        //  unsigned val = *REG::ptrSSPStatus(issp);
+        //  if(val & (0x1<<3))
+        //      nrx = ((val>>12)&0xF)+1;
+        //  else 
+        //      nrx = 16;
+        //  if(val & (0x1<<2))
+        //      ntx = ((val>>8)&0xF);
+        //  else 
+        //      ntx = 16;
         //}
 
         //unsigned sspGetRXLevel(unsigned issp)
@@ -414,33 +601,44 @@ class Overo: public OveroBase, public REV, public REG {
         //    return sspPollAndRead(issp);
         //}
 
-        //unsigned sspFlush(unsigned issp)
-        //{
-        //    unsigned nflush = 0;
-        //    do
-        //    {
-        //        volatile uint32_t dummy;
-        //        while(sspIsRXNotEmpty(issp))dummy = *REG::ptrSSPDataRW(issp), nflush++;
-        //    }while(sspIsBusy(issp));
-        //    return nflush;
-        //}
+        unsigned spiFlush(unsigned ispi) {
+            unsigned nflush = 0;
+            volatile uint32_t dummy;
+
+            //Start Channel
+            *REG::ptrMCSPI_chctrl(ispi) |= 0x1; 
+
+            // flush rx fifo
+            while(!spiRxFIFOisEmpty(ispi)) {
+                dummy = *REG::ptrMCSPI_rx(ispi); 
+                nflush++;
+            }
+
+            // flush tx fifo
+            while(!spiTxFIFOisEmpty(ispi)) {
+                dummy = *REG::ptrMCSPI_tx(ispi); 
+                nflush++;
+            }
+
+            //Stop Channel
+            *REG::ptrMCSPI_chctrl(ispi) &= 0x0; 
+
+            return nflush; 
+        }
 
         // --------------------------------------------------------------------------
         // Utility functions
         // --------------------------------------------------------------------------
 
-        void loopDelay(unsigned nloop) const
-        {
+        void loopDelay(unsigned nloop) const {
             for(volatile unsigned iloop=0;iloop<nloop;iloop++);
         }
 
-        void usecDelay(unsigned nusec) const
-        {
+        void usecDelay(unsigned nusec) const {
             loopDelay(nusec);
         }
 
-        uint64_t serialNumber() const
-        {
+        uint64_t serialNumber() const {
             std::ifstream stream("/proc/cpuinfo");
             if(!stream.good())return 0;
             std::string line;

@@ -29,31 +29,30 @@ MappedRegisters::MappedRegisters():
     m_gpio3_base(), 
     m_gpio4_base(), 
     m_gpio5_base(), 
-    m_gpio6_base() 
-    //m_mcspi1_base(), 
-    //m_mcspi2_base(), 
-    //m_mcspi3_base(),
-    //m_mcspi4_base(),
+    m_gpio6_base(),
+    m_mcspi1_base(), 
+    m_mcspi2_base(), 
+    m_mcspi3_base(),
+    m_mcspi4_base()
     //m_clock_base()
 {
     m_mmap_fd = open("/dev/mem", O_RDWR | O_SYNC);
-    if(m_mmap_fd<0) 
-    {
+    if(m_mmap_fd<0) {
         perror("open(\"/dev/mem\")");
         exit(EXIT_FAILURE);
     }
 
-    //      physical       virtual          function
+    //      virtual adr    physical adr     function
     MAKEMAP(m_gpio1_base,  mapBaseGPIO1(),  "GPIO1");
     MAKEMAP(m_gpio2_base,  mapBaseGPIO2(),  "GPIO2");
     MAKEMAP(m_gpio3_base,  mapBaseGPIO3(),  "GPIO3");
     MAKEMAP(m_gpio4_base,  mapBaseGPIO4(),  "GPIO4");
     MAKEMAP(m_gpio5_base,  mapBaseGPIO5(),  "GPIO4");
     MAKEMAP(m_gpio6_base,  mapBaseGPIO6(),  "GPIO6");
-    //MAKEMAP(m_mcspi1_base, mapBaseMCSPI1(),   "SSP1" );
-    //MAKEMAP(m_mcspi2_base, mapBaseMCSPI2(),   "SSP2" );
-    //MAKEMAP(m_mcspi3_base, mapBaseMCSPI3(),   "SSP3" );
-    //MAKEMAP(m_mcspi4_base, mapBaseMCSPI4(),   "SSP4" );
+    MAKEMAP(m_mcspi1_base, mapBaseMCSPI1(), "SPI1");
+    MAKEMAP(m_mcspi2_base, mapBaseMCSPI2(), "SPI2");
+    MAKEMAP(m_mcspi3_base, mapBaseMCSPI3(), "SPI3");
+    MAKEMAP(m_mcspi4_base, mapBaseMCSPI4(), "SPI4");
     //MAKEMAP(m_clock_base,  mapBaseClock(),  "CLOCK");
 }
 
@@ -68,15 +67,14 @@ MappedRegisters::~MappedRegisters()
     MUNMAP(m_gpio4_base );
     MUNMAP(m_gpio5_base );
     MUNMAP(m_gpio6_base );
-    //MUNMAP(m_mcspi1_base);
-    //MUNMAP(m_mcspi2_base);
-    //MUNMAP(m_mcspi3_base);
-    //MUNMAP(m_mcspi4_base);
+    MUNMAP(m_mcspi1_base);
+    MUNMAP(m_mcspi2_base);
+    MUNMAP(m_mcspi3_base);
+    MUNMAP(m_mcspi4_base);
     //MUNMAP(m_clock_base );
 }
 
-volatile void* MappedRegisters::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length)
-{
+volatile void* MappedRegisters::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length) {
     virtual_addr = mmap(0, length, PROT_READ|PROT_WRITE, MAP_SHARED, m_mmap_fd, physical_addr);
     return &virtual_addr;
 }
