@@ -1,6 +1,6 @@
 # SJF
 
-LIBOBJECTS =  Registers.o Overo.o MirrorControlBoard.o
+LIBOBJECTS =  Registers.o Overo.o MirrorControlBoard.o SpiInterface.o
 #	  OmniORBHelper.o VSAssert.o VSDataConverter.o VSOptions.o 
 ALLOBJECTS = sctelescope.o cbc.o demo.o uboot_conf.o $(LIBOBJECTS)
 
@@ -25,6 +25,9 @@ demo: demo.o $(LIBOBJECTS)
 	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
 
 uboot_conf: uboot_conf.o $(LIBOBJECTS)
+	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
+
+SpiInterface: SpiInterface.o $(LIBOBJECTS)
 	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
 
 iotest: iotest.o Registers.o
