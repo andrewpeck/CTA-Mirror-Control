@@ -14,6 +14,7 @@ class GPIOInterface {
         volatile uint32_t* ptrGPIOReadLevel(const unsigned ipin); 
         volatile uint32_t* ptrGPIODirection(const unsigned ipin); 
         volatile uint32_t* ptrGPIOSetLevel(const unsigned ipin); 
+
         void gpioSetLevel(const unsigned ipin); 
         void gpioClrLevel(const unsigned ipin); 
     private: 
@@ -51,6 +52,11 @@ class GPIOInterface {
         static const off_t mapBaseGPIO5 = physBaseGPIO5 & mapMask;
         static const off_t mapBaseGPIO6 = physBaseGPIO6 & mapMask;
 
+        // --------------------------------------------------------------------------
+        // Functions to Return Addresses for GPIO pins
+        // --------------------------------------------------------------------------
+                                                          
+        off_t offset2adrGPIO(unsigned ipin, off_t offset); 
 
         // Returns Virtual (memory mapped) address for a given GPIO pin 
         volatile uint32_t* phys2VirtGPIO32(off_t phys, const unsigned ipin); 
@@ -69,10 +75,8 @@ class GPIOInterface {
 
 
         // memory mapped address  stuff
-        volatile void* makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length=4096);
-
+        volatile void*  makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length=mapSize);
         int             m_mmap_fd;
-
         volatile void*  m_gpio1_base;
         volatile void*  m_gpio2_base;
         volatile void*  m_gpio3_base;

@@ -137,45 +137,38 @@ volatile uint32_t* GPIOInterface::phys2Virt32(off_t phys, volatile void* map_bas
 // STATIC GPIO register (PHYSICAL) address functions
 // --------------------------------------------------------------------------
 
-
-#define __OFFSET2ADRGPIO(IPIN,OFFSET)       \
-    if (ipin<0)                         \
-return (0);                         \
-else                                \
-if (ipin<32)                        \
-return(physBaseGPIO1+OFFSET);     \
-else                                \
-if (ipin<64)                        \
-return(physBaseGPIO2+OFFSET);     \
-else                                \
-if (ipin<96)                        \
-return(physBaseGPIO3+OFFSET);     \
-else                                \
-if (ipin<128)                       \
-return(physBaseGPIO4+OFFSET);     \
-else                                \
-if (ipin<160)                       \
-return(physBaseGPIO5+OFFSET);     \
-else                                \
-if (ipin<192)                       \
-return(physBaseGPIO6+OFFSET);     \
-else                                \
-return(0) 
-
+off_t GPIOInterface::offset2adrGPIO(unsigned ipin, off_t offset) {
+    if (ipin<0)                              
+        return (0);                                  
+    else if (ipin<32)                                 
+        return(physBaseGPIO1+offset);                
+    else if (ipin<64)                                 
+        return(physBaseGPIO2+offset);                
+    else if (ipin<96)                                 
+        return(physBaseGPIO3+offset);                
+    else if (ipin<128)                                
+        return(physBaseGPIO4+offset);                
+    else if (ipin<160)                                
+        return(physBaseGPIO5+offset);                
+    else if (ipin<192)                                
+        return(physBaseGPIO6+offset);                
+    else
+        return(0);
+}
 
 // Returns physical address of GPIO Read Register for a given GPIO pin
 off_t GPIOInterface::physGPIOReadLevel(const unsigned ipin) {
-    __OFFSET2ADRGPIO(ipin,gpio_offset_datain); 
+    return offset2adrGPIO(ipin,gpio_offset_datain); 
 }
 
 // Returns physical address of Output Enable Register for a given GPIO pin
 off_t GPIOInterface::physGPIODirection(const unsigned ipin) {
-    __OFFSET2ADRGPIO(ipin,gpio_offset_oe); 
+    return offset2adrGPIO(ipin,gpio_offset_oe); 
 }
 
 // Returns physical address of Output Write Register for a given GPIO pin
 off_t GPIOInterface::physGPIOSetLevel(const unsigned ipin) { 
-    __OFFSET2ADRGPIO(ipin,gpio_offset_dataout);
+    return offset2adrGPIO(ipin,gpio_offset_dataout);
 }
 
 // --------------------------------------------------------------------------
