@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     nperiod = nloopA*nloopB;
 
     float amp = float(nperiod)/M_PI*0.5/pfactor;
-    float sqrtamp = sqrtf(amp);
+    //float sqrtamp = sqrtf(amp);
     iamp = lroundf(amp);
 
     int64_t* sinA = new int64_t[nloopA];
