@@ -343,6 +343,7 @@ template<typename MAP = OveroGPIOMap> class Layout {
         ////////////////////////////////////////////////////////////////////////////////
         // Layout Specific Pin Assignments for Overo
         ////////////////////////////////////////////////////////////////////////////////
+#define         ADC_SPI              4
 
         //Connector J1 (70-pin): LCD, PWM & Analog Signals
         /////// SIGNAL                  PIN
@@ -401,7 +402,7 @@ template<typename MAP = OveroGPIOMap> class Layout {
 #define         ADCIN6               53
 #define         USBOTG_VBUS          54
 #define         GPIO145_GPT10_PWM    55
-#define         GND                  56
+//#define         GND                  56
 #define         MIC_MAIN_MF          57
 #define         ADCIN2               58
 #define         SYSEN                59
@@ -411,17 +412,17 @@ template<typename MAP = OveroGPIOMap> class Layout {
 #define         TV_OUT1              63
 #define         ADCIN7               64
 #define         POWERON              65
-#define         VSYSTEM              66
-#define         VSYSTEM              67
+//#define         VSYSTEM              66
+//#define         VSYSTEM              67
 #define         HSOLF                68
 #define         HSORF                69
-#define         GND                  70
+//#define         GND                  70
 
         //Connector J4 (70-pin): Extended Memory Bus & MMC Signals
         ///////  SIGNAL                 PIN
-#define VSYSTEM               71
-#define VSYSTEM               72
-#define GND                   73
+//#define VSYSTEM               71
+//#define VSYSTEM               72
+//#define GND                   73
 #define EM_NCS5_ETH0          74
 #define EM_NCS4               75
 #define EM_NWE                76
@@ -451,7 +452,7 @@ template<typename MAP = OveroGPIOMap> class Layout {
 #define GPIO21_MMC3_DAT7      100
 #define GPIO17_MMC3_D3        101
 #define USBH_VBUS             102
-#define GND                   103
+//#define GND                   103
 #define USBH_DP               104
 #define USBH_DM               105
 #define GPIO19_MMC3_D1        106
