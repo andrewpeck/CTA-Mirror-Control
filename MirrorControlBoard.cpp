@@ -1,34 +1,27 @@
-//-*-mode:c++; mode:font-lock;-*-
-
-/*! \file MirrorControlBoard.cpp
-
-  Class which implements useful mid-level functionality for the mirror
-  control board.
-
-  \author     Stephen Fegan               \n
-  UCLA                        \n
-  sfegan@astro.ucla.edu       \n
-
-  \version    1.0
-  \date       08/12/2008
-  */
+////////////////////////////////////////////////////////////////////////////////
+// MirrorControlBoard.cpp - Class which implements useful mid-level 
+//                          functionality for the mirror control board.
+////////////////////////////////////////////////////////////////////////////////
 
 #include <cassert>
-
+#include <SpiInterface.hpp>
 #include <MirrorControlBoard.hpp>
 
-MirrorControlBoard::MirrorControlBoard(Sys* sys, bool no_initialize, unsigned nusb, unsigned ssp_clk_div): m_sys(sys), m_nusb(nusb>7?7:nusb), m_ssp_clk_div(ssp_clk_div) {
-    if(!no_initialize)
-    {
+MirrorControlBoard::MirrorControlBoard(Sys* sys, bool no_initialize, unsigned nusb, unsigned ssp_clk_div): 
+    m_sys(sys), m_nusb(nusb>7?7:nusb), m_ssp_clk_div(ssp_clk_div) {
+    if(!no_initialize) {
         //initialize(m_ssp_clk_div);
         powerDownAll();
     }
-    else
-    {
+    else {
         return; 
         //if(m_sys->clockIsEnabledSSP(ADC_SSP))
             //m_sys->sspFlush(ADC_SSP);
     }
+}
+
+MirrorControlBoard::~MirrorControlBoard() {
+
 }
 
 void MirrorControlBoard::initialize(const unsigned ssp_clk_div) {
@@ -36,15 +29,19 @@ void MirrorControlBoard::initialize(const unsigned ssp_clk_div) {
     enableDriveSR();
     disableDriveHiCurrent();
     m_sys->gpioWriteLevel(LO::igpioReset(),1);
-    //initializeSSP(ssp_clk_div);
+    initializeSPI();
 }
 
-//void MirrorControlBoard::initializeSSP(const unsigned ssp_clk_div) {
-//    m_sys->sspConfigure(ADC_SSP,ssp_clk_div,16,m_sys->SSP_FF_SPI,SSP_FLAG_NONE |SSP_FLAG_SPH |SSP_FLAG_MASK_INT_TX_UNDERRUN |SSP_FLAG_MASK_INT_RX_OVERRUN);
-//    m_ssp_clk_div = ssp_clk_div;
-//    m_sys->sspEnable(ADC_SSP);
-//    m_sys->sspFlush(ADC_SSP);
-//}
+void MirrorControlBoard::initializeSPI() {
+
+    //void spiConfigure (int issp, unsigned clk_phase, bool clk_polarity, bool clk_div, bool epol, int word_length) {
+    //for (int issp=0; issp<=8; issp++) { m_sys->spiConfigure (issp, 0, 0, 4, 1, 0xF); }
+    //printf("Enabling SPI");
+    //m_sys->spiEnable(ADC_SPI);                      
+    //printf("Configuring SPI");
+    //m_sys->spiConfigure (ADC_SPI, 0, 0, 4, 1, 0xF);
+    //m_sys->spiFlush (ADC_SPI);    
+}
 
 void MirrorControlBoard::powerDownAll() {
     powerDownAllUSB();
@@ -57,17 +54,18 @@ void MirrorControlBoard::powerUpAll() {
 }
 
 void MirrorControlBoard::powerUpBase() {
+
     // Power up the A3977 chips
-    powerUpDriveControllers();
+    //powerUpDriveControllers();
 
     // Power up encoders
-    powerUpEncoders();
+    //powerUpEncoders();
 
     // Power up ADCs
-    powerUpADCs();
+    //powerUpADCs();
 
     // Power up SSP clock and initialize port
-    //initializeSSP(m_ssp_clk_div);
+    //initializeSPI();
 
     // Initialize on-board ADC
     //initializeADC(0);
@@ -261,8 +259,8 @@ void MirrorControlBoard::enableAllDrives(bool enable)
     m_sys->gpioWriteLevel(LO::igpioEnable6(), ienable);
 }
 
-void MirrorControlBoard::enableDrive(unsigned idrive, bool enable)
-{
+// Enable/Disable Stepper Motors
+void MirrorControlBoard::enableDrive(unsigned idrive, bool enable) {
     m_sys->gpioWriteLevel(LO::igpioEnable(idrive), enable?0:1);
 }
 
@@ -284,86 +282,106 @@ bool MirrorControlBoard::isDriveHiCurrentEnabled() const
 // ----------------------------------------------------------------------------
 // ADCs
 // ----------------------------------------------------------------------------
-/*
 
-//temporarily disabled... until spi controller works
-void MirrorControlBoard::initializeADC(unsigned iadc)
-{
-    selectADC(iadc);
-    m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeInitialize());
-    m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeConfig());
+void MirrorControlBoard::initializeADC(unsigned iadc) {
+    SpiInterface spi; 
+
+    selectADC(iadc);                                        // Assert Chip Select for ADC in question
+    spi.WriteRead(ADC::codeInitialize()); 
+    spi.WriteRead(ADC::codeConfig()); 
+
+    //m_sys->spi::WriteRead (ADC_SPI, ADC::codeInitialize());   // Initialize ADC
+    //m_sys->spi::WriteRead (ADC_SPI, ADC::codeConfig());       // Configure ADC
+    //m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeInitialize());
+    //m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeConfig());
 }
 
-void MirrorControlBoard::selectADC(unsigned iadc)
-{
+void MirrorControlBoard::selectADC(unsigned iadc) {
     m_sys->gpioWriteLevel(LO::igpioADCSel1(), iadc==0?1:0);
     m_sys->gpioWriteLevel(LO::igpioADCSel2(), iadc==1?1:0);
 }
 
-uint32_t MirrorControlBoard::
-measureADC(unsigned iadc, unsigned ichan, unsigned ndelayloop)
-{
+uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned ndelayloop) {
+    SpiInterface spi; 
+
+    // Assert Chip Select
     selectADC(iadc);
+
+    // ADC Channel Select
     uint32_t code = ADC::codeSelect(ichan);
-    m_sys->sspTestWritePollRead(ADC_SSP, code);
+    spi.WriteRead(code); 
+
+    // some delay
     m_sys->loopDelay(ndelayloop);
-    uint32_t datum = m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeReadFIFO());
+
+    // Read ADC
+    uint32_t datum = spi.WriteRead(ADC::codeReadFIFO()); 
+
     return ADC::decodeUSB(datum);
 }
 
-void MirrorControlBoard::
-measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, 
-        unsigned ndelayloop)
-{
+void MirrorControlBoard::measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop) {
+    SpiInterface spi; 
+
+    // adc chip select
     selectADC(iadc);
-    for(unsigned ichan=0; ichan<nchan; ichan++)
-    {
-        uint32_t datum = 
-            m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeSelect(zchan+ichan));
-        if(ichan>0)data[ichan-1] = ADC::decodeUSB(datum);
+    uint32_t datum; 
+
+    // loop over adc channels
+    for (unsigned ichan=0; ichan<nchan; ichan++) {
+        // read data
+        datum = spi.WriteRead(ADC::codeSelect(zchan+ichan));
+
+        if(ichan>0)
+            data[ichan-1] = ADC::decodeUSB(datum);
+
+        // some delay
         m_sys->loopDelay(ndelayloop);
     }
-    uint32_t datum = m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeReadFIFO());
-    if(nchan>0)data[nchan-1] = ADC::decodeUSB(datum);
+
+    datum = spi.WriteRead(ADC::codeReadFIFO());
+    if(nchan>0)
+        data[nchan-1] = ADC::decodeUSB(datum);
 }
 
-uint32_t MirrorControlBoard::
-measureADCWithBurn(unsigned iadc, unsigned ichan, unsigned ndelayloop)
-{
+uint32_t MirrorControlBoard::measureADCWithBurn(unsigned iadc, unsigned ichan, unsigned ndelayloop) {
+    SpiInterface spi; 
+
     selectADC(iadc);
     uint32_t code = ADC::codeSelect(ichan);
-    m_sys->sspTestWritePollRead(ADC_SSP, code);
+    spi.WriteRead(code); 
     m_sys->loopDelay(ndelayloop);
-    m_sys->sspTestWritePollRead(ADC_SSP, code);
+    spi.WriteRead(code); 
     m_sys->loopDelay(ndelayloop);
-    uint32_t datum = m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeReadFIFO());
+    uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
+
     return ADC::decodeUSB(datum);
 }
 
-void MirrorControlBoard::
-measureManyADCWithBurn(uint32_t* data, 
-        unsigned iadc, unsigned zchan, unsigned nchan, 
-        unsigned ndelayloop)
-{
+void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop) {
+    SpiInterface spi; 
+
     selectADC(iadc);
-    for(unsigned ichan=0; ichan<nchan; ichan++)
-    {
+    for(unsigned ichan=0; ichan<nchan; ichan++) {
         uint32_t code = ADC::codeSelect(zchan+ichan);
-        uint32_t datum = m_sys->sspTestWritePollRead(ADC_SSP, code);
-        if(ichan>0)data[ichan-1] = ADC::decodeUSB(datum);
+        uint32_t datum = spi.WriteRead(code);
+        if(ichan>0)
+            data[ichan-1] = ADC::decodeUSB(datum);
+
         m_sys->loopDelay(ndelayloop);
-        m_sys->sspTestWritePollRead(ADC_SSP, code);
+        spi.WriteRead(code);
         m_sys->loopDelay(ndelayloop);
     }
-    uint32_t datum = m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeReadFIFO());
-    if(nchan>0)data[nchan-1] = ADC::decodeUSB(datum);
+
+    uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
+
+    if(nchan>0)
+        data[nchan-1] = ADC::decodeUSB(datum);
 }
 
-void MirrorControlBoard::
-measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, 
-        uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max,
-        unsigned nburn, unsigned ndelayloop)
-{
+void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn, unsigned ndelayloop) {
+    SpiInterface spi; 
+
     selectADC(iadc);
     uint32_t code = ADC::codeSelect(ichan);
     unsigned nloop = nburn + nmeas;
@@ -371,11 +389,9 @@ measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas,
     sumsq = 0;
     max = 0;
     min = ~max;
-    for(unsigned iloop=0;iloop<nloop;iloop++)
-    {
-        uint32_t datum = m_sys->sspTestWritePollRead(ADC_SSP, code);
-        if(iloop>nburn)
-        {
+    for(unsigned iloop=0;iloop<nloop;iloop++) {
+        uint32_t datum = spi.WriteRead(code);
+        if (iloop>nburn) {
             datum = ADC::decodeUSB(datum);
             uint64_t datum64 = datum;
             sum+=datum;
@@ -385,32 +401,32 @@ measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas,
         }
         m_sys->loopDelay(ndelayloop);
     }
-    uint32_t datum = m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeReadFIFO());
+    uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
     datum = ADC::decodeUSB(datum);
     uint64_t datum64 = datum;
     sum+=datum;
     sumsq+=datum64*datum64;
-    if(datum>max)max=datum;
-    if(datum<min)min=datum;
+
+    if(datum>max)
+        max=datum;
+    if(datum<min)
+        min=datum;
 }
 
-void MirrorControlBoard::
-measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, 
-        std::vector<uint32_t>& vMeas,
-        unsigned ndelayloop)
-{
+void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas, unsigned ndelayloop) {
+    SpiInterface spi; 
+
     selectADC(iadc);
     uint32_t code = ADC::codeSelect(ichan);
     unsigned nloop = nmeas;
     vMeas.resize(nmeas);
 
-    for(unsigned iloop=0; iloop <= nloop; iloop++)
-    {
+    for(unsigned iloop=0; iloop <= nloop; iloop++) {
         uint32_t datum;
         if(iloop == nloop)
-            datum = m_sys->sspTestWritePollRead(ADC_SSP, ADC::codeReadFIFO());
+            datum = spi.WriteRead(ADC::codeReadFIFO());
         else
-            datum = m_sys->sspTestWritePollRead(ADC_SSP, code);
+            datum = spi.WriteRead(code);
 
         if(iloop == 0)
             continue;
@@ -421,4 +437,3 @@ measureADC(unsigned iadc, unsigned ichan, unsigned nmeas,
         m_sys->loopDelay(ndelayloop);
     }
 }
-*/
