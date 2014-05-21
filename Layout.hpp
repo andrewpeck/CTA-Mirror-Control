@@ -147,10 +147,10 @@ class OveroGPIOMap {
                 0,  //GPIO20_MMC3_D2      109   //DR6Dir
                 0,  //GPIO12_MMC3_CLK     110   //USB6EnableBar
                 1,  //GPIO114_SPI1_NIRQ   111
-                1,  //GPIO175_SPI1_CS1    112
-                1,  //GPIO171_SPI1_CLK    113
-                1,  //GPIO172_SPI1_MOSI   114
-                1,  //GPIO173_SPI1_MISO   115
+                1,  //GPIO175_SPI1_CS1    112   //POW_INC_BAR
+                1,  //GPIO171_SPI1_CLK    113   //SPI Clock
+                0,  //GPIO172_SPI1_MOSI   114   //SPI Tx
+                1,  //GPIO173_SPI1_MISO   115   //SPI Rx
                 -1, //4030GP2_N_MMC3_CD   116
                 1,  //GPIO150_MMC3_WP     117
                 1,  //GPIO151_RXD1        118
