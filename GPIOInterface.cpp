@@ -104,7 +104,7 @@ volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t phys, const unsigned ipi
         return phys2Virt32(phys,m_gpio2_base,mapBaseGPIO2);
     else if (ipin<96)
         return phys2Virt32(phys,m_gpio3_base,mapBaseGPIO3);
-    else if (ipin<160)
+    else if (ipin<128)
         return phys2Virt32(phys,m_gpio4_base,mapBaseGPIO4);
     else if (ipin<160)
         return phys2Virt32(phys,m_gpio5_base,mapBaseGPIO5);
