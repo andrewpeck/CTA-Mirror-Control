@@ -45,10 +45,10 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data) {
     uint32_t read=0; 
     printf("\nSent = 0x%04X ", data);
     int ret;
-    uint8_t byte1 = 0xFF; // & (data >> 24); 
-    uint8_t byte2 = 0xFF; // & (data >> 16); 
-    uint8_t byte3 = 0xFF; // & (data >> 8); 
-    uint8_t byte4 = 0xFF; // & (data >> 0); 
+    uint8_t byte1 = 0xFF & (data >> 24); 
+    uint8_t byte2 = 0xFF & (data >> 16); 
+    uint8_t byte3 = 0xFF & (data >> 8); 
+    uint8_t byte4 = 0xFF & (data >> 0); 
 
     uint8_t tx[] = { byte1, byte2, byte3, byte4 };
 
