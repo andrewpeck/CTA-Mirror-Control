@@ -22,7 +22,8 @@
 #include <vector>
 
 //#if defined(__arm__)
-typedef Overo<> Sys;
+//typedef Overo<> Sys;
+//Overo Sys;
 //#else
 //typedef Overo<SimulatedRegisters> Sys;
 //#endif
@@ -33,7 +34,7 @@ class MirrorControlBoard
 {
 public:
 
-  MirrorControlBoard(Sys* sys, bool no_initialize = false, unsigned nusb = 7, unsigned ssp_clk_div = 2);
+  MirrorControlBoard(bool no_initialize = false, unsigned nusb = 7, unsigned ssp_clk_div = 2);
   ~MirrorControlBoard(); 
 
   enum UStep { USTEP_1, USTEP_2, USTEP_4, USTEP_8 };
@@ -120,14 +121,16 @@ public:
     return meas;
   }
 
-  // MISC
+  // --------------------------------------------------------------------------
+  // Utility functions
+  // --------------------------------------------------------------------------
 
-  void loopDelay(unsigned nloop) const { m_sys->loopDelay(nloop); }
-  void usecDelay(unsigned nusec) const { m_sys->usecDelay(nusec); }
-  uint64_t serialNumber() const { return m_sys->serialNumber(); }
+  void loopDelay(unsigned nloop); 
+  void usecDelay(unsigned nusec); 
+  uint64_t serialNumber(); 
 
 private:
-  Sys*              m_sys;
+  //Overo             m_sys;
   unsigned          m_nusb;
   unsigned          m_ssp_clk_div;
 };

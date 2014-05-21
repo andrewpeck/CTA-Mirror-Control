@@ -51,7 +51,7 @@ void usage(const char* program, std::ostream& stream,
 }
 
 //#if defined(__arm__)
-typedef Overo<> Sys;
+//typedef Overo<> Sys;
 //#else
 //typedef Overo<SimulatedRegisters> Sys;
 //#endif
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
     int64_t ix2a = -iamp;
     int64_t ix3a = -iamp;
 
-    Sys sys;
+    Overo sys;
 
     while(1)
     {

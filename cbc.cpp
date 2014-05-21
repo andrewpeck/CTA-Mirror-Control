@@ -130,7 +130,7 @@ int usage(const char* program, std::ostream& stream,
 }
 
 //#if defined(__arm__)
-typedef Overo<> Sys;
+//typedef Overo<> Sys;
 //#else
 //typedef Overo<SimulatedRegisters> Sys;
 //#endif
@@ -151,7 +151,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
     if(argc == 0)
         return usage(program, oStr, EXIT_SUCCESS);
 
-    Sys sys;
+    Overo sys; 
 
     std::string command = *argv;
     argv++, argc--;
@@ -164,13 +164,13 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
             argc--, argv++;
         }
 
-        MirrorControlBoard mcb(&sys, false, 7, ssp_clk_div);
+        MirrorControlBoard mcb(false, 7, ssp_clk_div);
         sys.gpioConfigureAll();  // Configure GPIOs
         mcb.powerUpBase();
         return EXIT_SUCCESS;
     }
 
-    MirrorControlBoard mcb(&sys, true);
+    MirrorControlBoard mcb(true);
 
     if(command == "power_down")
         mcb.powerDownAll();
