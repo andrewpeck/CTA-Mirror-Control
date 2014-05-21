@@ -15,7 +15,6 @@
 #include <cctype>
 
 #include <Layout.hpp>
-#include <Bits.hpp>
 #include <GPIOInterface.hpp>
 
 #define GPIODIR_IN  0

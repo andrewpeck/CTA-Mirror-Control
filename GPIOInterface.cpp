@@ -14,7 +14,6 @@
 #include <sys/mman.h>
 
 #include <GPIOInterface.hpp>
-#include <Bits.hpp>
 
 #define MMAPFAIL ((void*)-1)
 
@@ -73,11 +72,11 @@ volatile uint32_t* GPIOInterface::ptrGPIOReadLevel(const unsigned ipin) {
 }
 
 void GPIOInterface::gpioSetLevel(const unsigned ipin) {
-    *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | Bits::mask1Bit(ipin); 
+    *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | 0x1 << ipin; 
 }
 
 void GPIOInterface::gpioClrLevel(const unsigned ipin) {
-    *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~Bits::mask1Bit(ipin); 
+    *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~(0x1 << ipin); 
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -91,15 +90,16 @@ void GPIOInterface::gpioClrLevel(const unsigned ipin) {
 // x= 0 to 1 for MCSPI2 and MCSPI3.
 // x= 0      for MCSPI4.
 // in software let's enumerate these lines: 0,1,2,3,4,5,6,7,8
-//                            [0 1 2 3 4 5 6 7 8]
-//
-
 const int GPIOInterface::channel[] =  {0,1,2,3,0,1,0,1,0}; 
 
 // Returns Virtual (memory mapped) address for a given GPIO pin 
 volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t phys, const unsigned ipin) {
-    if (ipin<32) 
+    if (ipin<32)  {
+        printf("\nphys: %04X",phys); 
+        printf("\nm_gpio1_base: %04X", m_gpio1_base); 
+        printf("\nmapBaseGPIO1: %04X", mapBaseGPIO1); 
         return phys2Virt32(phys,m_gpio1_base,mapBaseGPIO1); 
+    }
     else if (ipin<64)
         return phys2Virt32(phys,m_gpio2_base,mapBaseGPIO2);
     else if (ipin<96)
@@ -120,9 +120,9 @@ volatile uint32_t* GPIOInterface::phys2Virt32(off_t phys, volatile void* map_bas
     static volatile uint32_t* adr_virtual; 
 
     map_offset = phys - map_base_phys; 
-    //printf("\nmap_offset: %02X", map_offset); 
+    printf("\nmap_offset: %02X", map_offset); 
     adr_virtual = reinterpret_cast<volatile uint32_t*>(static_cast<volatile uint8_t*>(map_base_virt) + map_offset);
-    //printf("\nadr_virtual: %04X", adr_virtual); 
+    printf("\nadr_virtual: %04X", adr_virtual); 
 
     return adr_virtual; 
 }

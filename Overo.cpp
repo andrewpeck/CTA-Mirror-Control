@@ -61,6 +61,7 @@ bool Overo::gpioReadLevel(const unsigned ipin) {
 
 // Write GPIO by ipin (0-192)
 void Overo::gpioWriteLevel(const unsigned ipin, bool level) {
+    printf("\nWriting %i to pin %i", level, ipin); 
     if (level)
         gpio.gpioSetLevel(ipin);
     else 
