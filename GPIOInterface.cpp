@@ -26,7 +26,7 @@
 }
 
 #define MUNMAP(VIRT) \
-    munmap(const_cast<void*>(VIRT), mapSize())
+    munmap(const_cast<void*>(VIRT), mapSize)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Public Members
@@ -41,20 +41,20 @@ GPIOInterface::GPIOInterface():
     m_gpio5_base(), 
     m_gpio6_base() {
 
-    m_mmap_fd = open("/dev/mem", O_RDWR | O_SYNC);
-    if(m_mmap_fd<0) {
-        perror("open(\"/dev/mem\")");
-        exit(EXIT_FAILURE);
-    }
+        m_mmap_fd = open("/dev/mem", O_RDWR | O_SYNC);
+        if(m_mmap_fd<0) {
+            perror("open(\"/dev/mem\")");
+            exit(EXIT_FAILURE);
+        }
 
-    //      virtual adr    physical adr     function
-    MAKEMAP(m_gpio1_base,  mapBaseGPIO1(),  "GPIO1");
-    MAKEMAP(m_gpio2_base,  mapBaseGPIO2(),  "GPIO2");
-    MAKEMAP(m_gpio3_base,  mapBaseGPIO3(),  "GPIO3");
-    MAKEMAP(m_gpio4_base,  mapBaseGPIO4(),  "GPIO4");
-    MAKEMAP(m_gpio5_base,  mapBaseGPIO5(),  "GPIO4");
-    MAKEMAP(m_gpio6_base,  mapBaseGPIO6(),  "GPIO6");
-}
+        //      virtual adr    physical adr   function
+        MAKEMAP(m_gpio1_base,  mapBaseGPIO1,  "GPIO1");
+        MAKEMAP(m_gpio2_base,  mapBaseGPIO2,  "GPIO2");
+        MAKEMAP(m_gpio3_base,  mapBaseGPIO3,  "GPIO3");
+        MAKEMAP(m_gpio4_base,  mapBaseGPIO4,  "GPIO4");
+        MAKEMAP(m_gpio5_base,  mapBaseGPIO5,  "GPIO4");
+        MAKEMAP(m_gpio6_base,  mapBaseGPIO6,  "GPIO6");
+    }
 
 GPIOInterface::~GPIOInterface() {
     MUNMAP(m_gpio1_base);
@@ -105,17 +105,17 @@ const int GPIOInterface::channel[] =  {0,1,2,3,0,1,0,1,0};
 // Returns Virtual (memory mapped) address for a given GPIO pin 
 volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t phys, const unsigned ipin) {
     if (ipin<32) 
-        return phys2Virt32(phys,m_gpio1_base,mapBaseGPIO1()); 
+        return phys2Virt32(phys,m_gpio1_base,mapBaseGPIO1); 
     else if (ipin<64)
-        return phys2Virt32(phys,m_gpio2_base,mapBaseGPIO2());
+        return phys2Virt32(phys,m_gpio2_base,mapBaseGPIO2);
     else if (ipin<96)
-        return phys2Virt32(phys,m_gpio3_base,mapBaseGPIO3());
+        return phys2Virt32(phys,m_gpio3_base,mapBaseGPIO3);
     else if (ipin<160)
-        return phys2Virt32(phys,m_gpio4_base,mapBaseGPIO4());
+        return phys2Virt32(phys,m_gpio4_base,mapBaseGPIO4);
     else if (ipin<160)
-        return phys2Virt32(phys,m_gpio5_base,mapBaseGPIO5());
+        return phys2Virt32(phys,m_gpio5_base,mapBaseGPIO5);
     else if (ipin<192)
-        return phys2Virt32(phys,m_gpio6_base,mapBaseGPIO6());
+        return phys2Virt32(phys,m_gpio6_base,mapBaseGPIO6);
     else
         return 0; 
 }
@@ -137,73 +137,51 @@ volatile uint32_t* GPIOInterface::phys2Virt32(off_t phys, volatile void* map_bas
 // STATIC GPIO register (PHYSICAL) address functions
 // --------------------------------------------------------------------------
 
-off_t GPIOInterface::physBaseGPIO1()                     { return 0x48310000; }
-off_t GPIOInterface::physBaseGPIO2()                     { return 0x49050000; }
-off_t GPIOInterface::physBaseGPIO3()                     { return 0x49052000; }
-off_t GPIOInterface::physBaseGPIO4()                     { return 0x49054000; }
-off_t GPIOInterface::physBaseGPIO5()                     { return 0x49056000; }
-off_t GPIOInterface::physBaseGPIO6()                     { return 0x49058000; }
-
-off_t GPIOInterface::gpio_offset_ctrl()                  { return 0x030; } //
-off_t GPIOInterface::gpio_offset_oe()                    { return 0x034; } //enable the pins output capabilities. Its only function is to carry the pads configuration.
-off_t GPIOInterface::gpio_offset_datain()                { return 0x038; } //register the data that is read from the GPIO pins
-off_t GPIOInterface::gpio_offset_dataout()               { return 0x03C; } //setting the value of the GPIO output pins
-off_t GPIOInterface::gpio_offset_cleardataout()          { return 0x090; }
-off_t GPIOInterface::gpio_offset_setdataout()            { return 0x094; }
 
 #define __OFFSET2ADRGPIO(IPIN,OFFSET)       \
     if (ipin<0)                         \
 return (0);                         \
 else                                \
 if (ipin<32)                        \
-return(physBaseGPIO1()+OFFSET);     \
+return(physBaseGPIO1+OFFSET);     \
 else                                \
 if (ipin<64)                        \
-return(physBaseGPIO2()+OFFSET);     \
+return(physBaseGPIO2+OFFSET);     \
 else                                \
 if (ipin<96)                        \
-return(physBaseGPIO3()+OFFSET);     \
+return(physBaseGPIO3+OFFSET);     \
 else                                \
 if (ipin<128)                       \
-return(physBaseGPIO4()+OFFSET);     \
+return(physBaseGPIO4+OFFSET);     \
 else                                \
 if (ipin<160)                       \
-return(physBaseGPIO5()+OFFSET);     \
+return(physBaseGPIO5+OFFSET);     \
 else                                \
 if (ipin<192)                       \
-return(physBaseGPIO6()+OFFSET);     \
+return(physBaseGPIO6+OFFSET);     \
 else                                \
 return(0) 
 
 
 // Returns physical address of GPIO Read Register for a given GPIO pin
 off_t GPIOInterface::physGPIOReadLevel(const unsigned ipin) {
-    __OFFSET2ADRGPIO(ipin,gpio_offset_datain()); 
+    __OFFSET2ADRGPIO(ipin,gpio_offset_datain); 
 }
 
 // Returns physical address of Output Enable Register for a given GPIO pin
 off_t GPIOInterface::physGPIODirection(const unsigned ipin) {
-    __OFFSET2ADRGPIO(ipin,gpio_offset_oe()); 
+    __OFFSET2ADRGPIO(ipin,gpio_offset_oe); 
 }
 
 // Returns physical address of Output Write Register for a given GPIO pin
 off_t GPIOInterface::physGPIOSetLevel(const unsigned ipin) { 
-    __OFFSET2ADRGPIO(ipin,gpio_offset_dataout());
+    __OFFSET2ADRGPIO(ipin,gpio_offset_dataout);
 }
 
 // --------------------------------------------------------------------------
 // static functions defining (physical) start of memory mapped regions
 // --------------------------------------------------------------------------
 
-off_t GPIOInterface::mapSize()          { return 4096; }
-off_t GPIOInterface::mapMask()          { return ~(mapSize()-1); }
-
-off_t GPIOInterface::mapBaseGPIO1()     { return physBaseGPIO1() & mapMask(); }
-off_t GPIOInterface::mapBaseGPIO2()     { return physBaseGPIO2() & mapMask(); }
-off_t GPIOInterface::mapBaseGPIO3()     { return physBaseGPIO3() & mapMask(); }
-off_t GPIOInterface::mapBaseGPIO4()     { return physBaseGPIO4() & mapMask(); }
-off_t GPIOInterface::mapBaseGPIO5()     { return physBaseGPIO5() & mapMask(); }
-off_t GPIOInterface::mapBaseGPIO6()     { return physBaseGPIO6() & mapMask(); }
 
 volatile void* GPIOInterface::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length) {
     virtual_addr = mmap(0, length, PROT_READ|PROT_WRITE, MAP_SHARED, m_mmap_fd, physical_addr);

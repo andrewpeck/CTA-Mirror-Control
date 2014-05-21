@@ -19,30 +19,44 @@ class GPIOInterface {
     private: 
         static const int channel[]; 
 
+        // --------------------------------------------------------------------------
+        // GPIO register (PHYSICAL) Address Definitions
+        // --------------------------------------------------------------------------
+
+        static const off_t physBaseGPIO1             = 0x48310000;
+        static const off_t physBaseGPIO2             = 0x49050000;
+        static const off_t physBaseGPIO3             = 0x49052000;
+        static const off_t physBaseGPIO4             = 0x49054000;
+        static const off_t physBaseGPIO5             = 0x49056000;
+        static const off_t physBaseGPIO6             = 0x49058000;
+
+        static const off_t gpio_offset_ctrl          = 0x030;  
+        static const off_t gpio_offset_oe            = 0x034;  //enable the pins output capabilities. Its only function is to carry the pads configuration.
+        static const off_t gpio_offset_datain        = 0x038;  //register the data that is read from the GPIO pins
+        static const off_t gpio_offset_dataout       = 0x03C;  //setting the value of the GPIO output pins
+        static const off_t gpio_offset_cleardataout  = 0x090; 
+        static const off_t gpio_offset_setdataout    = 0x094; 
+
+        // --------------------------------------------------------------------------
+        // GPIO Register Mapped Address Definitions
+        // --------------------------------------------------------------------------
+
+        static const off_t mapSize       = 4096;
+        static const off_t mapMask       = ~(mapSize-1);
+
+        static const off_t mapBaseGPIO1 = physBaseGPIO1 & mapMask;
+        static const off_t mapBaseGPIO2 = physBaseGPIO2 & mapMask;
+        static const off_t mapBaseGPIO3 = physBaseGPIO3 & mapMask;
+        static const off_t mapBaseGPIO4 = physBaseGPIO4 & mapMask;
+        static const off_t mapBaseGPIO5 = physBaseGPIO5 & mapMask;
+        static const off_t mapBaseGPIO6 = physBaseGPIO6 & mapMask;
+
+
         // Returns Virtual (memory mapped) address for a given GPIO pin 
         volatile uint32_t* phys2VirtGPIO32(off_t phys, const unsigned ipin); 
 
         // Takes Physical Address and Returns pointer to memory mapped virtual address
         volatile uint32_t* phys2Virt32(off_t phys, volatile void* map_base_virt, off_t map_base_phys); 
-
-        // --------------------------------------------------------------------------
-        // GPIO register (PHYSICAL) address functions
-        // --------------------------------------------------------------------------
-
-        off_t physBaseGPIO1();                     
-        off_t physBaseGPIO2();                     
-        off_t physBaseGPIO3();                     
-        off_t physBaseGPIO4();                     
-        off_t physBaseGPIO5();                     
-        off_t physBaseGPIO6();                     
-
-        off_t gpio_offset_ctrl();                    
-        off_t gpio_offset_oe();                     //enable the pins output capabilities. Its only function is to carry the pads configuration.
-        off_t gpio_offset_datain();                 //register the data that is read from the GPIO pins
-        off_t gpio_offset_dataout();                //setting the value of the GPIO output pins
-        off_t gpio_offset_cleardataout();          
-        off_t gpio_offset_setdataout();            
-        
 
         // Returns physical address of GPIO Read Register for a given GPIO pin
         off_t physGPIOReadLevel(const unsigned ipin); 
@@ -52,20 +66,6 @@ class GPIOInterface {
 
         // Returns physical address of Output Write Register for a given GPIO pin
         off_t physGPIOSetLevel(const unsigned ipin); 
-
-        // --------------------------------------------------------------------------
-        // static functions defining (physical) start of memory mapped regions
-        // --------------------------------------------------------------------------
-
-        off_t mapSize(); 
-        off_t mapMask(); 
-
-        off_t mapBaseGPIO1();
-        off_t mapBaseGPIO2();
-        off_t mapBaseGPIO3();
-        off_t mapBaseGPIO4();
-        off_t mapBaseGPIO5();
-        off_t mapBaseGPIO6();
 
 
         // memory mapped address  stuff
