@@ -1,16 +1,6 @@
-//-*-mode:c++; mode:font-lock;-*-
-
-/*! \file cbc.cpp
-
-  Console board control
-
-  \author     Stephen Fegan               \n
-  UCLA                        \n
-  sfegan@astro.ucla.edu       \n
-
-  \version    1.0
-  \date       06/04/2008
-  */
+////////////////////////////////////////////////////////////////////////////////
+// cbc.cpp Console board control
+////////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
 #include <iomanip>
@@ -158,15 +148,15 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
     const char* program = *argv;
     argv++, argc--;
 
-    if(argc == 0)return usage(program, oStr, EXIT_SUCCESS);
+    if(argc == 0)
+        return usage(program, oStr, EXIT_SUCCESS);
 
     Sys sys;
 
     std::string command = *argv;
     argv++, argc--;
 
-    if((command == "initialize")||(command == "init")||(command == "config"))
-    {
+    if((command == "initialize")||(command == "init")||(command == "config")) {
         unsigned ssp_clk_div = 4;
         if(argc)
         {
@@ -226,18 +216,26 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         mcb.disableAllDrives();
     else if(command == "enable")
     {
-        if(argc==0)usage(program, oStr);
+        if(argc==0)
+            usage(program, oStr);
         unsigned idrive = atoi(*argv);
-        if((idrive<1)||(idrive>6))usage(program, oStr);
+        if ((idrive<1)||(idrive>6))
+            usage(program, oStr);
+
         idrive--;
+
         mcb.enableDrive(idrive);
     }
     else if(command == "disable")
     {
-        if(argc==0)usage(program, oStr);
+        if(argc==0)
+            usage(program, oStr);
         unsigned idrive = atoi(*argv);
-        if((idrive<1)||(idrive>6))usage(program, oStr);
+        if ((idrive<1)||(idrive>6))
+            usage(program, oStr);
+
         idrive--;
+
         mcb.disableDrive(idrive);
     }
     else if(command == "enableUSB_all")
@@ -257,7 +255,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
     {
         //sys.gpioSetDirection(LO::igpioUSBOff4(), 0);
         //sys.gpioConfigureAll(); 
-        bool level = !!  sys.gpioReadLevel(LO::igpioUSBOff4());
+        //bool level = !!  sys.gpioReadLevel(LO::igpioUSBOff4());
         for (int i=0; i<1000000; i++) {
             if (i%2==0)
                 sys.gpioWriteLevel(LO::igpioUSBOff4(),1);
@@ -284,7 +282,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         argc--, argv++;
 
         //invalid actuator number
-        if((idrive<1)||(idrive>6))
+        if ((idrive<1)||(idrive>6))
             usage(program, oStr);
 
         //count from 0
@@ -307,21 +305,18 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         unsigned ndelay = 5000;
 
         // optional argument #3 for delay value
-        if(argc)
-        {
+        if(argc) {
             ndelay = atoi(*argv);
             argc--, argv++;
         }
 
         // loop over number of steps
-        for(unsigned istep=0;istep<unsigned(nstep);istep++)
-        {
+        for(unsigned istep=0;istep<unsigned(nstep);istep++) {
             mcb.stepOneDrive(idrive, dir, ndelay);
             mcb.loopDelay(ndelay);
         }
     }
-    else if(command == "slew")
-    {
+    else if(command == "slew") {
         if(argc==0)usage(program, oStr);
         unsigned idrive = atoi(*argv);
         argc--, argv++;
@@ -329,8 +324,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         idrive--;
 
         MirrorControlBoard::Dir dir = MirrorControlBoard::DIR_EXTEND;
-        if(argc)
-        {
+        if(argc) {
             std::string dirstr(*argv);
 
             if((dirstr.size()<=6)
@@ -347,14 +341,12 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         }
 
         unsigned ndelay = 5000;
-        if(argc)
-        {
+        if(argc) {
             ndelay = atoi(*argv);
             argc--, argv++;
         }
 
-        while(1)
-        {
+        while(1) {
             mcb.stepOneDrive(idrive, dir, ndelay);
             mcb.loopDelay(ndelay);
         }
@@ -368,7 +360,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         int nstep5 = 0;
         int nstep6 = 0;
 
-        if(argc)nstep1 = atoi(*argv), argc--, argv++;
+        if(argc) nstep1 = atoi(*argv), argc--, argv++;
         if(argc)nstep2 = atoi(*argv), argc--, argv++;
         if(argc)nstep3 = atoi(*argv), argc--, argv++;
         if(argc)nstep4 = atoi(*argv), argc--, argv++;
@@ -466,26 +458,34 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
     }
 
     else if(command == "measure") {
-        return EXIT_FAILURE; 
         //if(!sys.clockIsEnabledSSP(ADC_SSP)) {
         //    oStr << "SSP clock is not enabled. Power up the board!\n";
         //    return EXIT_FAILURE;
         //}
 
-#define NCHANMAX 11
-        if(argc==0)usage(program, oStr);
+        #define NCHANMAX 11
+        if(argc==0)
+            usage(program, oStr);
         unsigned iadc = atoi(*argv);
         argc--, argv++;
-        if((iadc<1)||(iadc>8))usage(program, oStr);
+
+        if ((iadc<1)||(iadc>8))
+            usage(program, oStr);
         iadc--;
 
-        if(argc==0)usage(program, oStr);
+        if(argc==0)
+            usage(program, oStr);
         unsigned zchan = atoi(*argv);
         argc--, argv++;
-        if(zchan>NCHANMAX)usage(program, oStr);
+
+        if (zchan>NCHANMAX)
+            usage(program, oStr);
         unsigned nchan = zchan;
-        if(zchan==0)nchan=NCHANMAX;
-        else zchan--;
+
+        if (zchan==0)
+            nchan=NCHANMAX;
+        else 
+            zchan--;
 
         unsigned nmeas = 1;
         if(argc) {
@@ -529,10 +529,8 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         uint32_t max[NCHANMAX];
         uint32_t min[NCHANMAX];
 
-        for(unsigned ichan=zchan; ichan<nchan; ichan++)
-            mcb.measureADCStat(iadc, ichan, nmeas, 
-                    sum[ichan], sum2[ichan], min[ichan], max[ichan],
-                    nburn, ndelay);
+        for (unsigned ichan=zchan; ichan<nchan; ichan++)
+            mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn, ndelay);
 
         for(unsigned ichan=zchan; ichan<nchan; ichan++) {
             uint32_t mean = sum[ichan]/nmeas;
@@ -585,7 +583,6 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
     } //close measure
 
     else if(command == "measure_full") {
-        return EXIT_FAILURE; 
         //if(!sys.clockIsEnabledSSP(ADC_SSP))
         //{
         //    oStr << "SSP clock is not enabled. Power up the board!\n";
