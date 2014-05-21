@@ -18,15 +18,9 @@
 
 #define MMAPFAIL ((void*)-1)
 
-#define MAKEMAP(PHYS,VIRT,TEXT)             \
-    if(makeMap(PHYS,VIRT) == MMAPFAIL)		\
-{							                \
-    perror("mmap(" TEXT ")");				\
-    exit(EXIT_FAILURE);				        \
-}
-
 #define MUNMAP(VIRT) \
     munmap(const_cast<void*>(VIRT), mapSize)
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Public Members
@@ -47,13 +41,13 @@ GPIOInterface::GPIOInterface():
             exit(EXIT_FAILURE);
         }
 
-        //      virtual adr    physical adr   function
-        MAKEMAP(m_gpio1_base,  mapBaseGPIO1,  "GPIO1");
-        MAKEMAP(m_gpio2_base,  mapBaseGPIO2,  "GPIO2");
-        MAKEMAP(m_gpio3_base,  mapBaseGPIO3,  "GPIO3");
-        MAKEMAP(m_gpio4_base,  mapBaseGPIO4,  "GPIO4");
-        MAKEMAP(m_gpio5_base,  mapBaseGPIO5,  "GPIO4");
-        MAKEMAP(m_gpio6_base,  mapBaseGPIO6,  "GPIO6");
+        //      virtual adr    physical adr
+        makeMap(m_gpio1_base, mapBaseGPIO1);
+        makeMap(m_gpio2_base, mapBaseGPIO2);
+        makeMap(m_gpio3_base, mapBaseGPIO3);
+        makeMap(m_gpio4_base, mapBaseGPIO4);
+        makeMap(m_gpio5_base, mapBaseGPIO5);
+        makeMap(m_gpio6_base, mapBaseGPIO6);
     }
 
 GPIOInterface::~GPIOInterface() {
@@ -178,6 +172,8 @@ off_t GPIOInterface::physGPIOSetLevel(const unsigned ipin) {
 
 volatile void* GPIOInterface::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length) {
     virtual_addr = mmap(0, length, PROT_READ|PROT_WRITE, MAP_SHARED, m_mmap_fd, physical_addr);
-    return &virtual_addr;
+    if (&virtual_addr==MMAPFAIL)
+        exit(EXIT_FAILURE); 
+    else
+        return &virtual_addr;
 }
-
