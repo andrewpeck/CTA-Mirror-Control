@@ -6,6 +6,7 @@
 
 #include <Layout.hpp>
 #include <Overo.hpp>
+#include <SpiInterface.hpp>
 #include <TLCX5XX_ADC.hpp>
 #include <vector>
 
@@ -19,7 +20,7 @@
 
 class MirrorControlBoard {
     public:
-        MirrorControlBoard(bool no_initialize = false, unsigned nusb = 7, unsigned ssp_clk_div = 2);
+        MirrorControlBoard(bool no_initialize = false, unsigned nusb = 7);
         ~MirrorControlBoard(); 
 
         enum UStep { USTEP_1, USTEP_2, USTEP_4, USTEP_8 };
@@ -94,7 +95,6 @@ class MirrorControlBoard {
         void measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop);
         void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn = 0, unsigned ndelayloop = 100);
         void measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas, unsigned ndelayloop = 100);
-
         int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0) {
             int meas = int(measureADCWithBurn(7, ichan));
             int calib_range = calib_lo - calib_hi;

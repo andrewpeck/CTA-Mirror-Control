@@ -4,7 +4,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <cassert>
-#include <SpiInterface.hpp>
 #include <MirrorControlBoard.hpp>
 #include <TLCX5XX_ADC.hpp>
 
@@ -14,15 +13,11 @@ typedef TLC3548 ADC;
 //Layout MirrorControlBoard::layout; 
 
 MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nusb(nusb>7?7:nusb) {
-    printf("Initializing Board..."); 
-    if(!no_initialize) {
+    if (no_initialize)
+        return; 
+    else {
         printf("Powering down all chips..."); 
         powerDownAll();
-    }
-    else {
-        return; 
-        //if(m_sys.clockIsEnabledSSP(ADC_SSP))
-        //m_sys.sspFlush(ADC_SSP);
     }
 }
 
@@ -79,7 +74,7 @@ void MirrorControlBoard::powerUpBase() {
 void MirrorControlBoard::powerDownBase() {
     // Set on-board ADC into sleep mode
     selectADC(7);
-    m_sys.spiWriteRead(ADC::codeSWPowerDown());
+    spi.WriteRead(ADC::codeSWPowerDown());
 
     // Set PWM state
     //m_sys.pwmSetDutyCycle(0, 0, false); 
