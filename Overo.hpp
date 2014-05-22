@@ -20,18 +20,6 @@
 #define GPIODIR_IN  0
 #define GPIODIR_OUT 1
 
-
-class OveroBase {
-    public:
-        // --------------------------------------------------------------------------
-        // STATIC GPIO functions
-        // --------------------------------------------------------------------------
-        unsigned nGPIO(); 
-        bool hasGPIORegister(const unsigned ipin); 
-        bool hasGPIOPin(const unsigned ipin); 
-};
-
-
 class Overo {
     public:
         Overo(); 

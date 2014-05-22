@@ -20,27 +20,6 @@
 #define GPIODIR_OUT 1
 
 
-// --------------------------------------------------------------------------
-// STATIC GPIO functions
-// --------------------------------------------------------------------------
-
-//Number of GPIOs Available
-unsigned OveroBase::nGPIO() { 
-    return 192; 
-}
-
-// check if ipin is greater than the number of GPIOs
-bool OveroBase::hasGPIORegister(const unsigned ipin) { 
-    return ipin<nGPIO(); 
-}
-
-// Curtain off unavailable GPIOs
-bool OveroBase::hasGPIOPin(const unsigned ipin) {
-    if((ipin==2) || ((ipin<=8) && (ipin>=5)) || (ipin>=nGPIO()))
-        return false;
-    return true;
-}
-
 
 Overo::Overo() {}; 
 Overo::~Overo() {}; 
@@ -106,15 +85,24 @@ void Overo::gpioConfigureAll() {
 }
 
 // --------------------------------------------------------------------------
-// Utility functions
+// STATIC GPIO functions
 // --------------------------------------------------------------------------
 
-void Overo::loopDelay(unsigned nloop) const {
-    for(volatile unsigned iloop=0;iloop<nloop;iloop++);
+//Number of GPIOs Available
+unsigned Overo::nGPIO() { 
+    return 192; 
 }
 
-void Overo::usecDelay(unsigned nusec) const {
-    loopDelay(nusec);
+// check if ipin is greater than the number of GPIOs
+bool Overo::hasGPIORegister(const unsigned ipin) { 
+    return ipin<nGPIO(); 
+}
+
+// Curtain off unavailable GPIOs
+bool Overo::hasGPIOPin(const unsigned ipin) {
+    if((ipin==2) || ((ipin<=8) && (ipin>=5)) || (ipin>=nGPIO()))
+        return false;
+    return true;
 }
 
 uint64_t Overo::serialNumber() const {
@@ -147,3 +135,4 @@ uint64_t Overo::serialNumber() const {
     }
     return 0;
 }
+
