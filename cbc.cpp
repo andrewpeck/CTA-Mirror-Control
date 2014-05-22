@@ -8,10 +8,11 @@
 #include <string>
 #include <cassert>
 #include <vector>
+#include <unistd.h>
 
 #include "MirrorControlBoard.hpp"
 
-#include "cbc.h"
+#include "cbc.hpp"
 
 /* by Jim Ulery */
 static unsigned julery_isqrt(unsigned long val) {
@@ -134,7 +135,8 @@ int usage(const char* program, std::ostream& stream,
 //#else
 //typedef Overo<SimulatedRegisters> Sys;
 //#endif
-typedef Layout<> LO;
+//typedef Layout<> LO;
+Layout layout; 
 
 
 int main(int argc, const char** argv)
@@ -156,16 +158,19 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
     std::string command = *argv;
     argv++, argc--;
 
-    if((command == "initialize")||(command == "init")||(command == "config")) {
+    if((command == "initialize") || (command == "init") || (command == "config")) {
         unsigned ssp_clk_div = 4;
-        if(argc)
-        {
+        if(argc) {
             ssp_clk_div = atoi(*argv);
             argc--, argv++;
         }
 
         MirrorControlBoard mcb(false, 7, ssp_clk_div);
-        sys.gpioConfigureAll();  // Configure GPIOs
+
+        printf("Configuring GPIOs..."); 
+        sys.gpioConfigureAll(); 
+
+        printf("Powering Up Base..."); 
         mcb.powerUpBase();
         return EXIT_SUCCESS;
     }
@@ -214,8 +219,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         mcb.enableAllDrives();
     else if(command == "disable_all")
         mcb.disableAllDrives();
-    else if(command == "enable")
-    {
+    else if(command == "enable") {
         if(argc==0)
             usage(program, oStr);
         unsigned idrive = atoi(*argv);
@@ -226,8 +230,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
 
         mcb.enableDrive(idrive);
     }
-    else if(command == "disable")
-    {
+    else if(command == "disable") {
         if(argc==0)
             usage(program, oStr);
         unsigned idrive = atoi(*argv);
@@ -243,24 +246,34 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
     else if(command == "disableUSB_all")
         mcb.powerDownAllUSB();
 
-    else if(command == "enableUSB")
-    {
+    else if(command == "enableUSB") {
         if(argc==0)usage(program, oStr);
         unsigned iusb = atoi(*argv);
         if((iusb<1)||(iusb>7))usage(program, oStr);
         iusb--;
         mcb.powerUpUSB(iusb);
     }
-    else if(command == "testusb")
-    {
-        //sys.gpioSetDirection(LO::igpioUSBOff4(), 0);
-        //sys.gpioConfigureAll(); 
-        //bool level = !!  sys.gpioReadLevel(LO::igpioUSBOff4());
+    else if(command == "testusb") {
         for (int i=0; i<1000000; i++) {
             if (i%2==0)
-                sys.gpioWriteLevel(LO::igpioUSBOff4(),1);
+                sys.gpioWriteLevel(layout.igpioUSBOff4(),1);
             if (i%2==1)
-                sys.gpioWriteLevel(LO::igpioUSBOff4(),0);
+                sys.gpioWriteLevel(layout.igpioUSBOff4(),0);
+        }
+    }
+    else if(command == "frequsb") {
+        if (argc==0)
+            usage(program,oStr); 
+
+        //50 is an empirically derived offset used to allow actual (Hz) frequency inputs which accomodates for the tmie to process through the inherent inaccuracy of the clock
+        unsigned frequency = atoi(*argv);        
+        float period = (1000000/(frequency)); 
+
+        for (int i=0; i<1000000; i++) {
+                sys.gpioWriteLevel(layout.igpioUSBOff4(),1);
+                usleep(period/2); 
+                sys.gpioWriteLevel(layout.igpioUSBOff4(),0);
+                usleep(period/2); 
         }
     }
     else if(command == "disableUSB")
@@ -439,7 +452,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         oStr << "Drives:"
             << (mcb.isDriveControllersPoweredUp()?
                     (char*)"":(char*)" A3977-OFF")
-            << (sys.gpioReadLevel(LO::igpioReset())?
+            << (sys.gpioReadLevel(layout.igpioReset())?
                     (char*)"":(char*)" RESET")
             << (mcb.isDriveSREnabled()?
                     (char*)" SR":(char*)"");

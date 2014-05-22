@@ -1,6 +1,6 @@
 # SJF
 
-LIBOBJECTS =  GPIOInterface.o Overo.o MirrorControlBoard.o SpiInterface.o
+LIBOBJECTS =  GPIOInterface.o Overo.o MirrorControlBoard.o SpiInterface.o Layout.o
 #	  OmniORBHelper.o VSAssert.o VSDataConverter.o VSOptions.o 
 #ALLOBJECTS = sctelescope.o cbc.o demo.o uboot_conf.o $(LIBOBJECTS)
 ALLOBJECTS = cbc.o demo.o uboot_conf.o $(LIBOBJECTS)
@@ -28,8 +28,11 @@ demo: demo.o $(LIBOBJECTS)
 uboot_conf: uboot_conf.o $(LIBOBJECTS)
 	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
 
-SpiInterface: SpiInterface.o $(LIBOBJECTS)
-	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
+#SpiInterface: SpiInterface.o $(LIBOBJECTS)
+#	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
+#
+#Layout: Layout.o $(LIBOBJECTS)
+#	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(MYCXXFLAGS) -c $<

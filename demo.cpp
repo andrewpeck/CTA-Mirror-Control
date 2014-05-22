@@ -19,9 +19,9 @@
 #include <cassert>
 #include <cmath>
 
-#include "Overo.hpp"
-#include "Layout.hpp"
-#include "TLCX5XX_ADC.hpp"
+#include <Overo.hpp>
+#include <Layout.hpp>
+#include <TLCX5XX_ADC.hpp>
 
 /* by Jim Ulery */
 static unsigned julery_isqrt(unsigned long val) {
@@ -55,7 +55,7 @@ void usage(const char* program, std::ostream& stream,
 //#else
 //typedef Overo<SimulatedRegisters> Sys;
 //#endif
-typedef Layout<> LO;
+
 
 int main(int argc, char** argv)
 {
@@ -118,6 +118,7 @@ int main(int argc, char** argv)
     int64_t ix3a = -iamp;
 
     Overo sys;
+    Layout LO; 
 
     while(1)
     {
@@ -140,10 +141,10 @@ int main(int argc, char** argv)
                     int dir = 0;
                     if(ix1t > ix1a)ix1a++;
                     else ix1a--, dir=1;
-                    sys.gpioWriteLevel(LO::igpioDir1(),dir);
-                    sys.gpioWriteLevel(LO::igpioDir4(),dir);
-                    sys.gpioWriteLevel(LO::igpioStep1(),1);
-                    sys.gpioWriteLevel(LO::igpioStep4(),1);
+                    sys.gpioWriteLevel(LO.igpioDir1(),dir);
+                    sys.gpioWriteLevel(LO.igpioDir4(),dir);
+                    sys.gpioWriteLevel(LO.igpioStep1(),1);
+                    sys.gpioWriteLevel(LO.igpioStep4(),1);
                 }
 
                 if(ix2t != ix2a)
@@ -151,10 +152,10 @@ int main(int argc, char** argv)
                     int dir = 0;
                     if(ix2t > ix2a)ix2a++;
                     else ix2a--, dir=1;
-                    sys.gpioWriteLevel(LO::igpioDir2(),dir);
-                    sys.gpioWriteLevel(LO::igpioDir5(),dir);
-                    sys.gpioWriteLevel(LO::igpioStep2(),1);
-                    sys.gpioWriteLevel(LO::igpioStep5(),1);
+                    sys.gpioWriteLevel(LO.igpioDir2(),dir);
+                    sys.gpioWriteLevel(LO.igpioDir5(),dir);
+                    sys.gpioWriteLevel(LO.igpioStep2(),1);
+                    sys.gpioWriteLevel(LO.igpioStep5(),1);
                 }
 
                 if(ix3t != ix3a)
@@ -162,19 +163,19 @@ int main(int argc, char** argv)
                     int dir = 0;
                     if(ix3t > ix3a)ix3a++;
                     else ix3a--, dir=1;
-                    sys.gpioWriteLevel(LO::igpioDir3(),dir);
-                    sys.gpioWriteLevel(LO::igpioDir6(),dir);
-                    sys.gpioWriteLevel(LO::igpioStep3(),1);
-                    sys.gpioWriteLevel(LO::igpioStep6(),1);
+                    sys.gpioWriteLevel(LO.igpioDir3(),dir);
+                    sys.gpioWriteLevel(LO.igpioDir6(),dir);
+                    sys.gpioWriteLevel(LO.igpioStep3(),1);
+                    sys.gpioWriteLevel(LO.igpioStep6(),1);
                 }
 
                 for(volatile unsigned idelay=0;idelay<ndelay;idelay++);
-                sys.gpioWriteLevel(LO::igpioStep1(),0);
-                sys.gpioWriteLevel(LO::igpioStep2(),0);
-                sys.gpioWriteLevel(LO::igpioStep3(),0);
-                sys.gpioWriteLevel(LO::igpioStep4(),0);
-                sys.gpioWriteLevel(LO::igpioStep5(),0);
-                sys.gpioWriteLevel(LO::igpioStep6(),0);
+                sys.gpioWriteLevel(LO.igpioStep1(),0);
+                sys.gpioWriteLevel(LO.igpioStep2(),0);
+                sys.gpioWriteLevel(LO.igpioStep3(),0);
+                sys.gpioWriteLevel(LO.igpioStep4(),0);
+                sys.gpioWriteLevel(LO.igpioStep5(),0);
+                sys.gpioWriteLevel(LO.igpioStep6(),0);
                 for(volatile unsigned idelay=0;idelay<ndelay;idelay++);	  
 
                 std::cout << ix1a << ' ' << ix2a << ' ' << ix3a << '\n';

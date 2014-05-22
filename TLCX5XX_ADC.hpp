@@ -19,8 +19,7 @@
 
 #include <Bits.hpp>
 
-template<unsigned NBIT> class TLCX5XX_ADC
-{
+template<unsigned NBIT> class TLCX5XX_ADC {
     public:
 
         static uint32_t codeCommand(uint32_t cmd, uint32_t data = 0)
