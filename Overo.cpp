@@ -12,7 +12,6 @@
 #include <cctype>
 
 #include <Layout.hpp>
-#include <Bits.hpp>
 #include <GPIOInterface.hpp>
 #include <Overo.hpp>
 
@@ -30,7 +29,7 @@ Overo::~Overo() {};
 
 // Read GPIO by ipin (0-192)
 bool Overo::gpioReadLevel(const unsigned ipin) {
-    bool level = *(gpio.ptrGPIOReadLevel(ipin)) & Bits::mask1Bit(ipin);
+    bool level = *(gpio.ptrGPIOReadLevel(ipin)) & (0x1 << ipin);
     printf("Read %i from pin %i",level,ipin);
     return level; 
 }
@@ -48,7 +47,7 @@ void Overo::gpioWriteLevel(const unsigned ipin, bool level) {
 bool Overo::gpioGetDirection(const unsigned ipin) {
     volatile uint32_t* reg = gpio.ptrGPIODirection(ipin);
     uint32_t val = *reg;
-    bool dir = !!(val & Bits::mask1Bit(ipin));
+    bool dir = !!(val & (0x1<<ipin));
     return dir; 
 }
 
