@@ -45,9 +45,6 @@ bool OveroBase::hasGPIOPin(const unsigned ipin) {
 Overo::Overo() {}; 
 Overo::~Overo() {}; 
 
-GPIOInterface gpio; 
-OveroGPIOMap layout; 
-
 // --------------------------------------------------------------------------
 // GPIO utility functions
 // --------------------------------------------------------------------------
@@ -61,7 +58,7 @@ bool Overo::gpioReadLevel(const unsigned ipin) {
 
 // Write GPIO by ipin (0-192)
 void Overo::gpioWriteLevel(const unsigned ipin, bool level) {
-    printf("\nWriting %i to pin %i", level, ipin); 
+    //printf("\nWriting %i to pin %i", level, ipin); 
     if (level)
         gpio.gpioSetLevel(ipin);
     else 
@@ -81,11 +78,11 @@ void Overo::gpioSetDirection(const unsigned ipin, bool dir) {
     volatile uint32_t* reg = gpio.ptrGPIODirection(ipin);
     uint32_t val = *reg;
     if(dir==1)
-        val |= Bits::mask1Bit(ipin);
+        val |= (0x1<<ipin);
     else 
-        val &= ~Bits::mask1Bit(ipin);
+        val &= ~(0x1<<ipin);
     *reg = val;
-    printf("gpioSetDirection :: Writing %zu", val);
+    //printf("\ngpioSetDirection :: Writing %04X", val);
 }
 
 // Configures a given GPIO pin for a direction (1=OUT,0=in) and function
@@ -97,14 +94,14 @@ void Overo::gpioConfigure(const unsigned ipin, bool dir) {
 void Overo::gpioConfigureAll() {
     for (int i=0; i<192; i++) {
         int config = layout.gpioConfiguration(i);
-        if (config==-1)      // don't use
-            return; 
-        else if (config==0)  // input
+        if (config==0){ // output
+            printf("\nConfiguring gpio %i as output", i); 
             gpioSetDirection(i, 0);
-        else if (config==1)  //output
+        }
+        if (config==1) {  // input
+            printf("\nConfiguring gpio %i as input", i); 
             gpioSetDirection(i, 1);
-        else 
-            return;
+        }
     }
 }
 

@@ -51,6 +51,9 @@ class Overo {
         void loopDelay(unsigned nloop) const; 
         void usecDelay(unsigned nusec) const; 
         uint64_t serialNumber() const; 
+    private: 
+        GPIOInterface gpio; 
+        Layout layout; 
 };
 
 #endif
