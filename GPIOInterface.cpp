@@ -83,15 +83,6 @@ void GPIOInterface::gpioClrLevel(const unsigned ipin) {
 // Private Members
 ////////////////////////////////////////////////////////////////////////////////
 
-// SPI1 supports up to four peripherals, SPI2 and SPI3 support up to two
-// peripherals, and SPI4 supports only one peripheral.
-// channel address = base address + 0x14 * x
-// x= 0 to 3 for MCSPI1.
-// x= 0 to 1 for MCSPI2 and MCSPI3.
-// x= 0      for MCSPI4.
-// in software let's enumerate these lines: 0,1,2,3,4,5,6,7,8
-const int GPIOInterface::channel[] =  {0,1,2,3,0,1,0,1,0}; 
-
 // Returns Virtual (memory mapped) address for a given GPIO pin 
 volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t phys, const unsigned ipin) {
     if (ipin<32)  {

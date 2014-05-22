@@ -18,8 +18,6 @@ class GPIOInterface {
         void gpioSetLevel(const unsigned ipin); 
         void gpioClrLevel(const unsigned ipin); 
     private: 
-        static const int channel[]; 
-
         // --------------------------------------------------------------------------
         // GPIO register (PHYSICAL) Address Definitions
         // --------------------------------------------------------------------------
