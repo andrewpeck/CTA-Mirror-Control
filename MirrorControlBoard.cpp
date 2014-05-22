@@ -170,15 +170,14 @@ bool MirrorControlBoard::isDriveSREnabled() {
 
 void MirrorControlBoard::setUStep(UStep ustep) {
     unsigned mslog2 = 0;
-    switch(ustep)
-    {
+    switch(ustep) {
         case USTEP_1: mslog2 = 0x0; break;
         case USTEP_2: mslog2 = 0x1; break;
         case USTEP_4: mslog2 = 0x2; break;
         case USTEP_8: mslog2 = 0x3; break;
     }
-    m_sys.gpioWriteLevel(layout.igpioMS1(),mslog2&0x1);
-    m_sys.gpioWriteLevel(layout.igpioMS2(),mslog2&0x2);
+    m_sys.gpioWriteLevel(layout.igpioMS1(), mslog2 & 0x1);
+    m_sys.gpioWriteLevel(layout.igpioMS2(), mslog2 & 0x2);
 }
 
 MirrorControlBoard::UStep MirrorControlBoard::getUStep() {
@@ -273,11 +272,6 @@ void MirrorControlBoard::initializeADC(unsigned iadc) {
     selectADC(iadc);                                        // Assert Chip Select for ADC in question
     spi.WriteRead(ADC::codeInitialize()); 
     spi.WriteRead(ADC::codeConfig()); 
-
-    //m_sys.spi::WriteRead (ADC_SPI, ADC::codeInitialize());   // Initialize ADC
-    //m_sys.spi::WriteRead (ADC_SPI, ADC::codeConfig());       // Configure ADC
-    //m_sys.sspTestWritePollRead(ADC_SSP, ADC::codeInitialize());
-    //m_sys.sspTestWritePollRead(ADC_SSP, ADC::codeConfig());
 }
 
 void MirrorControlBoard::selectADC(unsigned iadc) {
