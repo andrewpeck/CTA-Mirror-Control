@@ -51,14 +51,15 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data) {
     uint8_t byte4 = 0xFF & (data >> 0); 
 
     uint8_t tx[] = { byte1, byte2, byte3, byte4 };
+    const uint8_t txsize = ARRAY_SIZE(tx); 
 
-    uint8_t rx[ARRAY_SIZE(tx)] = {0};
+    uint8_t rx[txsize] = {0};
 
     struct spi_ioc_transfer tr; 
     memset( (void *) & tr, 0, sizeof(struct spi_ioc_transfer));
     tr.tx_buf           = (unsigned long) tx; 
     tr.rx_buf           = (unsigned long) rx; 
-    tr.len              = ARRAY_SIZE(tx); 
+    tr.len              = txsize; 
     tr.delay_usecs      = delay; 
     tr.speed_hz         = speed; 
     tr.bits_per_word    = bits; 
@@ -68,8 +69,8 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data) {
     if (ret < 1)
         pabort("can't send spi message");
 
-    for (ret = 0; ret < ARRAY_SIZE(tx); ret++) {
-        read |= rx[ret] << 8*(ARRAY_SIZE(tx)-ret-1);
+    for (ret = 0; ret < txsize; ret++) {
+        read |= rx[ret] << 8*(txsize-ret-1);
     }
     printf("\nRead = 0x%04X ", read);
     return read; 
