@@ -7,12 +7,11 @@
 #include <cstdlib>
 #include <string>
 #include <cassert>
+#include <cstring>
 #include <vector>
 #include <unistd.h>
-
-#include "MirrorControlBoard.hpp"
-
-#include "cbc.hpp"
+#include <MirrorControlBoard.hpp>
+#include <cbc.hpp>
 
 /* by Jim Ulery */
 static unsigned julery_isqrt(unsigned long val) {
@@ -61,28 +60,16 @@ const char* usage_text = "The following commands are available:\n\
                           disable_hi_current:\n\
                           Disable high current mode on all drives.\n\
                           \n\
-                          enable_all:\n\
-                          Enable all drives.\n\
-                          \n\
-                          disable_all:\n\
-                          Disable all drives.\n\
-                          \n\
-                          enable DR={1-6}:\n\
+                          enable DR={1-6} or DR=all:\n\
                           Enable drive (DR).\n\
                           \n\
-                          disable DR={1-6}:\n\
+                          disable DR={1-6} or DR=all:\n\
                           Disable drive (DR).\n\
                           \n\
-                          enableUSB_all:\n\
-                          Enable all USB.\n\
-                          \n\
-                          disableUSB_all:\n\
-                          Disable all USB.\n\
-                          \n\
-                          enableUSB USB={1-7}:\n\
+                          enableUSB USB={1-7} or USB=all:\n\
                           Enable USB (USB).\n\
                           \n\
-                          disableUSB USB={1-7}:\n\
+                          disableUSB USB={1-7} or USB=all:\n\
                           Disable USB (USB).\n\
                           \n\
                           step DR={1-6} NSTEP [DELAY]:\n\
@@ -122,9 +109,7 @@ const char* usage_text = "The following commands are available:\n\
                           of expansion and contraction to perform.\n\
                           ";
 
-int usage(const char* program, std::ostream& stream, 
-        int status = EXIT_FAILURE)
-{
+int usage(const char* program, std::ostream& stream, int status = EXIT_FAILURE) {
     stream << "Usage: " << program << " command [command data]\n\n"
         << usage_text;
     return status;
@@ -136,17 +121,15 @@ int usage(const char* program, std::ostream& stream,
 //typedef Overo<SimulatedRegisters> Sys;
 //#endif
 //typedef Layout<> LO;
-Layout layout; 
 
 
-int main(int argc, const char** argv)
-{
+
+int main(int argc, const char** argv) {
     return SubMain(argc, argv);
 }
 
 
-int SubMain(int argc, const char** argv, std::ostream& oStr)
-{
+int SubMain(int argc, const char** argv, std::ostream& oStr) {
     const char* program = *argv;
     argv++, argc--;
 
@@ -154,30 +137,24 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         return usage(program, oStr, EXIT_SUCCESS);
 
     Overo sys; 
+    Layout layout; 
+    MirrorControlBoard mcb(true, 7);
 
     std::string command = *argv;
     argv++, argc--;
 
     if((command == "initialize") || (command == "init") || (command == "config")) {
-        unsigned ssp_clk_div = 4;
-        if(argc) {
-            ssp_clk_div = atoi(*argv);
-            argc--, argv++;
-        }
 
-        MirrorControlBoard mcb(false, 7, ssp_clk_div);
-
-        printf("Configuring GPIOs..."); 
+        printf("\nConfiguring GPIOs..."); 
         sys.gpioConfigureAll(); 
 
-        printf("Powering Up Base..."); 
+        printf("\nPowering Up Base..."); 
         mcb.powerUpBase();
+
         return EXIT_SUCCESS;
     }
 
-    MirrorControlBoard mcb(true);
-
-    if(command == "power_down")
+    if (command == "power_down")
         mcb.powerDownAll();
     else if(command == "power_up")
         mcb.powerUpAll();
@@ -195,13 +172,11 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         mcb.enableDriveSR();
     else if(command == "disable_sr")
         mcb.disableDriveSR();
-    else if(command == "set_microstep")
-    {
+    else if(command == "set_microstep") {
         if(argc==0)usage(program, oStr);
         unsigned usint = atoi(*argv);
-        MirrorControlBoard::UStep us;
-        switch(usint)
-        {
+        MirrorControlBoard::UStep us=MirrorControlBoard::USTEP_1;
+        switch(usint) {
             case 1: us = MirrorControlBoard::USTEP_1; break;
             case 2: us = MirrorControlBoard::USTEP_2; break;
             case 4: us = MirrorControlBoard::USTEP_4; break;
@@ -215,44 +190,92 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         mcb.enableDriveHiCurrent();
     else if(command == "disable_hi_current")
         mcb.disableDriveHiCurrent();
-    else if(command == "enable_all")
-        mcb.enableAllDrives();
-    else if(command == "disable_all")
-        mcb.disableAllDrives();
     else if(command == "enable") {
+        // whine if no argument given 
         if(argc==0)
             usage(program, oStr);
-        unsigned idrive = atoi(*argv);
-        if ((idrive<1)||(idrive>6))
-            usage(program, oStr);
 
-        idrive--;
+        if(strcmp(*argv,"all")==0)
+            mcb.enableAllDrives();
+        else {
+            // drive number
+            unsigned idrive = atoi(*argv);
 
-        mcb.enableDrive(idrive);
-    }
-    else if(command == "disable") {
+            // whine if drive is out of bounds
+            if ((idrive<1)||(idrive>6))
+                usage(program, oStr);
+
+            //count from zero
+            idrive--;
+
+            //enable drive
+            mcb.enableDrive(idrive);
+        }
+    } // close enable (idrive)
+    else if (command == "disable") {
+        // whine if no argument given 
         if(argc==0)
             usage(program, oStr);
-        unsigned idrive = atoi(*argv);
-        if ((idrive<1)||(idrive>6))
+
+        if(strcmp(*argv,"all")==0)
+            mcb.enableAllDrives();
+        else {
+            // drive number
+            unsigned idrive = atoi(*argv);
+
+            // whine if drive is out of bounds
+            if ((idrive<1)||(idrive>6))
+                usage(program, oStr);
+
+            //count from zero
+            idrive--;
+
+            //enable drive
+            mcb.disableDrive(idrive);
+        }
+    } // close disable (idrive)
+    else if(command == "enableUSB" || command == "enableusb") {
+        // whine if no argument given 
+        if(argc==0)
             usage(program, oStr);
 
-        idrive--;
+        if (strcmp(*argv,"all")==0)
+            mcb.powerUpAllUSB();
+        else {
+            // usb number
+            unsigned iusb = atoi(*argv);
 
-        mcb.disableDrive(idrive);
-    }
-    else if(command == "enableUSB_all")
-        mcb.powerUpAllUSB();
-    else if(command == "disableUSB_all")
-        mcb.powerDownAllUSB();
+            // whine if usb is out of bounds
+            if((iusb<1)||(iusb>7))
+                usage(program, oStr);
 
-    else if(command == "enableUSB") {
-        if(argc==0)usage(program, oStr);
-        unsigned iusb = atoi(*argv);
-        if((iusb<1)||(iusb>7))usage(program, oStr);
-        iusb--;
-        mcb.powerUpUSB(iusb);
-    }
+            //count from zero
+            iusb--;
+
+            mcb.powerUpUSB(iusb);
+        }
+    } // close enableUSB
+    else if(command == "disableUSB" || command == "disableusb") {
+        // whine if no argument given 
+        if(argc==0)
+            usage(program, oStr);
+
+        if(strcmp(*argv,"all")==0)
+            mcb.powerDownAllUSB();
+        else {
+            // usb number
+            unsigned iusb = atoi(*argv);
+
+            // whine if usb is out of bounds
+            if((iusb<1)||(iusb>7))
+                usage(program, oStr);
+
+            //count from zero
+            iusb--;
+
+            mcb.powerDownUSB(iusb);
+        }
+    } // close disableUSB
     else if(command == "testusb") {
         for (int i=0; i<1000000; i++) {
             if (i%2==0)
@@ -260,7 +283,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
             if (i%2==1)
                 sys.gpioWriteLevel(layout.igpioUSBOff4(),0);
         }
-    }
+    } // close testusb
     else if(command == "frequsb") {
         if (argc==0)
             usage(program,oStr); 
@@ -270,43 +293,37 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         float period = (1000000/(frequency)); 
 
         for (int i=0; i<1000000; i++) {
-                sys.gpioWriteLevel(layout.igpioUSBOff4(),1);
-                usleep(period/2); 
-                sys.gpioWriteLevel(layout.igpioUSBOff4(),0);
-                usleep(period/2); 
+            sys.gpioWriteLevel(layout.igpioUSBOff4(),1);
+            usleep(period/2); 
+            sys.gpioWriteLevel(layout.igpioUSBOff4(),0);
+            usleep(period/2); 
         }
-    }
-    else if(command == "disableUSB")
-    {
-        if(argc==0)usage(program, oStr);
-        unsigned iusb = atoi(*argv);
-        if((iusb<1)||(iusb>7))usage(program, oStr);
-        iusb--;
-        mcb.powerDownUSB(iusb);
-    }
-
-    else if(command == "step")
-    {
-        // if no arguments, print usage instructions
+    } // close frequsb
+    else if(command == "step") {
+        // whine if no argument given 
         if(argc==0)
             usage(program, oStr);
-        // first argument is actuator number
+        // actuator number
         unsigned idrive = atoi(*argv);
+
+        // remove the 1st argument from arglist
         argc--, argv++;
 
-        //invalid actuator number
+        // whine if invalid actuator number
         if ((idrive<1)||(idrive>6))
             usage(program, oStr);
 
         //count from 0
         idrive--;
 
-        // if no second argument, print usage
+        // whine if no second argument
         if(argc==0)
             usage(program, oStr);
 
-        // second argument is number of steps
+        // number of setps
         int nstep = atoi(*argv);
+
+        // remove the 2nd argument from arglist
         argc--, argv++;
 
         // if nstep > 0, extend. If nstep < 0, retract
@@ -328,14 +345,141 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
             mcb.stepOneDrive(idrive, dir, ndelay);
             mcb.loopDelay(ndelay);
         }
-    }
+    } // close step
     else if(command == "slew") {
-        if(argc==0)usage(program, oStr);
+        // whine if no arugment given
+        if(argc==0)
+            usage(program, oStr);
+
+        // drive number
         unsigned idrive = atoi(*argv);
+
+        // remove first argument
         argc--, argv++;
-        if((idrive<1)||(idrive>6))usage(program, oStr);
+
+        // whine if invalid drivenumber
+        if ((idrive<1)||(idrive>6))
+            usage(program, oStr);
+
+        // count from zero
         idrive--;
 
+        // Default direction = extend
+        MirrorControlBoard::Dir dir = MirrorControlBoard::DIR_EXTEND;
+
+        // Check the string length to see if somebody typed extend or retract....
+
+        if(argc) {
+            std::string dirstr(*argv);
+
+            if((dirstr.size()<=6) &&(dirstr.compare(0,dirstr.size(), std::string("extend"),0,dirstr.size())==0))
+                dir = MirrorControlBoard::DIR_EXTEND;
+            else if((dirstr.size()<=7) &&(dirstr.compare(0,dirstr.size(), std::string("retract"),0,dirstr.size())==0))
+                dir = MirrorControlBoard::DIR_RETRACT;
+            else
+                usage(program, oStr);
+            argc--, argv++;
+        }
+
+        // default delay = 5000 steps
+        unsigned ndelay = 5000;
+
+        // take optional argument for delay
+        if(argc) {
+            ndelay = atoi(*argv);
+            argc--, argv++;
+        }
+
+        // Loop forever while stepping the motor
+        while(1) {
+            mcb.stepOneDrive(idrive, dir, ndelay);
+            mcb.loopDelay(ndelay);
+        }
+    } // close slew
+
+    else if (command == "step_all") {
+        int nstep1 = 0;
+        int nstep2 = 0;
+        int nstep3 = 0;
+        int nstep4 = 0;
+        int nstep5 = 0;
+        int nstep6 = 0;
+
+        // take in (optional) number of steps as arugment
+        if(argc) 
+            nstep1 = atoi(*argv), argc--, argv++;
+        if(argc)
+            nstep2 = atoi(*argv), argc--, argv++;
+        if(argc)
+            nstep3 = atoi(*argv), argc--, argv++;
+        if(argc) 
+            nstep4 = atoi(*argv), argc--, argv++;
+        if(argc) 
+            nstep5 = atoi(*argv), argc--, argv++;
+        if(argc) 
+            nstep6 = atoi(*argv), argc--, argv++;
+
+        // default delay = 5000
+        unsigned ndelay = 5000;
+        // otherwise choose a delay via argument
+        if(argc) {
+            ndelay = atoi(*argv);
+            argc--, argv++;
+        }
+
+        // loop while theres still some stepping to do.. 
+        while(nstep1!=0 || nstep2!=0 || nstep3!=0 || nstep4!=0 || nstep5!=0 || nstep6!=0) {
+            //default dir is none
+            MirrorControlBoard::Dir dir1 = MirrorControlBoard::DIR_NONE;
+            MirrorControlBoard::Dir dir2 = MirrorControlBoard::DIR_NONE;
+            MirrorControlBoard::Dir dir3 = MirrorControlBoard::DIR_NONE;
+            MirrorControlBoard::Dir dir4 = MirrorControlBoard::DIR_NONE;
+            MirrorControlBoard::Dir dir5 = MirrorControlBoard::DIR_NONE;
+            MirrorControlBoard::Dir dir6 = MirrorControlBoard::DIR_NONE;
+
+            // motor 1 direction
+            if (nstep1 > 0)
+                dir1 = MirrorControlBoard::DIR_EXTEND, nstep1--;
+            else if (nstep1 < 0)
+                dir1 = MirrorControlBoard::DIR_RETRACT, nstep1++;
+
+            // motor 2 direction
+            if (nstep2 > 0)
+                dir2 = MirrorControlBoard::DIR_EXTEND, nstep2--;
+            else if (nstep2 < 0)
+                dir2 = MirrorControlBoard::DIR_RETRACT, nstep2++;
+
+            // motor 3 direction
+            if (nstep3 > 0)
+                dir3 = MirrorControlBoard::DIR_EXTEND, nstep3--;
+            else if (nstep3 < 0)
+                dir3 = MirrorControlBoard::DIR_RETRACT, nstep3++;
+
+            // motor 4 direction
+            if (nstep4 > 0)
+                dir4 = MirrorControlBoard::DIR_EXTEND, nstep4--;
+            else if (nstep4 < 0)
+                dir4 = MirrorControlBoard::DIR_RETRACT, nstep4++;
+
+            // motor 5 direction
+            if (nstep5 > 0)
+                dir5 = MirrorControlBoard::DIR_EXTEND, nstep5--;
+            else if (nstep5 < 0)
+                dir5 = MirrorControlBoard::DIR_RETRACT, nstep5++;
+
+            // motor 6 direction
+            if (nstep6 > 0)
+                dir6 = MirrorControlBoard::DIR_EXTEND, nstep6--;
+            else if (nstep6 < 0)
+                dir6 = MirrorControlBoard::DIR_RETRACT, nstep6++;
+
+            // step all drives once in specified directions
+            mcb.stepAllDrives(dir1, dir2, dir3, dir4, dir5, dir6, ndelay);
+            // some delay
+            mcb.loopDelay(ndelay);
+        }
+    } // close step_all
+    else if(command == "slew_all") {
         MirrorControlBoard::Dir dir = MirrorControlBoard::DIR_EXTEND;
         if(argc) {
             std::string dirstr(*argv);
@@ -360,95 +504,11 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         }
 
         while(1) {
-            mcb.stepOneDrive(idrive, dir, ndelay);
-            mcb.loopDelay(ndelay);
-        }
-    }
-    else if(command == "step_all")
-    {
-        int nstep1 = 0;
-        int nstep2 = 0;
-        int nstep3 = 0;
-        int nstep4 = 0;
-        int nstep5 = 0;
-        int nstep6 = 0;
-
-        if(argc) nstep1 = atoi(*argv), argc--, argv++;
-        if(argc)nstep2 = atoi(*argv), argc--, argv++;
-        if(argc)nstep3 = atoi(*argv), argc--, argv++;
-        if(argc)nstep4 = atoi(*argv), argc--, argv++;
-        if(argc)nstep5 = atoi(*argv), argc--, argv++;
-        if(argc)nstep6 = atoi(*argv), argc--, argv++;
-
-        unsigned ndelay = 5000;
-        if(argc)
-        {
-            ndelay = atoi(*argv);
-            argc--, argv++;
-        }
-
-        while(nstep1!=0 || nstep2!=0 || nstep3!=0 || 
-                nstep4!=0 || nstep5!=0 || nstep6!=0)
-        {
-            MirrorControlBoard::Dir dir1 = MirrorControlBoard::DIR_NONE;
-            MirrorControlBoard::Dir dir2 = MirrorControlBoard::DIR_NONE;
-            MirrorControlBoard::Dir dir3 = MirrorControlBoard::DIR_NONE;
-            MirrorControlBoard::Dir dir4 = MirrorControlBoard::DIR_NONE;
-            MirrorControlBoard::Dir dir5 = MirrorControlBoard::DIR_NONE;
-            MirrorControlBoard::Dir dir6 = MirrorControlBoard::DIR_NONE;
-
-            if(nstep1 > 0)dir1 = MirrorControlBoard::DIR_EXTEND, nstep1--;
-            else if(nstep1 < 0)dir1 = MirrorControlBoard::DIR_RETRACT, nstep1++;
-            if(nstep2 > 0)dir2 = MirrorControlBoard::DIR_EXTEND, nstep2--;
-            else if(nstep2 < 0)dir2 = MirrorControlBoard::DIR_RETRACT, nstep2++;
-            if(nstep3 > 0)dir3 = MirrorControlBoard::DIR_EXTEND, nstep3--;
-            else if(nstep3 < 0)dir3 = MirrorControlBoard::DIR_RETRACT, nstep3++;
-            if(nstep4 > 0)dir4 = MirrorControlBoard::DIR_EXTEND, nstep4--;
-            else if(nstep4 < 0)dir4 = MirrorControlBoard::DIR_RETRACT, nstep4++;
-            if(nstep5 > 0)dir5 = MirrorControlBoard::DIR_EXTEND, nstep5--;
-            else if(nstep5 < 0)dir5 = MirrorControlBoard::DIR_RETRACT, nstep5++;
-            if(nstep6 > 0)dir6 = MirrorControlBoard::DIR_EXTEND, nstep6--;
-            else if(nstep6 < 0)dir6 = MirrorControlBoard::DIR_RETRACT, nstep6++;
-
-            mcb.stepAllDrives(dir1, dir2, dir3, dir4, dir5, dir6, ndelay);
-            mcb.loopDelay(ndelay);
-        }
-    }
-    else if(command == "slew_all")
-    {
-        MirrorControlBoard::Dir dir = MirrorControlBoard::DIR_EXTEND;
-        if(argc)
-        {
-            std::string dirstr(*argv);
-
-            if((dirstr.size()<=6)
-                    &&(dirstr.compare(0,dirstr.size(),
-                            std::string("extend"),0,dirstr.size())==0))
-                dir = MirrorControlBoard::DIR_EXTEND;
-            else if((dirstr.size()<=7)
-                    &&(dirstr.compare(0,dirstr.size(),
-                            std::string("retract"),0,dirstr.size())==0))
-                dir = MirrorControlBoard::DIR_RETRACT;
-            else
-                usage(program, oStr);
-            argc--, argv++;
-        }
-
-        unsigned ndelay = 5000;
-        if(argc)
-        {
-            ndelay = atoi(*argv);
-            argc--, argv++;
-        }
-
-        while(1)
-        {
             mcb.stepAllDrives(dir, dir, dir, dir, dir, dir);
             mcb.loopDelay(ndelay);
         }      
-    }
-    else if(command == "status")
-    {
+    } // close slew_all
+    else if(command == "status") {
         oStr << "Drives:"
             << (mcb.isDriveControllersPoweredUp()?
                     (char*)"":(char*)" A3977-OFF")
@@ -468,15 +528,14 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         for(unsigned idrive=0;idrive<6;idrive++) {
             oStr << "  " << idrive+1 << ":" << (mcb.isDriveEnabled(idrive)?  " ENABLED ":" DISABLED") << '\n';
         }
-    }
-
+    } // close status
     else if(command == "measure") {
         //if(!sys.clockIsEnabledSSP(ADC_SSP)) {
         //    oStr << "SSP clock is not enabled. Power up the board!\n";
         //    return EXIT_FAILURE;
         //}
 
-        #define NCHANMAX 11
+#define NCHANMAX 11
         if(argc==0)
             usage(program, oStr);
         unsigned iadc = atoi(*argv);
@@ -531,11 +590,11 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         }
 
         oStr << "ADC:      " << iadc+1 << '\n'
-             << "Channels: " << zchan+1 << " to " << nchan << '\n'
-             << "NMeas:    " << nmeas << '\n'
-             << "NBurn:    " << nburn << '\n'
-             << "NDelay:   " << ndelay << '\n'
-             << "FullVolt: " << volt_full << '\n';
+            << "Channels: " << zchan+1 << " to " << nchan << '\n'
+            << "NMeas:    " << nmeas << '\n'
+            << "NBurn:    " << nburn << '\n'
+            << "NDelay:   " << ndelay << '\n'
+            << "FullVolt: " << volt_full << '\n';
 
         uint32_t sum[NCHANMAX];
         uint64_t sum2[NCHANMAX];
@@ -593,8 +652,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
             std::cout << std::setw(7) << std::setprecision(4) 
                 << double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]) << "\n";
         } // close if nchan!=zchan+1
-    } //close measure
-
+    } // close measure 
     else if(command == "measure_full") {
         //if(!sys.clockIsEnabledSSP(ADC_SSP))
         //{
@@ -655,10 +713,8 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
             }
             oStr << "\n";
         }
-    } // close measure_full
-
-    else if (command == "calibrate") {
-
+    } // close measure_full 
+    else if (command == "calibrate") { 
         if(argc==0)
             usage(program, oStr);
 
@@ -676,12 +732,13 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
 
         unsigned ncycle = 0;
         if(argc) { 
-            ncycle = atoi(*argv); argc--, argv++; 
+            ncycle = atoi(*argv); 
+            argc--, argv++; 
         }
 
-        unsigned dir = 0;
-        if(ncycle <= 1)
-            dir = ncycle, ncycle = 1;
+        //unsigned dir = 0;
+        //if(ncycle <= 1)
+        //    dir = ncycle, ncycle = 1;
 
         unsigned ndelay = 10000;
         if(argc) { 
@@ -722,7 +779,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         // deincrement ichan to count from 0
         ichan--;
 
-        unsigned ndelay_adc = 100;
+        unsigned ndelay_adc = 100; //unused variable
         float volt_full = 1.0; // 5.05;
 
         uint32_t* sum = new uint32_t[nstep*ncycle];
@@ -745,9 +802,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
             {
                 mcb.stepOneDrive(idrive, dir);
                 mcb.loopDelay(ndelay);
-                //mcb.measureADCStat(iadc, ichan, nmeas, 
-                //        sum[ichan], sum2[ichan], min[ichan], max[ichan],
-                //        nburn, ndelay_adc);
+                mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn, ndelay_adc);
             }
         }
 
@@ -789,7 +844,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         delete[] sum2;
         delete[] min;
         delete[] max;
-    } //close calibrate
+    } // close calibrate
     else
         usage(program, oStr); //print program usage
 
