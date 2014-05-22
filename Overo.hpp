@@ -36,12 +36,17 @@ class Overo {
         // Utility functions
         // --------------------------------------------------------------------------
 
-        void loopDelay(unsigned nloop) const; 
-        void usecDelay(unsigned nusec) const; 
         uint64_t serialNumber() const; 
+
     private: 
+        // Instantiate other classes
         GPIOInterface gpio; 
         Layout layout; 
+
+        // STATIC GPIO functions
+        unsigned nGPIO(); 
+        bool hasGPIORegister(const unsigned ipin); 
+        bool hasGPIOPin(const unsigned ipin); 
 };
 
 #endif

@@ -203,7 +203,7 @@ void MirrorControlBoard:: stepOneDrive(unsigned idrive, Dir dir, unsigned ndelay
     m_sys.gpioWriteLevel(igpio,(dir==DIR_NONE)?0:1);
 
     // a delay
-    m_sys.loopDelay(ndelayloop);
+    loopDelay(ndelayloop);
 
     // Toggle pin back to low
     m_sys.gpioWriteLevel(igpio,0);
@@ -226,7 +226,7 @@ void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Di
     m_sys.gpioWriteLevel(layout.igpioStep5(),(dr5_dir==DIR_NONE)?0:1);
     m_sys.gpioWriteLevel(layout.igpioStep6(),(dr6_dir==DIR_NONE)?0:1);
 
-    m_sys.loopDelay(ndelayloop);
+    loopDelay(ndelayloop);
 
     m_sys.gpioWriteLevel(layout.igpioStep1(),0);
     m_sys.gpioWriteLevel(layout.igpioStep2(),0);
@@ -238,7 +238,7 @@ void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Di
 
 void MirrorControlBoard::setPhaseZeroOnAllDrives() {
     m_sys.gpioWriteLevel(layout.igpioReset(),0);
-    m_sys.loopDelay(1000);
+    loopDelay(1000);
     m_sys.gpioWriteLevel(layout.igpioReset(),1);
 }
 
@@ -299,7 +299,7 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned 
     spi.WriteRead(code); 
 
     // some delay
-    m_sys.loopDelay(ndelayloop);
+    loopDelay(ndelayloop);
 
     // Read ADC
     uint32_t datum = spi.WriteRead(ADC::codeReadFIFO()); 
@@ -321,7 +321,7 @@ void MirrorControlBoard::measureManyADC(uint32_t* data, unsigned iadc, unsigned 
             data[ichan-1] = ADC::decodeUSB(datum);
 
         // some delay
-        m_sys.loopDelay(ndelayloop);
+        loopDelay(ndelayloop);
     }
 
     datum = spi.WriteRead(ADC::codeReadFIFO());
@@ -333,9 +333,9 @@ uint32_t MirrorControlBoard::measureADCWithBurn(unsigned iadc, unsigned ichan, u
     selectADC(iadc);
     uint32_t code = ADC::codeSelect(ichan);
     spi.WriteRead(code); 
-    m_sys.loopDelay(ndelayloop);
+    loopDelay(ndelayloop);
     spi.WriteRead(code); 
-    m_sys.loopDelay(ndelayloop);
+    loopDelay(ndelayloop);
     uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
 
     return ADC::decodeUSB(datum);
@@ -349,9 +349,9 @@ void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, u
         if(ichan>0)
             data[ichan-1] = ADC::decodeUSB(datum);
 
-        m_sys.loopDelay(ndelayloop);
+        loopDelay(ndelayloop);
         spi.WriteRead(code);
-        m_sys.loopDelay(ndelayloop);
+        loopDelay(ndelayloop);
     }
 
     uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
@@ -378,7 +378,7 @@ void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned
             if(datum>max)max=datum;
             if(datum<min)min=datum;
         }
-        m_sys.loopDelay(ndelayloop);
+        loopDelay(ndelayloop);
     }
     uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
     datum = ADC::decodeUSB(datum);
@@ -411,17 +411,10 @@ void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmea
         datum = ADC::decodeUSB(datum);
         vMeas[iloop - 1] = datum;
 
-        m_sys.loopDelay(ndelayloop);
+        loopDelay(ndelayloop);
     }
 }
 
-
 void MirrorControlBoard::loopDelay(unsigned nloop) { 
-    m_sys.loopDelay(nloop); 
-}
-void MirrorControlBoard::usecDelay(unsigned nusec) { 
-    m_sys.usecDelay(nusec); 
-}
-uint64_t MirrorControlBoard::serialNumber() { 
-    return m_sys.serialNumber(); 
+    for(volatile unsigned iloop=0;iloop<nloop;iloop++);
 }

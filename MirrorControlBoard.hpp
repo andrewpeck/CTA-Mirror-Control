@@ -112,9 +112,8 @@ class MirrorControlBoard {
 
         void loopDelay(unsigned nloop); 
         void usecDelay(unsigned nusec); 
-        uint64_t serialNumber(); 
+
     private:
-        //Overo             m_sys;
         Overo m_sys; 
         Layout layout; 
         SpiInterface spi; 
