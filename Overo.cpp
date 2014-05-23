@@ -60,8 +60,8 @@ void Overo::gpioConfigure(const unsigned ipin, bool dir)
 
 void Overo::gpioConfigureAll()
 {
-    FILE * configfile; 
-    configfile = fopen ("gpioconf","w"); 
+    FILE * configfile;
+    configfile = fopen ("gpioconf","w");
 
     for (int i=0; i<192; i++) {
         int config = layout.gpioConfiguration(i);
