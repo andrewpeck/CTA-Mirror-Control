@@ -13,7 +13,7 @@
 #include <MirrorControlBoard.hpp>
 #include <cbc.hpp>
 
-/* by Jim Ulery */
+// fast integer square root
 static unsigned julery_isqrt(unsigned long val) {
     unsigned long temp, g=0, b = 0x8000, bshft = 15;
     do {
@@ -149,7 +149,8 @@ int SubMain(int argc, const char** argv, std::ostream& oStr) {
     else if(command == "disable_sr")
         mcb.disableDriveSR();
     else if(command == "set_microstep") {
-        if(argc==0)usage(program, oStr);
+        if(argc==0)
+            usage(program, oStr);
         unsigned usint = atoi(*argv);
         MirrorControlBoard::UStep us=MirrorControlBoard::USTEP_1;
         switch(usint) {
@@ -691,22 +692,29 @@ int SubMain(int argc, const char** argv, std::ostream& oStr) {
         }
     } // close measure_full 
     else if (command == "calibrate") { 
+        // whine if no argument
         if(argc==0)
             usage(program, oStr);
 
+        // choose drive
         unsigned idrive = atoi(*argv);
         argc--, argv++;
 
+        // whine if drive is invalid
         if((idrive<1)||(idrive>6))
             usage(program, oStr);
         idrive--;
 
+        // default number of steps = 0
         unsigned nstep = 10000;
+        // (possibly) not default number of steps
         if(argc) { 
             nstep = atoi(*argv); argc--, argv++; 
         }
 
+        // default number of cycles = 0
         unsigned ncycle = 0;
+        // otherwise... take argument
         if(argc) { 
             ncycle = atoi(*argv); 
             argc--, argv++; 
@@ -716,27 +724,35 @@ int SubMain(int argc, const char** argv, std::ostream& oStr) {
         //if(ncycle <= 1)
         //    dir = ncycle, ncycle = 1;
 
+        // default delay = 10000
         unsigned ndelay = 10000;
+        // otherwise... take argument
         if(argc) { 
             ndelay = atoi(*argv); argc--, argv++; 
         }
 
+        // default ADC=7
         unsigned iadc = 7;
+        // otherwise... take argument
         if(argc) { 
             iadc = atoi(*argv); argc--, argv++; 
         }
 
+        // whine if adc is invalid
         if ((iadc<1)||(iadc>7))
             usage(program, oStr);
         iadc--;
 
+        // default nmeas=1
         unsigned nmeas = 1;
+        // argument
         if(argc) { 
             nmeas = atoi(*argv); argc--, argv++; 
         }
 
-        // get nburn 
+        // default nburn=1
         unsigned nburn = 1;
+        // otherwise.. take argument
         if(argc) { 
             nburn = atoi(*argv); argc--, argv++; 
         }
@@ -748,20 +764,20 @@ int SubMain(int argc, const char** argv, std::ostream& oStr) {
             argc--, argv++; 
         }
 
-        // channel exeeded
+        // whine if invalid channel chosen
         if(ichan>8)
             usage(program, oStr);
 
-        // deincrement ichan to count from 0
+        // count from 0
         ichan--;
 
-        unsigned ndelay_adc = 100; //unused variable
+        unsigned ndelay_adc = 100;
         float volt_full = 1.0; // 5.05;
 
-        uint32_t* sum = new uint32_t[nstep*ncycle];
-        uint64_t* sum2 = new uint64_t[nstep*ncycle];
-        uint32_t* max = new uint32_t[nstep*ncycle];
-        uint32_t* min = new uint32_t[nstep*ncycle];
+        uint32_t* sum   = new uint32_t[nstep*ncycle];
+        uint64_t* sum2  = new uint64_t[nstep*ncycle];
+        uint32_t* max   = new uint32_t[nstep*ncycle];
+        uint32_t* min   = new uint32_t[nstep*ncycle];
 
         assert(sum);
         assert(sum2);
@@ -769,33 +785,39 @@ int SubMain(int argc, const char** argv, std::ostream& oStr) {
         assert(min);
 
         // Step and take data
-        for(unsigned icycle = 0;icycle<ncycle;icycle++)
-        {
-            MirrorControlBoard::Dir dir = MirrorControlBoard::DIR_RETRACT;
-            if((icycle + dir)%2 == 0)dir = MirrorControlBoard::DIR_EXTEND;
+        for (unsigned icycle = 0;icycle<ncycle;icycle++) {
+            // Default Direction is Retract
+            MirrorControlBoard::Dir dir  = MirrorControlBoard::DIR_RETRACT;
 
-            for(unsigned istep=0;istep<nstep;istep++)
-            {
+            // Extend on even icycles
+            if ((icycle + dir)%2 == 0)
+                dir = MirrorControlBoard::DIR_EXTEND;
+
+            for (unsigned istep=0;istep<nstep;istep++) {
+                // Move motor one step
                 mcb.stepOneDrive(idrive, dir);
+                // Wait a moment
                 mcb.loopDelay(ndelay);
+                // Measure on ADC 
                 mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn, ndelay_adc);
-            }
-        }
+            } // close (for istep) 
+        } // close (for icycle)
 
-        for(unsigned idatum=0;idatum<nstep*ncycle;idatum++)
-        {
-            unsigned icycle = idatum/nstep;
+        for (unsigned idatum=0;idatum<nstep*ncycle;idatum++) {
+            unsigned icycle = idatum / nstep;
             unsigned istep = idatum%nstep;
-            if(icycle & 0x1)istep=nstep-istep-1;
-            else istep++;
+            if (icycle & 0x1)
+                istep=nstep-istep-1;
+            else 
+                istep++;
 
             oStr << istep << ' ';
-            if(nmeas>1)
-            {
-                uint32_t mean = sum[idatum]/nmeas;
-                uint64_t s = sum[idatum];
-                uint64_t var = (sum2[idatum] - s*s/nmeas)/nmeas;
-                uint32_t rms = julery_isqrt(uint32_t(var));
+
+            if(nmeas>1) {
+                uint32_t mean   = sum[idatum]/nmeas;
+                uint64_t s      = sum[idatum];
+                uint64_t var    = (sum2[idatum] - s*s/nmeas)/nmeas;
+                uint32_t rms    = julery_isqrt(uint32_t(var));
 
                 oStr << mean << ' '
                     << std::fixed << std::setw(6) << std::setprecision(4) 
@@ -807,19 +829,18 @@ int SubMain(int argc, const char** argv, std::ostream& oStr) {
                     << std::setw(6) << std::setprecision(4) 
                     << TLC3548::voltData(min[idatum],volt_full) 
                     << '\n';
-            }
-            else
-            {
+            } // close if(nmeas>1)
+            else {
                 oStr << sum[idatum] << ' '
                     << std::fixed << std::setw(6) << std::setprecision(4) 
                     << TLC3548::voltData(sum[idatum],volt_full) << '\n';
             }
-        }
+        } // close (for idatum)
 
-        delete[] sum;
-        delete[] sum2;
-        delete[] min;
-        delete[] max;
+        delete[] sum;   //delete pointers
+        delete[] sum2;  //delete pointers
+        delete[] min;   //delete pointers
+        delete[] max;   //delete pointers
     } // close calibrate
     else
         usage(program, oStr); //print program usage
