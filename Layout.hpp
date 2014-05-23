@@ -8,7 +8,6 @@
 #define GPIODIR_OUT 1
 
 class Layout {
-
     public:
         Layout();
         ~Layout(); 
