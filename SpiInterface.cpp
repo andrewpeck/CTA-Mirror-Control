@@ -13,35 +13,37 @@
 const char*     SpiInterface::device = "/dev/spidev1.0";
 
 SpiInterface::SpiInterface(): mode(0), bits(32), speed(1000000), delay(0) { }
-SpiInterface::~SpiInterface() { } 
+SpiInterface::~SpiInterface() { }
 
-void SpiInterface::pabort(const char *s) {
+void SpiInterface::pabort(const char *s)
+{
     perror(s);
     abort();
 }
 
-uint32_t SpiInterface::transfer(int fd, uint32_t data) {
-    uint32_t read=0; 
+uint32_t SpiInterface::transfer(int fd, uint32_t data)
+{
+    uint32_t read=0;
     //printf("\nSent = 0x%04X ", data);
     int ret;
-    uint8_t byte1 = 0xFF & (data >> 24); 
-    uint8_t byte2 = 0xFF & (data >> 16); 
-    uint8_t byte3 = 0xFF & (data >> 8); 
-    uint8_t byte4 = 0xFF & (data >> 0); 
+    uint8_t byte1 = 0xFF & (data >> 24);
+    uint8_t byte2 = 0xFF & (data >> 16);
+    uint8_t byte3 = 0xFF & (data >> 8);
+    uint8_t byte4 = 0xFF & (data >> 0);
 
     uint8_t tx[] = { byte1, byte2, byte3, byte4 };
-    const uint8_t txsize = ARRAY_SIZE(tx); 
+    const uint8_t txsize = ARRAY_SIZE(tx);
 
     uint8_t rx[txsize] = {0};
 
-    struct spi_ioc_transfer tr; 
+    struct spi_ioc_transfer tr;
     memset( (void *) & tr, 0, sizeof(struct spi_ioc_transfer));
-    tr.tx_buf           = (unsigned long) tx; 
-    tr.rx_buf           = (unsigned long) rx; 
-    tr.len              = txsize; 
-    tr.delay_usecs      = delay; 
-    tr.speed_hz         = speed; 
-    tr.bits_per_word    = bits; 
+    tr.tx_buf           = (unsigned long) tx;
+    tr.rx_buf           = (unsigned long) rx;
+    tr.len              = txsize;
+    tr.delay_usecs      = delay;
+    tr.speed_hz         = speed;
+    tr.bits_per_word    = bits;
 
     ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
 
@@ -52,27 +54,28 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data) {
         read |= rx[ret] << 8*(txsize-ret-1);
     }
     //printf("\nRead = 0x%04X ", read);
-    return read; 
+    return read;
 }
 
-uint32_t SpiInterface::WriteRead (uint32_t data) {
+uint32_t SpiInterface::WriteRead (uint32_t data)
+{
     int ret = 0;
     int fd;
 
-    printf("\nOpening SPI device %s", device); 
+    printf("\nOpening SPI device %s", device);
     fd = open(device, O_RDWR);
     if (fd < 0)
         pabort("can't open spi device");
 
     // set spi mode
-    printf("\nSetting SPI Mode 0x%02X: ", mode); 
+    printf("\nSetting SPI Mode 0x%02X: ", mode);
     ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
     if (ret == -1)
         pabort("can't set spi mode");
 
     // read back spi mode
     ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
-    printf("\nReading SPI Mode 0x%02X: ", mode); 
+    printf("\nReading SPI Mode 0x%02X: ", mode);
     if (ret == -1)
         pabort("can't get spi mode");
 

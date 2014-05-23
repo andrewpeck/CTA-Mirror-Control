@@ -19,12 +19,12 @@
 
 int main(int argc, char** argv)
 {
-    return 0; 
+    return 0;
 //    typedef Overo<SimulatedRegisters> Sys;
-//    Sys sys;  
+//    Sys sys;
 
     //uint32_t M32[] = { 0xFFFFFE1B, 0xFFFFFFFF, 0xFFFFFFFF, 0x007FFFFF };
-    //uint32_t M16[] = { 0xFFFC03CF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 
+    //uint32_t M16[] = { 0xFFFC03CF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
     //    0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00003FFF };
 
     //const Layout<>::PinConf* PC = 0;
@@ -36,33 +36,33 @@ int main(int argc, char** argv)
     //    sys.gpioWriteLevel(PC[ipin].igpio, PC[ipin].val);
     //}
 
-    //Sys sy2;  
+    //Sys sy2;
 
     //std::cout << std::setfill('0') << std::uppercase;
     //for(unsigned ireg=0;ireg<4;ireg++)
-    //    std::cout 
+    //    std::cout
     //        << "#define CFG_GPSR" << std::dec << ireg << "_VAL           0x"
     //        << std::hex << std::setw(8) << (sys.simregGPIOLevel(ireg)&M32[ireg])
     //        << " /* 0x" << std::setw(8) << (sy2.simregGPIOLevel(ireg)&M32[ireg])
     //        << " */\n";
     //std::cout << '\n';
     //for(unsigned ireg=0;ireg<4;ireg++)
-    //    std::cout 
+    //    std::cout
     //        << "#define CFG_GPCR" << std::dec << ireg << "_VAL           0x"
     //        << std::hex << std::setw(8) << ((~sys.simregGPIOLevel(ireg))&M32[ireg])
     //        << " /* 0x" << std::setw(8) << ((~sy2.simregGPIOLevel(ireg))&M32[ireg])
     //        << " */\n";
     //std::cout << '\n';
-   //for(unsigned ireg=0;ireg<4;ireg++)
-    //    std::cout 
+    //for(unsigned ireg=0;ireg<4;ireg++)
+    //    std::cout
     //        << "#define CFG_GPDR" << std::dec << ireg << "_VAL           0x"
     //        << std::hex << std::setw(8) << (sys.simregGPIODirection(ireg)&M32[ireg])
     //        << " /* 0x" << std::setw(8) << (sy2.simregGPIODirection(ireg)&M32[ireg])
     //        << " */\n";
     //std::cout << '\n';
     //for(unsigned ireg=0;ireg<8;ireg++)
-    //    std::cout 
-    //        << "#define CFG_GAFR" << std::dec << (ireg/2) << '_' << (ireg%2?'U':'L') 
+    //    std::cout
+    //        << "#define CFG_GAFR" << std::dec << (ireg/2) << '_' << (ireg%2?'U':'L')
     //        << "_VAL         0x"
     //        << std::hex << std::setw(8) << (sys.simregGPIOFn(ireg)&M16[ireg])
     //        << " /* 0x" << std::setw(8) << (sy2.simregGPIOFn(ireg)&M32[ireg])
@@ -71,12 +71,11 @@ int main(int argc, char** argv)
 #if 0
     std::cout << std::dec;
     unsigned npin = sys.nGPIO();
-    for(unsigned ipin=0;ipin<npin;ipin++)
-        if(sys.hasGPIOPin(ipin))
-        {
+    for(unsigned ipin=0; ipin<npin; ipin++)
+        if(sys.hasGPIOPin(ipin)) {
             std::cout << ipin << ' ' << int(sys.gpioGetDirection(ipin)) << ' '
-                << int(sys.gpioGetAltFunc(ipin)) << ' '
-                << int(sys.gpioReadLevel(ipin)) << '\n';
+                      << int(sys.gpioGetAltFunc(ipin)) << ' '
+                      << int(sys.gpioReadLevel(ipin)) << '\n';
         }
 #endif
 }

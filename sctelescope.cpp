@@ -22,10 +22,10 @@
 int main(int argc, char** argv)
 {
     typedef Overo<SimulatedRegisters> Sys;
-    Sys sys;  
+    Sys sys;
 //#if 0
 //    uint32_t M32[] = { 0xFFFFFE1B, 0xFFFFFFFF, 0xFFFFFFFF, 0x007FFFFF };
-//    uint32_t M16[] = { 0xFFFC03CF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 
+//    uint32_t M16[] = { 0xFFFC03CF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
 //        0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00003FFF };
 //
 //    int32_t C[][4] = { -1,  -1, -1, -1,    // 1
@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 //        61,   1,  0,  1,    // 4    COMMON MS2
 //        30,   1,  0,  1,    // 5    COMMON SLEEP_BAR
 //        66,   1,  0,  1,    // 6    COMMON RESET_BAR
-//        -1,  -1, -1, -1,    // 7    
+//        -1,  -1, -1, -1,    // 7
 //        71,   1,  0,  1,    // 8    ADC1 CS_BAR
 //        70,   1,  0,  1,    // 9    ADC2 CS_BAR
 //        69,   1,  0,  1,    // 10   ADC3 CS_BAR
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 //        28,   1,  0,  1,    // 58   DR1 ENABLE_BAR
 //        -1,  -1, -1, -1,    // 59
 //        -1,  -1, -1, -1 };  // 60
-// 
+//
 // #if 1
 //     const Layout<>::PinConf* PC = 0;
 //     unsigned npinconf = Layout<>::pin60Conf(PC);
@@ -101,33 +101,33 @@ int main(int argc, char** argv)
 //         sys.gpioWriteLevel(PC[ipin].igpio, PC[ipin].val);
 //     }
 // #endif
-    Sys sy2;  
+    Sys sy2;
 //
 //    std::cout << std::setfill('0') << std::uppercase;
 //    for(unsigned ireg=0;ireg<4;ireg++)
-//        std::cout 
+//        std::cout
 //            << "#define CFG_GPSR" << std::dec << ireg << "_VAL           0x"
 //            << std::hex << std::setw(8) << (sys.simregGPIOLevel(ireg)&M32[ireg])
 //            << " /* 0x" << std::setw(8) << (sy2.simregGPIOLevel(ireg)&M32[ireg])
 //            << " */\n";
 //    std::cout << '\n';
 //    for(unsigned ireg=0;ireg<4;ireg++)
-//        std::cout 
+//        std::cout
 //            << "#define CFG_GPCR" << std::dec << ireg << "_VAL           0x"
 //            << std::hex << std::setw(8) << ((~sys.simregGPIOLevel(ireg))&M32[ireg])
 //            << " /* 0x" << std::setw(8) << ((~sy2.simregGPIOLevel(ireg))&M32[ireg])
 //            << " */\n";
 //    std::cout << '\n';
 //    for(unsigned ireg=0;ireg<4;ireg++)
-//        std::cout 
+//        std::cout
 //            << "#define CFG_GPDR" << std::dec << ireg << "_VAL           0x"
 //            << std::hex << std::setw(8) << (sys.simregGPIODirection(ireg)&M32[ireg])
 //            << " /* 0x" << std::setw(8) << (sy2.simregGPIODirection(ireg)&M32[ireg])
 //            << " */\n";
 //    std::cout << '\n';
 //    for(unsigned ireg=0;ireg<8;ireg++)
-//        std::cout 
-//            << "#define CFG_GAFR" << std::dec << (ireg/2) << '_' << (ireg%2?'U':'L') 
+//        std::cout
+//            << "#define CFG_GAFR" << std::dec << (ireg/2) << '_' << (ireg%2?'U':'L')
 //            << "_VAL         0x"
 //            << std::hex << std::setw(8) << (sys.simregGPIOFn(ireg)&M16[ireg])
 //            << " /* 0x" << std::setw(8) << (sy2.simregGPIOFn(ireg)&M32[ireg])
@@ -136,15 +136,14 @@ int main(int argc, char** argv)
 //
 //#endif
 
-    //  Overo<MappedRegisters> sys;  
+    //  Overo<MappedRegisters> sys;
     std::cout << std::dec;
     unsigned npin = sys.nGPIO();
-    for(unsigned ipin=0;ipin<npin;ipin++)
-        if(sys.hasGPIOPin(ipin))
-        {
+    for(unsigned ipin=0; ipin<npin; ipin++)
+        if(sys.hasGPIOPin(ipin)) {
             std::cout << ipin << ' ' << int(sys.gpioGetDirection(ipin)) << ' '
-                //<< int(sys.gpioGetAltFunc(ipin)) << ' '
-                << int(sys.gpioReadLevel(ipin)) << '\n';
+                      //<< int(sys.gpioGetAltFunc(ipin)) << ' '
+                      << int(sys.gpioReadLevel(ipin)) << '\n';
         }
 
 //#if 0
@@ -186,8 +185,8 @@ int main(int argc, char** argv)
 //    for(unsigned ibyte=0;ibyte<16;ibyte++)
 //    {
 //#if 0
-//        std::cout 
-//            << sys.sspGetTXLevel(TESTSSP) << ' ' 
+//        std::cout
+//            << sys.sspGetTXLevel(TESTSSP) << ' '
 //            << sys.sspGetRXLevel(TESTSSP) << '\n';
 //#endif
 //        sys.sspTestAndWrite(TESTSSP, 0xdeadbeef + ibyte);
@@ -201,8 +200,8 @@ int main(int argc, char** argv)
 //
 //    usleep(100000);
 //
-//    std::cout 
-//        << sys.sspGetTXLevel(TESTSSP) << ' ' 
+//    std::cout
+//        << sys.sspGetTXLevel(TESTSSP) << ' '
 //        << sys.sspGetRXLevel(TESTSSP) << '\n';
 //
 //    for(unsigned ibyte=0;ibyte<16;ibyte++)
@@ -218,7 +217,7 @@ int main(int argc, char** argv)
 //    unsigned npin = Overo::nGPIO();
 //    for(unsigned ipin=0;ipin<npin;ipin++)
 //    {
-//        std::cout 
+//        std::cout
 //            << std::setfill('0')
 //            << std::dec << std::setw(3) << ipin << ' '
 //            << std::hex << std::setw(8) << Overo::physGPIODirection(ipin) << ' '

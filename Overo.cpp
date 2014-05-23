@@ -14,80 +14,87 @@
 #define GPIODIR_IN  0
 #define GPIODIR_OUT 1
 
-Overo::Overo() {}; 
-Overo::~Overo() {}; 
+Overo::Overo() {};
+Overo::~Overo() {};
 
-bool Overo::gpioReadLevel(const unsigned ipin) {
+bool Overo::gpioReadLevel(const unsigned ipin)
+{
     bool level = *(gpio.ptrGPIOReadLevel(ipin)) & (0x1 << ipin);
     printf("Read %i from pin %i",level,ipin);
-    return level; 
+    return level;
 }
 
-void Overo::gpioWriteLevel(const unsigned ipin, bool level) {
-    //printf("\nWriting %i to pin %i", level, ipin); 
+void Overo::gpioWriteLevel(const unsigned ipin, bool level)
+{
+    //printf("\nWriting %i to pin %i", level, ipin);
     if (level)
         gpio.gpioSetLevel(ipin);
-    else 
+    else
         gpio.gpioClrLevel(ipin);
 }
 
-bool Overo::gpioGetDirection(const unsigned ipin) {
+bool Overo::gpioGetDirection(const unsigned ipin)
+{
     volatile uint32_t* reg = gpio.ptrGPIODirection(ipin);
     uint32_t val = *reg;
     bool dir = !!(val & (0x1<<ipin));
-    return dir; 
+    return dir;
 }
 
-void Overo::gpioSetDirection(const unsigned ipin, bool dir) {
+void Overo::gpioSetDirection(const unsigned ipin, bool dir)
+{
     volatile uint32_t* reg = gpio.ptrGPIODirection(ipin);
     uint32_t val = *reg;
     if(dir==1)
         val |= (0x1<<ipin);
-    else 
+    else
         val &= ~(0x1<<ipin);
     *reg = val;
     //printf("\ngpioSetDirection :: Writing %04X", val);
 }
 
-void Overo::gpioConfigure(const unsigned ipin, bool dir) {
+void Overo::gpioConfigure(const unsigned ipin, bool dir)
+{
     gpioSetDirection(ipin, dir);
 }
 
-void Overo::gpioConfigureAll() {
+void Overo::gpioConfigureAll()
+{
     for (int i=0; i<192; i++) {
         int config = layout.gpioConfiguration(i);
-        if (config==0){ // output
-            printf("\nConfiguring gpio %i as output", i); 
+        if (config==0) { // output
+            printf("\nConfiguring gpio %i as output", i);
             gpioSetDirection(i, 0);
         }
         if (config==1) {  // input
-            printf("\nConfiguring gpio %i as input", i); 
+            printf("\nConfiguring gpio %i as input", i);
             gpioSetDirection(i, 1);
         }
     }
 }
 
-bool Overo::hasGPIORegister(const unsigned ipin) { 
-    return ipin<nGPIO; 
+bool Overo::hasGPIORegister(const unsigned ipin)
+{
+    return ipin<nGPIO;
 }
 
-bool Overo::hasGPIOPin(const unsigned ipin) {
+bool Overo::hasGPIOPin(const unsigned ipin)
+{
     if (ipin<0 || ipin>=nGPIO)
         return false;
     else
         return true;
 }
 
-uint64_t Overo::serialNumber() const {
+uint64_t Overo::serialNumber() const
+{
     std::ifstream stream("/proc/cpuinfo");
     if(!stream.good())return 0;
     std::string line;
-    while(getline(stream,line))
-    {
+    while(getline(stream,line)) {
         std::string key;
         std::string::size_type ichar=0;
-        while(ichar<line.size())
-        {
+        while(ichar<line.size()) {
             char c = line[ichar];
             if(c==':')break;
             if(!isspace(c))key += tolower(c);
@@ -95,8 +102,7 @@ uint64_t Overo::serialNumber() const {
         }
         if(ichar<line.size())ichar++;
         while((ichar<line.size())&&(isspace(line[ichar])))ichar++;
-        if((key == "serial")&&(ichar<line.size()))
-        {
+        if((key == "serial")&&(ichar<line.size())) {
             std::string val;
             while((ichar<line.size())&&(isxdigit(line[ichar])))
                 val += line[ichar++];

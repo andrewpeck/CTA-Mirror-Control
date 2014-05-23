@@ -14,7 +14,8 @@
 #include <TLCX5XX_ADC.hpp>
 
 /* by Jim Ulery */
-static unsigned julery_isqrt(unsigned long val) {
+static unsigned julery_isqrt(unsigned long val)
+{
     unsigned long temp, g=0, b = 0x8000, bshft = 15;
     do {
         if (val >= (temp = (((g << 1) + b)<<bshft--))) {
@@ -30,10 +31,11 @@ const char* usage_text = "where \"amplitude\" is the amplitude of the motion in 
                           \"period_factor\" is the period of the motion in units of amplitude*2*PI\n\
                           (this factor must be greater than or equal to 1.0).\n";
 
-void usage(const char* program, std::ostream& stream, int status = EXIT_FAILURE) {
-    stream << "Usage: " 
-        << program << " amplitude [delay=5000] [period_factor=1.0]\n\n"
-        << usage_text;
+void usage(const char* program, std::ostream& stream, int status = EXIT_FAILURE)
+{
+    stream << "Usage: "
+           << program << " amplitude [delay=5000] [period_factor=1.0]\n\n"
+           << usage_text;
     exit(status);
 }
 
@@ -44,7 +46,8 @@ void usage(const char* program, std::ostream& stream, int status = EXIT_FAILURE)
 //#endif
 
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     char* program = *argv;
     argv++, argc--;
 
@@ -84,13 +87,13 @@ int main(int argc, char** argv) {
     int64_t* sinB = new int64_t[nloopB];
     int64_t* cosB = new int64_t[nloopB];
 
-    for(unsigned iloopA=0;iloopA<nloopA;iloopA++) {
+    for(unsigned iloopA=0; iloopA<nloopA; iloopA++) {
         float phi = float(iloopA)/float(nloopA)*M_PI*2.0;
         sinA[iloopA] = llroundf(amp*sin(phi));
         cosA[iloopA] = llroundf(amp*cos(phi));
     }
 
-    for(unsigned iloopB=0;iloopB<nloopB;iloopB++) {
+    for(unsigned iloopB=0; iloopB<nloopB; iloopB++) {
         float phi = float(iloopB)/float(nperiod)*M_PI*2.0;
         sinB[iloopB] = llroundf(amp*sin(phi));
         cosB[iloopB] = llroundf(amp*cos(phi));
@@ -101,14 +104,14 @@ int main(int argc, char** argv) {
     int64_t ix3a = -iamp;
 
     Overo sys;
-    Layout layout; 
+    Layout layout;
 
     while(1) {
         for (unsigned iloopA=0; iloopA<nloopA; iloopA++) {
             const unsigned p1 = iloopA;
             const unsigned p2 = (p1+phase_offset)%nloopA;
             const unsigned p3 = (p2+phase_offset)%nloopA;
-            for(unsigned iloopB=0;iloopB<nloopB;iloopB++) {
+            for(unsigned iloopB=0; iloopB<nloopB; iloopB++) {
                 const int64_t ix1t = (sinA[p1]*cosB[iloopB]+cosA[p1]*sinB[iloopB])/iamp;
                 const int64_t ix2t = (sinA[p2]*cosB[iloopB]+cosA[p2]*sinB[iloopB])/iamp;
                 const int64_t ix3t = (sinA[p3]*cosB[iloopB]+cosA[p3]*sinB[iloopB])/iamp;
@@ -117,8 +120,8 @@ int main(int argc, char** argv) {
                     int dir = 0;
                     if (ix1t > ix1a)
                         ix1a++;
-                    else { 
-                        ix1a--; 
+                    else {
+                        ix1a--;
                         dir=1;
                     }
                     sys.gpioWriteLevel(layout.igpioDir1(),dir);
@@ -156,7 +159,7 @@ int main(int argc, char** argv) {
                 }
 
                 //delay
-                for(volatile unsigned idelay=0;idelay<ndelay;idelay++);
+                for(volatile unsigned idelay=0; idelay<ndelay; idelay++);
 
                 sys.gpioWriteLevel(layout.igpioStep1(),0);
                 sys.gpioWriteLevel(layout.igpioStep2(),0);
@@ -166,10 +169,10 @@ int main(int argc, char** argv) {
                 sys.gpioWriteLevel(layout.igpioStep6(),0);
 
                 //delay
-                for(volatile unsigned idelay=0;idelay<ndelay;idelay++);	  
+                for(volatile unsigned idelay=0; idelay<ndelay; idelay++);
 
                 std::cout << ix1a << ' ' << ix2a << ' ' << ix3a << '\n';
             } // close iloopB
         } // close iloopA
     } // close while(1)
-} // close main 
+} // close main
