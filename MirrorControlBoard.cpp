@@ -5,19 +5,13 @@
 
 #include <cassert>
 #include <MirrorControlBoard.hpp>
-#include <TLCX5XX_ADC.hpp>
-
-typedef TLC3548 ADC;
 
 MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nusb(nusb>7?7:nusb)
 {
     if (no_initialize)
         return;
     else
-    {
-        //printf("Powering down all chips...");
         powerDownAll();
-    }
 }
 
 MirrorControlBoard::~MirrorControlBoard() { }
@@ -77,7 +71,7 @@ void MirrorControlBoard::powerDownBase()
 {
     // Set on-board ADC into sleep mode
     selectADC(7);
-    spi.WriteRead(ADC::codeSWPowerDown());
+    spi.WriteRead(ADC.codeSWPowerDown());
 
     // Set PWM state
     //m_sys.pwmSetDutyCycle(0, 0, false);
@@ -309,8 +303,8 @@ bool MirrorControlBoard::isDriveHiCurrentEnabled()
 void MirrorControlBoard::initializeADC(unsigned iadc)
 {
     selectADC(iadc);                                        // Assert Chip Select for ADC in question
-    spi.WriteRead(ADC::codeInitialize());
-    spi.WriteRead(ADC::codeConfig());
+    spi.WriteRead(ADC.codeInitialize());
+    spi.WriteRead(ADC.codeConfig());
 }
 
 void MirrorControlBoard::selectADC(unsigned iadc)
@@ -325,16 +319,16 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned 
     selectADC(iadc);
 
     // ADC Channel Select
-    uint32_t code = ADC::codeSelect(ichan);
+    uint32_t code = ADC.codeSelect(ichan);
     spi.WriteRead(code);
 
     // some delay
     loopDelay(ndelayloop);
 
     // Read ADC
-    uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
+    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
 
-    return ADC::decodeUSB(datum);
+    return ADC.decodeUSB(datum);
 }
 
 void MirrorControlBoard::measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop)
@@ -347,31 +341,31 @@ void MirrorControlBoard::measureManyADC(uint32_t* data, unsigned iadc, unsigned 
     for (unsigned ichan=0; ichan<nchan; ichan++)
     {
         // read data
-        datum = spi.WriteRead(ADC::codeSelect(zchan+ichan));
+        datum = spi.WriteRead(ADC.codeSelect(zchan+ichan));
 
         if(ichan>0)
-            data[ichan-1] = ADC::decodeUSB(datum);
+            data[ichan-1] = ADC.decodeUSB(datum);
 
         // some delay
         loopDelay(ndelayloop);
     }
 
-    datum = spi.WriteRead(ADC::codeReadFIFO());
+    datum = spi.WriteRead(ADC.codeReadFIFO());
     if(nchan>0)
-        data[nchan-1] = ADC::decodeUSB(datum);
+        data[nchan-1] = ADC.decodeUSB(datum);
 }
 
 uint32_t MirrorControlBoard::measureADCWithBurn(unsigned iadc, unsigned ichan, unsigned ndelayloop)
 {
     selectADC(iadc);
-    uint32_t code = ADC::codeSelect(ichan);
+    uint32_t code = ADC.codeSelect(ichan);
     spi.WriteRead(code);
     loopDelay(ndelayloop);
     spi.WriteRead(code);
     loopDelay(ndelayloop);
-    uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
+    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
 
-    return ADC::decodeUSB(datum);
+    return ADC.decodeUSB(datum);
 }
 
 void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop)
@@ -379,26 +373,26 @@ void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, u
     selectADC(iadc);
     for(unsigned ichan=0; ichan<nchan; ichan++)
     {
-        uint32_t code = ADC::codeSelect(zchan+ichan);
+        uint32_t code = ADC.codeSelect(zchan+ichan);
         uint32_t datum = spi.WriteRead(code);
         if(ichan>0)
-            data[ichan-1] = ADC::decodeUSB(datum);
+            data[ichan-1] = ADC.decodeUSB(datum);
 
         loopDelay(ndelayloop);
         spi.WriteRead(code);
         loopDelay(ndelayloop);
     }
 
-    uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
+    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
 
     if(nchan>0)
-        data[nchan-1] = ADC::decodeUSB(datum);
+        data[nchan-1] = ADC.decodeUSB(datum);
 }
 
 void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn, unsigned ndelayloop)
 {
     selectADC(iadc);
-    uint32_t code = ADC::codeSelect(ichan);
+    uint32_t code = ADC.codeSelect(ichan);
     unsigned nloop = nburn + nmeas;
     sum = 0;
     sumsq = 0;
@@ -409,7 +403,7 @@ void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned
         uint32_t datum = spi.WriteRead(code);
         if (iloop>nburn)
         {
-            datum = ADC::decodeUSB(datum);
+            datum = ADC.decodeUSB(datum);
             uint64_t datum64 = datum;
             sum+=datum;
             sumsq+=datum64*datum64;
@@ -418,8 +412,8 @@ void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned
         }
         loopDelay(ndelayloop);
     }
-    uint32_t datum = spi.WriteRead(ADC::codeReadFIFO());
-    datum = ADC::decodeUSB(datum);
+    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
+    datum = ADC.decodeUSB(datum);
     uint64_t datum64 = datum;
     sum+=datum;
     sumsq+=datum64*datum64;
@@ -433,7 +427,7 @@ void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned
 void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas, unsigned ndelayloop)
 {
     selectADC(iadc);
-    uint32_t code = ADC::codeSelect(ichan);
+    uint32_t code = ADC.codeSelect(ichan);
     unsigned nloop = nmeas;
     vMeas.resize(nmeas);
 
@@ -441,14 +435,14 @@ void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmea
     {
         uint32_t datum;
         if(iloop == nloop)
-            datum = spi.WriteRead(ADC::codeReadFIFO());
+            datum = spi.WriteRead(ADC.codeReadFIFO());
         else
             datum = spi.WriteRead(code);
 
         if(iloop == 0)
             continue;
 
-        datum = ADC::decodeUSB(datum);
+        datum = ADC.decodeUSB(datum);
         vMeas[iloop - 1] = datum;
 
         loopDelay(ndelayloop);

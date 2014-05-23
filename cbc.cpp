@@ -224,11 +224,11 @@ int main(int argc, const char** argv)
 
             if((dirstr.size()<=6)
                     &&(dirstr.compare(0,dirstr.size(),
-                                      std::string("extend"),0,dirstr.size())==0))
+                            std::string("extend"),0,dirstr.size())==0))
                 dir = MirrorControlBoard::DIR_EXTEND;
             else if((dirstr.size()<=7)
                     &&(dirstr.compare(0,dirstr.size(),
-                                      std::string("retract"),0,dirstr.size())==0))
+                            std::string("retract"),0,dirstr.size())==0))
                 dir = MirrorControlBoard::DIR_RETRACT;
             else
                 cbc.usage();
@@ -426,20 +426,20 @@ void cbc::set_microstep(unsigned usint)
     MirrorControlBoard::UStep us=MirrorControlBoard::USTEP_1;
     switch(usint)
     {
-    case 1:
-        us = MirrorControlBoard::USTEP_1;
-        break;
-    case 2:
-        us = MirrorControlBoard::USTEP_2;
-        break;
-    case 4:
-        us = MirrorControlBoard::USTEP_4;
-        break;
-    case 8:
-        us = MirrorControlBoard::USTEP_8;
-        break;
-    default:
-        usage();
+        case 1:
+            us = MirrorControlBoard::USTEP_1;
+            break;
+        case 2:
+            us = MirrorControlBoard::USTEP_2;
+            break;
+        case 4:
+            us = MirrorControlBoard::USTEP_4;
+            break;
+        case 8:
+            us = MirrorControlBoard::USTEP_8;
+            break;
+        default:
+            usage();
     }
     mcb.setUStep(us);
 }
@@ -648,27 +648,27 @@ void cbc::slew_all(MirrorControlBoard::Dir dir, unsigned ndelay)
 void cbc::status()
 {
     std::cout << "Drives:"
-              << (mcb.isDriveControllersPoweredUp()?
-                  (char*)"":(char*)" A3977-OFF")
-              << (sys.gpioReadLevel(layout.igpioReset)?
-                  (char*)"":(char*)" RESET")
-              << (mcb.isDriveSREnabled()?
-                  (char*)" SR":(char*)"");
+        << (mcb.isDriveControllersPoweredUp()?
+                (char*)"":(char*)" A3977-OFF")
+        << (sys.gpioReadLevel(layout.igpioReset)?
+                (char*)"":(char*)" RESET")
+        << (mcb.isDriveSREnabled()?
+                (char*)" SR":(char*)"");
 
     switch(mcb.getUStep())
     {
-    case MirrorControlBoard::USTEP_8:
-        std::cout << " 8-uSTEP";
-        break;
-    case MirrorControlBoard::USTEP_4:
-        std::cout << " 4-uSTEP";
-        break;
-    case MirrorControlBoard::USTEP_2:
-        std::cout << " 2-uSTEP";
-        break;
-    case MirrorControlBoard::USTEP_1:
-        std::cout << " 1-uSTEP";
-        break;
+        case MirrorControlBoard::USTEP_8:
+            std::cout << " 8-uSTEP";
+            break;
+        case MirrorControlBoard::USTEP_4:
+            std::cout << " 4-uSTEP";
+            break;
+        case MirrorControlBoard::USTEP_2:
+            std::cout << " 2-uSTEP";
+            break;
+        case MirrorControlBoard::USTEP_1:
+            std::cout << " 1-uSTEP";
+            break;
     }
     std::cout << (mcb.isDriveHiCurrentEnabled()?  (char*)" HI-CURRENT":(char*)"") << (mcb.isEncodersPoweredUp()?  (char*)" ENCODERS-ON":(char*)"ENCODERS-OFF") << '\n';
 
@@ -693,13 +693,11 @@ void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn,
     else
         zchan--;
 
-    std::cout
-            << "ADC:      " << iadc+1 << '\n'
-            << "Channels: " << zchan+1 << " to " << nchan << '\n'
-            << "NMeas:    " << nmeas << '\n'
-            << "NBurn:    " << nburn << '\n'
-            << "NDelay:   " << ndelay << '\n'
-            << "FullVolt: " << volt_full << '\n' << '\n';
+    printf("ADC:        %i\n",          iadc+1);
+    printf("Channels:   %i to %i\n",    zchan+1,nchan);
+    printf("Nburn:      %i\n",          nburn); 
+    printf("NDelay:     %i\n",          ndelay);
+    printf("FullVolt    %f\n\n",        volt_full);
 
     uint32_t sum [NCHANMAX];
     uint64_t sum2[NCHANMAX];
@@ -723,10 +721,10 @@ void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn,
         }
         else
         {
-            float adcmean = TLC3548::voltData(mean,      volt_full);
-            float adcrms  = TLC3548::voltData(mean,      volt_full);
-            float adcmax  = TLC3548::voltData(max[ichan],volt_full);
-            float adcmin  = TLC3548::voltData(min[ichan],volt_full);
+            float adcmean = adc.voltData(mean,      volt_full);
+            float adcrms  = adc.voltData(mean,      volt_full);
+            float adcmax  = adc.voltData(max[ichan],volt_full);
+            float adcmin  = adc.voltData(min[ichan],volt_full);
 
             printf("i mean   rms    max    min     \n");
             printf("%i %06.04f %06.04f %06.04f %06.04f\n",ichan+1,adcmean,adcrms,adcmax,adcmin);
@@ -769,7 +767,7 @@ void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned n
     {
         for(unsigned ichan=zchan; ichan<nchan; ichan++)
         {
-            printf("%06.04f ", TLC3548::voltData(vecChanMeas[ichan][i]));
+            printf("%06.04f ", adc.voltData(vecChanMeas[ichan][i]));
         }
         printf("\n");
     }
@@ -847,17 +845,17 @@ void cbc::calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned n
             uint64_t var    = (sum2[idatum] - s*s/nmeas)/nmeas;
             uint32_t rms    = julery_isqrt(uint32_t(var));
 
-            float adcmean = TLC3548::voltData(mean,        volt_full);
-            float adcrms  = TLC3548::voltData(rms,         volt_full);
-            float adcmax  = TLC3548::voltData(max[idatum], volt_full);
-            float adcmin  = TLC3548::voltData(min[idatum], volt_full);
+            float adcmean = adc.voltData(mean,        volt_full);
+            float adcrms  = adc.voltData(rms,         volt_full);
+            float adcmax  = adc.voltData(max[idatum], volt_full);
+            float adcmin  = adc.voltData(min[idatum], volt_full);
 
             printf("i mean   rms    max    min     \n");
             printf("%i %06.04f %06.04f %06.04f %06.04f\n",idatum,adcmean,adcrms,adcmax,adcmin);
         }
         else
         {
-            float adcsum = TLC3548::voltData(sum[idatum],volt_full);
+            float adcsum = adc.voltData(sum[idatum],volt_full);
             printf("%u %06.04f\n", sum[idatum], adcsum);
         }
     } // close (for idatum)
@@ -890,75 +888,73 @@ int cbc::usage()
 }
 
 std::string cbc::usage_text =
-    "CBC Usage: command [command data]\n"
-    "\ninitialize             CLK_DIV=4: Initialize the hardware. Should be done once after boot-up."
-    "\n"
-    "\npower_down             Go into power saving mode. Power down encoders, USB and A3977."
-    "\npower_up               Power up all on-board and off-board electronics."
-    "\n"
-    "\npower_down_encoders    Power down encoders."
-    "\npower_up_encoders      Power up encoders."
-    "\n"
-    "\npower_down_a3977       Power down A3977 motor controllers."
-    "\npower_up_a3977         Power up A3977 motor controllers."
-    "\n"
-    "\nreset                  Send reset command to drive electronics."
-    "\n"
-    "\nenable_sr              Enable Synchronous Rectification (SR) mode."
-    "\ndisable_sr             Disable Synchronous Rectification (SR) mode."
-    "\n"
-    "\nset_microstep          MS={1,2,4,8}."
-    "\n                       Set number of micro steps to 1, 2, 4 or 8."
-    "\n"
-    "\nenable_hi_current      Enable high current mode on all drives."
-    "\ndisable_hi_current     Disable high current mode on all drives."
-    "\n"
-    "\nenable                 DR={1-6} or DR=all"
-    "\n                       Enable motor driver."
-    "\ndisable                DR={1-6} or DR=all"
-    "\n                       Disable motor driver"
-    "\n"
-    "\nenableusb              USB={1-7} or USB=all:"
-    "\n                       Enable USB (USB)."
-    "\ndisableusb             USB={1-7} or USB=all:"
-    "\n                       Disable USB (USB)."
-    "\n"
-    "\nstep                   DR={1-6} NSTEP [DELAY]:"
-    "\n                       Step drive some number of steps (positive to"
-    "\n                       extend, negative to retract) with delay between"
-    "\n                       steps given by DELAY (default 5000)."
-    "\n"
-    "\nslew                   DR={1-6} [DIR={extend,retract}] [DELAY]:"
-    "\n                       Slew drive (DR) in given direction (DIR, default extend) "
-    "\n                       with delay between steps given by DELAY (default 5000)."
-    "\n"
-    "\nstep_all               DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP [DELAY]"
-    "\n                       Step all drives some number of steps (positive to extend,"
-    "\n                       negative to retract and zero to not move that drive.)"
-    "\n"
-    "\nslew_all               [DIR={extend,retract}] [DELAY]:"
-    "\n                       Slew all (enabled) drives in given direction (DIR, default "
-    "\n                       extend) with delay between steps given by DELAY (default 5000)."
-    "\n"
-    "\nstatus:                Print drive status information"
-    "\n"
-    "\nmeasure                ADC={1-8} CHAN={0-11} [MEAS=1 BURN=0 DELAY=100 SCALE=5.05]:"
-    "\n                       Measure voltage of the specified ADC channel. Channel can be"
-    "\n                       given as zero to specify all channels on one ADC. Channels 9, 10"
-    "\n                       and 11 correspond to internal reference voltages on the ADC."
-    "\n                       Prints out statistics."
-    "\n"
-    "\nmeasure_full           ADC={1-8} CHAN={0-11} [MEAS=1 DELAY=100 SCALE=5.05]:"
-    "\n                       Measure voltage of the specified ADC channel. Channel can be"
-    "\n                       given as zero to specify all channels on one ADC. Channels 9, 10"
-    "\n                       and 11 correspond to internal reference voltages on the ADC."
-    "\n                       Prints out raw data."
-    "\n"
-    "\ncalibrate              DR={1-6} [NSTEP=10000] [NCYCLE=0] [DELAY=10000] [ADC=7] [NMEAS=1]"
-    "\n                       Step drive and read ADC after each step, printing its value to"
-    "\n                       the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
-    "\n                       of the travel, otherwise it specifies the number of half cycles"
-    "\n                       of expansion and contraction to perform."
-    "\n";
-
-
+"CBC Usage: command [command data]\n"
+"\ninitialize             CLK_DIV=4: Initialize the hardware. Should be done once after boot-up."
+"\n"
+"\npower_down             Go into power saving mode. Power down encoders, USB and A3977."
+"\npower_up               Power up all on-board and off-board electronics."
+"\n"
+"\npower_down_encoders    Power down encoders."
+"\npower_up_encoders      Power up encoders."
+"\n"
+"\npower_down_a3977       Power down A3977 motor controllers."
+"\npower_up_a3977         Power up A3977 motor controllers."
+"\n"
+"\nreset                  Send reset command to drive electronics."
+"\n"
+"\nenable_sr              Enable Synchronous Rectification (SR) mode."
+"\ndisable_sr             Disable Synchronous Rectification (SR) mode."
+"\n"
+"\nset_microstep          MS={1,2,4,8}."
+"\n                       Set number of micro steps to 1, 2, 4 or 8."
+"\n"
+"\nenable_hi_current      Enable high current mode on all drives."
+"\ndisable_hi_current     Disable high current mode on all drives."
+"\n"
+"\nenable                 DR={1-6} or DR=all"
+"\n                       Enable motor driver."
+"\ndisable                DR={1-6} or DR=all"
+"\n                       Disable motor driver"
+"\n"
+"\nenableusb              USB={1-7} or USB=all:"
+"\n                       Enable USB (USB)."
+"\ndisableusb             USB={1-7} or USB=all:"
+"\n                       Disable USB (USB)."
+"\n"
+"\nstep                   DR={1-6} NSTEP [DELAY]:"
+"\n                       Step drive some number of steps (positive to"
+"\n                       extend, negative to retract) with delay between"
+"\n                       steps given by DELAY (default 5000)."
+"\n"
+"\nslew                   DR={1-6} [DIR={extend,retract}] [DELAY]:"
+"\n                       Slew drive (DR) in given direction (DIR, default extend) "
+"\n                       with delay between steps given by DELAY (default 5000)."
+"\n"
+"\nstep_all               DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP [DELAY]"
+"\n                       Step all drives some number of steps (positive to extend,"
+"\n                       negative to retract and zero to not move that drive.)"
+"\n"
+"\nslew_all               [DIR={extend,retract}] [DELAY]:"
+"\n                       Slew all (enabled) drives in given direction (DIR, default "
+"\n                       extend) with delay between steps given by DELAY (default 5000)."
+"\n"
+"\nstatus:                Print drive status information"
+"\n"
+"\nmeasure                ADC={1-8} CHAN={0-11} [MEAS=1 BURN=0 DELAY=100 SCALE=5.05]:"
+"\n                       Measure voltage of the specified ADC channel. Channel can be"
+"\n                       given as zero to specify all channels on one ADC. Channels 9, 10"
+"\n                       and 11 correspond to internal reference voltages on the ADC."
+"\n                       Prints out statistics."
+"\n"
+"\nmeasure_full           ADC={1-8} CHAN={0-11} [MEAS=1 DELAY=100 SCALE=5.05]:"
+"\n                       Measure voltage of the specified ADC channel. Channel can be"
+"\n                       given as zero to specify all channels on one ADC. Channels 9, 10"
+"\n                       and 11 correspond to internal reference voltages on the ADC."
+"\n                       Prints out raw data."
+"\n"
+"\ncalibrate              DR={1-6} [NSTEP=10000] [NCYCLE=0] [DELAY=10000] [ADC=7] [NMEAS=1]"
+"\n                       Step drive and read ADC after each step, printing its value to"
+"\n                       the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
+"\n                       of the travel, otherwise it specifies the number of half cycles"
+"\n                       of expansion and contraction to perform."
+"\n";

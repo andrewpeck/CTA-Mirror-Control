@@ -11,7 +11,7 @@
 
 #include <Overo.hpp>
 #include <Layout.hpp>
-#include <TLCX5XX_ADC.hpp>
+#include <TLC3548_ADC.hpp>
 
 /* by Jim Ulery */
 static unsigned julery_isqrt(unsigned long val)

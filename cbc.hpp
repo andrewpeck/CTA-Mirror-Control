@@ -1,5 +1,6 @@
 #include <iostream>
 #include <MirrorControlBoard.hpp>
+#include <TLC3548_ADC.hpp>
 
 class cbc
 {
@@ -33,6 +34,7 @@ private:
     Overo sys;
     Layout layout;
     MirrorControlBoard mcb;
+    TLC3548_ADC adc; 
 
     static std::string usage_text;
 
