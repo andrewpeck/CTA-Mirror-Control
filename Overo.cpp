@@ -63,13 +63,16 @@ void Overo::gpioConfigureAll()
     FILE * configfile;
     configfile = fopen ("gpioconf","w");
 
-    for (int i=0; i<192; i++) {
+    for (int i=0; i<192; i++)
+    {
         int config = layout.gpioConfiguration(i);
-        if (config==0) { // output
+        if (config==0)   // output
+        {
             fprintf(configfile,"Configuring gpio %i as output\n", i);
             gpioSetDirection(i, 0);
         }
-        if (config==1) {  // input
+        if (config==1)    // input
+        {
             fprintf(configfile,"Configuring gpio %i as input\n", i);
             gpioSetDirection(i, 1);
         }
@@ -94,10 +97,12 @@ uint64_t Overo::serialNumber() const
     std::ifstream stream("/proc/cpuinfo");
     if(!stream.good())return 0;
     std::string line;
-    while(getline(stream,line)) {
+    while(getline(stream,line))
+    {
         std::string key;
         std::string::size_type ichar=0;
-        while(ichar<line.size()) {
+        while(ichar<line.size())
+        {
             char c = line[ichar];
             if(c==':')break;
             if(!isspace(c))key += tolower(c);
@@ -105,7 +110,8 @@ uint64_t Overo::serialNumber() const
         }
         if(ichar<line.size())ichar++;
         while((ichar<line.size())&&(isspace(line[ichar])))ichar++;
-        if((key == "serial")&&(ichar<line.size())) {
+        if((key == "serial")&&(ichar<line.size()))
+        {
             std::string val;
             while((ichar<line.size())&&(isxdigit(line[ichar])))
                 val += line[ichar++];

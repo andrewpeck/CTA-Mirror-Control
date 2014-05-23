@@ -13,7 +13,8 @@ MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nus
 {
     if (no_initialize)
         return;
-    else {
+    else
+    {
         //printf("Powering down all chips...");
         powerDownAll();
     }
@@ -105,7 +106,8 @@ void MirrorControlBoard::powerDownAllUSB()
 
 void MirrorControlBoard::powerUpAllUSB()
 {
-    for(unsigned iusb=0; iusb<m_nusb; iusb++) {
+    for(unsigned iusb=0; iusb<m_nusb; iusb++)
+    {
         powerUpUSB(iusb);
     }
 }
@@ -189,7 +191,8 @@ bool MirrorControlBoard::isDriveSREnabled()
 void MirrorControlBoard::setUStep(UStep ustep)
 {
     unsigned mslog2 = 0;
-    switch(ustep) {
+    switch(ustep)
+    {
     case USTEP_1:
         mslog2 = 0x0;
         break;
@@ -341,7 +344,8 @@ void MirrorControlBoard::measureManyADC(uint32_t* data, unsigned iadc, unsigned 
     uint32_t datum;
 
     // loop over adc channels
-    for (unsigned ichan=0; ichan<nchan; ichan++) {
+    for (unsigned ichan=0; ichan<nchan; ichan++)
+    {
         // read data
         datum = spi.WriteRead(ADC::codeSelect(zchan+ichan));
 
@@ -373,7 +377,8 @@ uint32_t MirrorControlBoard::measureADCWithBurn(unsigned iadc, unsigned ichan, u
 void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop)
 {
     selectADC(iadc);
-    for(unsigned ichan=0; ichan<nchan; ichan++) {
+    for(unsigned ichan=0; ichan<nchan; ichan++)
+    {
         uint32_t code = ADC::codeSelect(zchan+ichan);
         uint32_t datum = spi.WriteRead(code);
         if(ichan>0)
@@ -399,9 +404,11 @@ void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned
     sumsq = 0;
     max = 0;
     min = ~max;
-    for(unsigned iloop=0; iloop<nloop; iloop++) {
+    for(unsigned iloop=0; iloop<nloop; iloop++)
+    {
         uint32_t datum = spi.WriteRead(code);
-        if (iloop>nburn) {
+        if (iloop>nburn)
+        {
             datum = ADC::decodeUSB(datum);
             uint64_t datum64 = datum;
             sum+=datum;
@@ -430,7 +437,8 @@ void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmea
     unsigned nloop = nmeas;
     vMeas.resize(nmeas);
 
-    for(unsigned iloop=0; iloop <= nloop; iloop++) {
+    for(unsigned iloop=0; iloop <= nloop; iloop++)
+    {
         uint32_t datum;
         if(iloop == nloop)
             datum = spi.WriteRead(ADC::codeReadFIFO());

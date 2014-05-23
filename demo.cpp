@@ -17,12 +17,15 @@
 static unsigned julery_isqrt(unsigned long val)
 {
     unsigned long temp, g=0, b = 0x8000, bshft = 15;
-    do {
-        if (val >= (temp = (((g << 1) + b)<<bshft--))) {
+    do
+    {
+        if (val >= (temp = (((g << 1) + b)<<bshft--)))
+        {
             g += b;
             val -= temp;
         }
-    } while (b >>= 1);
+    }
+    while (b >>= 1);
     return g;
 }
 
@@ -56,13 +59,15 @@ int main(int argc, char** argv)
     argv++, argc--;
 
     unsigned ndelay = 5000;
-    if(argc) {
+    if(argc)
+    {
         ndelay = atoi(*argv);
         argv++, argc--;
     }
 
     float pfactor = 1.0;
-    if(argc) {
+    if(argc)
+    {
         pfactor = atof(*argv);
         argv++, argc--;
     }
@@ -87,13 +92,15 @@ int main(int argc, char** argv)
     int64_t* sinB = new int64_t[nloopB];
     int64_t* cosB = new int64_t[nloopB];
 
-    for(unsigned iloopA=0; iloopA<nloopA; iloopA++) {
+    for(unsigned iloopA=0; iloopA<nloopA; iloopA++)
+    {
         float phi = float(iloopA)/float(nloopA)*M_PI*2.0;
         sinA[iloopA] = llroundf(amp*sin(phi));
         cosA[iloopA] = llroundf(amp*cos(phi));
     }
 
-    for(unsigned iloopB=0; iloopB<nloopB; iloopB++) {
+    for(unsigned iloopB=0; iloopB<nloopB; iloopB++)
+    {
         float phi = float(iloopB)/float(nperiod)*M_PI*2.0;
         sinB[iloopB] = llroundf(amp*sin(phi));
         cosB[iloopB] = llroundf(amp*cos(phi));
@@ -106,21 +113,26 @@ int main(int argc, char** argv)
     Overo sys;
     Layout layout;
 
-    while(1) {
-        for (unsigned iloopA=0; iloopA<nloopA; iloopA++) {
+    while(1)
+    {
+        for (unsigned iloopA=0; iloopA<nloopA; iloopA++)
+        {
             const unsigned p1 = iloopA;
             const unsigned p2 = (p1+phase_offset)%nloopA;
             const unsigned p3 = (p2+phase_offset)%nloopA;
-            for(unsigned iloopB=0; iloopB<nloopB; iloopB++) {
+            for(unsigned iloopB=0; iloopB<nloopB; iloopB++)
+            {
                 const int64_t ix1t = (sinA[p1]*cosB[iloopB]+cosA[p1]*sinB[iloopB])/iamp;
                 const int64_t ix2t = (sinA[p2]*cosB[iloopB]+cosA[p2]*sinB[iloopB])/iamp;
                 const int64_t ix3t = (sinA[p3]*cosB[iloopB]+cosA[p3]*sinB[iloopB])/iamp;
 
-                if (ix1t != ix1a) {
+                if (ix1t != ix1a)
+                {
                     int dir = 0;
                     if (ix1t > ix1a)
                         ix1a++;
-                    else {
+                    else
+                    {
                         ix1a--;
                         dir=1;
                     }
@@ -130,11 +142,13 @@ int main(int argc, char** argv)
                     sys.gpioWriteLevel(layout.igpioStep4,1);
                 }
 
-                if(ix2t != ix2a) {
+                if(ix2t != ix2a)
+                {
                     int dir = 0;
                     if (ix2t > ix2a)
                         ix2a++;
-                    else  {
+                    else
+                    {
                         ix2a--;
                         dir=1;
                     }
@@ -144,11 +158,13 @@ int main(int argc, char** argv)
                     sys.gpioWriteLevel(layout.igpioStep5,1);
                 }
 
-                if(ix3t != ix3a) {
+                if(ix3t != ix3a)
+                {
                     int dir = 0;
                     if(ix3t > ix3a)
                         ix3a++;
-                    else {
+                    else
+                    {
                         ix3a--;
                         dir=1;
                     }

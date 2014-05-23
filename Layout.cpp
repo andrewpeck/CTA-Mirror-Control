@@ -13,7 +13,8 @@ int Layout::gpioConfiguration(unsigned igpio)
     // 1 == Configure as Output
     // 0 == Configure as Input
     igpio -= 1; //count from 0
-    static const int gpioconf[] = {
+    static const int gpioconf[] =
+    {
         //1     2     3     4     5      6     7     8     9     10
         -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,     0,
 
@@ -82,7 +83,8 @@ int Layout::gpioConfiguration(unsigned igpio)
 
 int Layout::pin140ToGPIO(unsigned ipin140)
 {
-    static const int igpio[] =  {
+    static const int igpio[] =
+    {
         -1,  //N_MANUAL_RESET      1
         71,  //GPIO71_L_DD01       2
         70,  //GPIO70_L_DD00       3
@@ -296,7 +298,8 @@ unsigned Layout::igpioSPI_SFRM_bar   =  pin140ToGPIO(GPIO174_SPI1_CS0)   ;
 
 unsigned Layout::igpioDir(const unsigned idrive)
 {
-    static const unsigned igpio[] = {
+    static const unsigned igpio[] =
+    {
         igpioDir1,
         igpioDir2,
         igpioDir3,
@@ -309,7 +312,8 @@ unsigned Layout::igpioDir(const unsigned idrive)
 
 unsigned Layout::igpioStep(const unsigned idrive)
 {
-    static const unsigned igpio[] = {
+    static const unsigned igpio[] =
+    {
         igpioStep1,
         igpioStep2,
         igpioStep3,
@@ -322,7 +326,8 @@ unsigned Layout::igpioStep(const unsigned idrive)
 
 unsigned Layout::igpioEnable(const unsigned idrive)
 {
-    static const unsigned igpio[] = {
+    static const unsigned igpio[] =
+    {
         igpioEnable1,
         igpioEnable2,
         igpioEnable3,
@@ -335,7 +340,8 @@ unsigned Layout::igpioEnable(const unsigned idrive)
 
 unsigned Layout::igpioUSBOff(const unsigned iusb)
 {
-    static const unsigned igpio[] = {
+    static const unsigned igpio[] =
+    {
         igpioUSBOff1,
         igpioUSBOff2,
         igpioUSBOff3,

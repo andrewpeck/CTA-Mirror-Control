@@ -67,7 +67,8 @@ public:
         if(sp == SP_SHORT)                  cfr |= 0x200;
         if(cc == CC_SCLK)                   cfr |= 0x100;
         if(im == IM_PSEUDO_DIFFERENTIAL)    cfr |= 0x080;
-        switch(cm) {
+        switch(cm)
+        {
         case CM_ONE_SHOT:
             break;
         case CM_REPEAT:
@@ -81,7 +82,8 @@ public:
             break;
         };
 
-        switch(ss) {
+        switch(ss)
+        {
         case SS_01234567:
             break;
         case SS_02460246:
@@ -97,7 +99,8 @@ public:
 
         if(pf == PF_EOC)                    cfr |= 0x004;
 
-        switch(tl) {
+        switch(tl)
+        {
         case TL_FULL:
             break;
         case TL_75PC:

@@ -35,7 +35,8 @@ mcspiInterface::mcspiInterface():
 {
 
     m_mmap_fd = open("/dev/mem", O_RDWR | O_SYNC);
-    if(m_mmap_fd<0) {
+    if(m_mmap_fd<0)
+    {
         perror("open(\"/dev/mem\")");
         exit(EXIT_FAILURE);
     }

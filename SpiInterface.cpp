@@ -50,7 +50,8 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data)
     if (ret < 1)
         pabort("can't send spi message");
 
-    for (ret = 0; ret < txsize; ret++) {
+    for (ret = 0; ret < txsize; ret++)
+    {
         read |= rx[ret] << 8*(txsize-ret-1);
     }
     //printf("\nRead = 0x%04X ", read);
