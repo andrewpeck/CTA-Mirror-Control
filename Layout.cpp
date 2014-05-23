@@ -4,84 +4,86 @@
 #define GPIODIR_IN  0
 #define GPIODIR_OUT 1
 
-Layout::Layout()  {}; 
-Layout::~Layout() {}; 
+Layout::Layout()  {};
+Layout::~Layout() {};
 
-int Layout::gpioConfiguration(unsigned igpio) {
+int Layout::gpioConfiguration(unsigned igpio)
+{
     //-1 == Do not do configure (untouched)
     // 1 == Configure as Output
     // 0 == Configure as Input
-    igpio -= 1; //count from 0 
+    igpio -= 1; //count from 0
     static const int gpioconf[] = {
         //1     2     3     4     5      6     7     8     9     10
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,     0, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,     0,
 
         //11    12    13    14    15     16    17    18    19    20
-        -1,     0,   -1,    0,   -1,    -1,    0,    0,   -1,     0, 
+        -1,     0,   -1,    0,   -1,    -1,    0,    0,   -1,     0,
 
         //21    22    23    24    25     26    27    28    29    30
-        -1,    -1,    0,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,    0,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //31    32    33    34    35     36    37    38    39    40
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //41    42    43    44    45     46    47    48    49    50
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //51    52    53    54    55     56    57    58    59    60
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //61    62    63    64    65     66    67    68    69    70
-        -1,    -1,   -1,   -1,   -1,     0,    0,    0,   -1,     0, 
+        -1,    -1,   -1,   -1,   -1,     0,    0,    0,   -1,     0,
 
         //71    72    73    74    75     76    77    78    79    80
-        0,      0,    0,   -1,    0,     0,    0,    0,    0,     0, 
+        0,      0,    0,   -1,    0,     0,    0,    0,    0,     0,
 
         //81    82    83    84    85     86    87    88    89    90
-        0,     -1,    0,    0,    0,    -1,    0,    0,    0,    -1, 
+        0,     -1,    0,    0,    0,    -1,    0,    0,    0,    -1,
 
         //91    92    93    94    95     96    97    98    99    100
-        0,      0,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        0,      0,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //101   102   103   104   105    106   107   108   109   110
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //111   112   113   114   115    116   117   118   119   120
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //121   122   123   124   125    126   127   128   129   130
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //131   132   133   134   135    136   137   138   139   140
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //141   142   143   144   145    146   147   148   149   150
-        -1,    -1,   -1,    0,    0,     0,    0,   -1,   -1,     0, 
+        -1,    -1,   -1,    0,    0,     0,    0,   -1,   -1,     0,
 
         //151   152   153   154   155    156   157   158   159   160
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //161   162   163   164   165    166   167   168   169   170
-        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1,
 
         //171   172   173   174   175    176   177   178   179   180
-        -1,    -1,   -1,   -1,    0,    -1,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,    0,    -1,   -1,   -1,   -1,    -1,
 
         //181   182   183   184   185    186   187   188   189   190
-        -1,    -1,   -1,   -1,   -1,     0,   -1,   -1,   -1,    -1, 
+        -1,    -1,   -1,   -1,   -1,     0,   -1,   -1,   -1,    -1,
 
-        //191   192 
-        -1,    -1  
+        //191   192
+        -1,    -1
     };
     if ((igpio>0) && ((igpio) < 192))
-        return gpioconf[igpio]; 
+        return gpioconf[igpio];
     else
-        return -1; 
+        return -1;
 }
 
-int Layout::pin140ToGPIO(unsigned ipin140) {
+int Layout::pin140ToGPIO(unsigned ipin140)
+{
     static const int igpio[] =  {
-        -1,  //N_MANUAL_RESET      1 
+        -1,  //N_MANUAL_RESET      1
         71,  //GPIO71_L_DD01       2
         70,  //GPIO70_L_DD00       3
         73,  //GPIO73_L_DD03       4
@@ -116,72 +118,72 @@ int Layout::pin140ToGPIO(unsigned ipin140) {
         76,  //GPIO76_L_DD06       33
         68,  //GPIO68_L_FCLK       34
         67,  //GPIO67_L_LCLK       35
-        -1,  //USBOTG_DP           36  
-        -1,  //USBOTG_DM           37  
-        -1,  //AUXLF               38  
-        -1,  //MIC_SUB_MF          39  
-        -1,  //ADCIN4              40  
-        -1,  //AUXRF               41  
-        -1,  //PWM0                42  
-        69,  //GPIO69_L_BIAS       43  
-        86,  //GPIO86_L_DD16       44  
-        90,  //GPIO90_L_DD20       45  
-        -1,  //USBOTG_ID           46  
-        170, //GPIO170_HDQ_1WIRE   47  
-        -1,  //ADCIN3              48  
-        -1,  //PWM1                49  
-        -1,  //AGND                50  
-        -1,  //ADCIN5              51  
-        -1,  //VBACKUP             52  
-        -1,  //ADCIN6              53  
-        -1,  //USBOTG_VBUS         54  
-        145, //GPIO145_GPT10_PWM   55  
-        -1,  //GND                 56  
-        -1,  //MIC_MAIN_MF         57  
-        -1,  //ADCIN2              58  
-        -1,  //SYSEN               59  
-        82,  //GPIO82_L_DD12       60  
-        93,  //GPIO93_L_DD23       61  
-        -1,  //TV_OUT2             62  
-        -1,  //TV_OUT1             63  
-        -1,  //ADCIN7              64  
-        -1,  //POWERON             65  
-        -1,  //VSYSTEM             66  
-        -1,  //VSYSTEM             67  
-        -1,  //HSOLF               68  
-        -1,  //HSORF               69  
-        -1,  //GND                 70  
+        -1,  //USBOTG_DP           36
+        -1,  //USBOTG_DM           37
+        -1,  //AUXLF               38
+        -1,  //MIC_SUB_MF          39
+        -1,  //ADCIN4              40
+        -1,  //AUXRF               41
+        -1,  //PWM0                42
+        69,  //GPIO69_L_BIAS       43
+        86,  //GPIO86_L_DD16       44
+        90,  //GPIO90_L_DD20       45
+        -1,  //USBOTG_ID           46
+        170, //GPIO170_HDQ_1WIRE   47
+        -1,  //ADCIN3              48
+        -1,  //PWM1                49
+        -1,  //AGND                50
+        -1,  //ADCIN5              51
+        -1,  //VBACKUP             52
+        -1,  //ADCIN6              53
+        -1,  //USBOTG_VBUS         54
+        145, //GPIO145_GPT10_PWM   55
+        -1,  //GND                 56
+        -1,  //MIC_MAIN_MF         57
+        -1,  //ADCIN2              58
+        -1,  //SYSEN               59
+        82,  //GPIO82_L_DD12       60
+        93,  //GPIO93_L_DD23       61
+        -1,  //TV_OUT2             62
+        -1,  //TV_OUT1             63
+        -1,  //ADCIN7              64
+        -1,  //POWERON             65
+        -1,  //VSYSTEM             66
+        -1,  //VSYSTEM             67
+        -1,  //HSOLF               68
+        -1,  //HSORF               69
+        -1,  //GND                 70
 
         ////Connector J4 (70-pin): Extended Memory Bus & MMC Signals
-        -1,  //VSYSTEM             71 
-        -1,  //VSYSTEM             72 
-        -1,  //GND                 73 
-        -1,  //EM_NCS5_ETH0        74 
-        -1,  //EM_NCS4             75 
-        -1,  //EM_NWE              76 
-        -1,  //EM_NADV_ALE         77 
-        -1,  //EM_NOE              78 
-        65,  //GPIO65_ETH1_IRQ1    79 
-        64,  //GPIO64_ETH0_NRESET  80 
-        -1,  //EM_A2               81 
-        -1,  //EM_A8               82 
-        -1,  //EM_A5               83 
-        -1,  //EM_A7               84 
-        -1,  //EM_D2               85 
-        -1,  //EM_D10              86 
-        -1,  //EM_D3               87 
-        -1,  //EM_D11              88 
-        -1,  //EM_D4               89 
-        -1,  //EM_D12              90 
-        -1,  //EM_D5               91 
-        -1,  //EM_D15              92 
-        13,  //GPIO13_MMC3_CMD     93 
-        148, //GPIO148_TXD1        94 
-        176, //GPIO176_ETH0_IRQ    95 
-        18,  //GPIO18_MMC3_D0      96 
-        174, //GPIO174_SPI1_CS0    97 
-        168, //GPIO168_USBH_CPEN   98 
-        14,  //GPIO14_MMC3_DAT4    99 
+        -1,  //VSYSTEM             71
+        -1,  //VSYSTEM             72
+        -1,  //GND                 73
+        -1,  //EM_NCS5_ETH0        74
+        -1,  //EM_NCS4             75
+        -1,  //EM_NWE              76
+        -1,  //EM_NADV_ALE         77
+        -1,  //EM_NOE              78
+        65,  //GPIO65_ETH1_IRQ1    79
+        64,  //GPIO64_ETH0_NRESET  80
+        -1,  //EM_A2               81
+        -1,  //EM_A8               82
+        -1,  //EM_A5               83
+        -1,  //EM_A7               84
+        -1,  //EM_D2               85
+        -1,  //EM_D10              86
+        -1,  //EM_D3               87
+        -1,  //EM_D11              88
+        -1,  //EM_D4               89
+        -1,  //EM_D12              90
+        -1,  //EM_D5               91
+        -1,  //EM_D15              92
+        13,  //GPIO13_MMC3_CMD     93
+        148, //GPIO148_TXD1        94
+        176, //GPIO176_ETH0_IRQ    95
+        18,  //GPIO18_MMC3_D0      96
+        174, //GPIO174_SPI1_CS0    97
+        168, //GPIO168_USBH_CPEN   98
+        14,  //GPIO14_MMC3_DAT4    99
         21,  //GPIO21_MMC3_DAT7    100
         17,  //GPIO17_MMC3_D3      101
         -1,  //USBH_VBUS           102
@@ -226,11 +228,11 @@ int Layout::pin140ToGPIO(unsigned ipin140) {
     };
     if  ((ipin140>0) && ((--ipin140) < N(igpio)))
         return igpio[ipin140];
-    else 
+    else
         return -1;
-} 
+}
 
-unsigned Layout::igpioN_M_RESET      =  pin140ToGPIO(N_MANUAL_RESET)     ; 
+unsigned Layout::igpioN_M_RESET      =  pin140ToGPIO(N_MANUAL_RESET)     ;
 unsigned Layout::igpioEN_IO          =  pin140ToGPIO(GPIO72_L_DD02)      ;
 
 unsigned Layout::igpioPowerADC       =  pin140ToGPIO(GPIO150_MMC3_WP)    ; //PowerADC
@@ -287,13 +289,14 @@ unsigned Layout::igpioEnable4        =  pin140ToGPIO(GPIO81_L_DD11)      ; //DR4
 unsigned Layout::igpioEnable5        =  pin140ToGPIO(GPIO92_L_DD22)      ; //DR5EnableBar
 unsigned Layout::igpioEnable6        =  pin140ToGPIO(GPIO75_L_DD05)      ; //DR6EnableBar
 
-unsigned Layout::igpioSPI_Tx         =  pin140ToGPIO(GPIO172_SPI1_MOSI)  ; 
+unsigned Layout::igpioSPI_Tx         =  pin140ToGPIO(GPIO172_SPI1_MOSI)  ;
 unsigned Layout::igpioSPI_Rx         =  pin140ToGPIO(GPIO173_SPI1_MISO)  ;
 unsigned Layout::igpioSPI_Sclk       =  pin140ToGPIO(GPIO171_SPI1_CLK)   ;
 unsigned Layout::igpioSPI_SFRM_bar   =  pin140ToGPIO(GPIO174_SPI1_CS0)   ;
 
-unsigned Layout::igpioDir(const unsigned idrive) {
-    static const unsigned igpio[] = { 
+unsigned Layout::igpioDir(const unsigned idrive)
+{
+    static const unsigned igpio[] = {
         igpioDir1,
         igpioDir2,
         igpioDir3,
@@ -304,8 +307,9 @@ unsigned Layout::igpioDir(const unsigned idrive) {
     return igpio[idrive];
 }
 
-unsigned Layout::igpioStep(const unsigned idrive) {
-    static const unsigned igpio[] = { 
+unsigned Layout::igpioStep(const unsigned idrive)
+{
+    static const unsigned igpio[] = {
         igpioStep1,
         igpioStep2,
         igpioStep3,
@@ -316,8 +320,9 @@ unsigned Layout::igpioStep(const unsigned idrive) {
     return igpio[idrive];
 }
 
-unsigned Layout::igpioEnable(const unsigned idrive) {
-    static const unsigned igpio[] = { 
+unsigned Layout::igpioEnable(const unsigned idrive)
+{
+    static const unsigned igpio[] = {
         igpioEnable1,
         igpioEnable2,
         igpioEnable3,
@@ -328,8 +333,9 @@ unsigned Layout::igpioEnable(const unsigned idrive) {
     return igpio[idrive];
 }
 
-unsigned Layout::igpioUSBOff(const unsigned iusb) {
-    static const unsigned igpio[] = { 
+unsigned Layout::igpioUSBOff(const unsigned iusb)
+{
+    static const unsigned igpio[] = {
         igpioUSBOff1,
         igpioUSBOff2,
         igpioUSBOff3,
