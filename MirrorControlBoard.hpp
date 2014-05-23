@@ -21,7 +21,7 @@
 class MirrorControlBoard
 {
 public:
-    MirrorControlBoard(bool no_initialize = false, unsigned nusb = 7);
+    MirrorControlBoard(bool no_initialize = true, unsigned nusb = 7);
     ~MirrorControlBoard();
 
     enum UStep { USTEP_1, USTEP_2, USTEP_4, USTEP_8 };
