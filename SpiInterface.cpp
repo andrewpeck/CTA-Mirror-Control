@@ -1,16 +1,3 @@
-/*
- * SPI testing utility (using spidev driver)
- *
- * Copyright (c) 2007  MontaVista Software, Inc.
- * Copyright (c) 2007  Anton Vorontsov <avorontsov@ru.mvista.com>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
- * Cross-compile with cross-gcc -I/path/to/cross-kernel/include
- */
-
 #include <stdint.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -24,16 +11,9 @@
 #include <SpiInterface.hpp>
 
 const char*     SpiInterface::device = "/dev/spidev1.0";
-uint8_t         SpiInterface::mode   = 0; 
-uint8_t         SpiInterface::bits   = 32;
-uint32_t        SpiInterface::speed  = 1000000;
-uint16_t        SpiInterface::delay  = 0;
-                   
-SpiInterface::SpiInterface() {
-} 
 
-SpiInterface::~SpiInterface() {
-} 
+SpiInterface::SpiInterface(): mode(0), bits(32), speed(1000000), delay(0) { }
+SpiInterface::~SpiInterface() { } 
 
 void SpiInterface::pabort(const char *s) {
     perror(s);
@@ -41,9 +21,8 @@ void SpiInterface::pabort(const char *s) {
 }
 
 uint32_t SpiInterface::transfer(int fd, uint32_t data) {
-
     uint32_t read=0; 
-    printf("\nSent = 0x%04X ", data);
+    //printf("\nSent = 0x%04X ", data);
     int ret;
     uint8_t byte1 = 0xFF & (data >> 24); 
     uint8_t byte2 = 0xFF & (data >> 16); 
@@ -72,7 +51,7 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data) {
     for (ret = 0; ret < txsize; ret++) {
         read |= rx[ret] << 8*(txsize-ret-1);
     }
-    printf("\nRead = 0x%04X ", read);
+    //printf("\nRead = 0x%04X ", read);
     return read; 
 }
 
