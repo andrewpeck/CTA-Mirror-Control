@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <MirrorControlBoard.hpp>
 #include <cbc.hpp>
+#define NCHANMAX 11
 
 // fast integer square root
 static unsigned julery_isqrt(unsigned long val) {
@@ -53,9 +54,9 @@ const char* usage_text =
         "\ndisable                DR={1-6} or DR=all"
         "\n                       Disable motor driver"
         "\n"
-        "\nenableUSB              USB={1-7} or USB=all:"
+        "\nenableusb              USB={1-7} or USB=all:"
         "\n                       Enable USB (USB)."
-        "\ndisableUSB             USB={1-7} or USB=all:"
+        "\ndisableusb             USB={1-7} or USB=all:"
         "\n                       Disable USB (USB)."
         "\n"
         "\nstep                   DR={1-6} NSTEP [DELAY]:"
@@ -96,9 +97,9 @@ const char* usage_text =
         "\n                       of expansion and contraction to perform."
         "\n"; 
 
-int usage(const char* program, std::ostream& stream, int status = EXIT_FAILURE) {
+int usage(const char* program, std::ostream& stream) {
     stream << "Usage: " << program << " command [command data]\n\n" << usage_text;
-    return status;
+    exit(EXIT_SUCCESS);
 }
 
 int main(int argc, const char** argv) {
@@ -110,7 +111,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr) {
     argv++, argc--;
 
     if(argc == 0)
-        return usage(program, oStr, EXIT_SUCCESS);
+        return usage(program, oStr);
 
     Overo sys; 
     Layout layout; 
@@ -507,13 +508,8 @@ int SubMain(int argc, const char** argv, std::ostream& oStr) {
         }
     } // close status
     else if(command == "measure") {
-        //if(!sys.clockIsEnabledSSP(ADC_SSP)) {
-        //    oStr << "SSP clock is not enabled. Power up the board!\n";
-        //    return EXIT_FAILURE;
-        //}
 
-#define NCHANMAX 11
-        if(argc==0)
+        if(argc<2)
             usage(program, oStr);
         unsigned iadc = atoi(*argv);
         argc--, argv++;
