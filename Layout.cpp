@@ -1,15 +1,8 @@
-//Layout of signals of UCLA board
-
 #include <Layout.hpp>
+
 #define N(x) (sizeof(x)/sizeof(*x))
 #define GPIODIR_IN  0
 #define GPIODIR_OUT 1
-
-//Configure GPIO Input/Output Direction
-//0 is OUTPUT
-//1 is INPUT
-//-1 not a gpio
-//DO NOT reorder this list
 
 Layout::Layout()  {}; 
 Layout::~Layout() {}; 
@@ -55,10 +48,10 @@ int Layout::gpioConfiguration(unsigned igpio) {
 
         //111   112   113   114   115    116   117   118   119   120
         -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
-        
+
         //121   122   123   124   125    126   127   128   129   130
         -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
-        
+
         //131   132   133   134   135    136   137   138   139   140
         -1,    -1,   -1,   -1,   -1,    -1,   -1,   -1,   -1,    -1, 
 
@@ -86,8 +79,6 @@ int Layout::gpioConfiguration(unsigned igpio) {
         return -1; 
 }
 
-//Maps Overo output pins (J1 1-70, J 71-140) to GPIO Pins
-//-1 is returned for a pin140 that is not a GPIO
 int Layout::pin140ToGPIO(unsigned ipin140) {
     static const int igpio[] =  {
         -1,  //N_MANUAL_RESET      1 
@@ -302,7 +293,6 @@ unsigned Layout::igpioSPI_Rx()        { return pin140ToGPIO(GPIO173_SPI1_MISO)  
 unsigned Layout::igpioSPI_Sclk()      { return pin140ToGPIO(GPIO171_SPI1_CLK)   ;}
 unsigned Layout::igpioSPI_SFRM_bar()  { return pin140ToGPIO(GPIO174_SPI1_CS0)   ;}
 
-// Returns Motor Direction Control Pin GPIO Number for a given idrive
 unsigned Layout::igpioDir(const unsigned idrive) {
     static const unsigned igpio[] = { 
         igpioDir1(),
@@ -315,7 +305,6 @@ unsigned Layout::igpioDir(const unsigned idrive) {
     return igpio[idrive];
 }
 
-// Returns Motor Step Pin GPIO Number for a given idrive
 unsigned Layout::igpioStep(const unsigned idrive) {
     static const unsigned igpio[] = { 
         igpioStep1(),
@@ -328,8 +317,6 @@ unsigned Layout::igpioStep(const unsigned idrive) {
     return igpio[idrive];
 }
 
-
-// Returns Motor Enable Pin GPIO Number for a given idrive
 unsigned Layout::igpioEnable(const unsigned idrive) {
     static const unsigned igpio[] = { 
         igpioEnable1(),
@@ -342,7 +329,6 @@ unsigned Layout::igpioEnable(const unsigned idrive) {
     return igpio[idrive];
 }
 
-// Returns USB Power Enable Pin GPIO Number for a given iusb
 unsigned Layout::igpioUSBOff(const unsigned iusb) {
     static const unsigned igpio[] = { 
         igpioUSBOff1(),

@@ -1,7 +1,3 @@
-//  Class which maps to Gumstix Verdex XM4 architecture, which mostly
-//  exposes the functionality of Marvell (formerly Intel) XScale PXA270
-//  on which it is based.
-
 #include <sys/mman.h>
 #include <stdint.h>
 #include <string>
@@ -18,23 +14,15 @@
 #define GPIODIR_IN  0
 #define GPIODIR_OUT 1
 
-
-
 Overo::Overo() {}; 
 Overo::~Overo() {}; 
 
-// --------------------------------------------------------------------------
-// GPIO utility functions
-// --------------------------------------------------------------------------
-
-// Read GPIO by ipin (0-192)
 bool Overo::gpioReadLevel(const unsigned ipin) {
     bool level = *(gpio.ptrGPIOReadLevel(ipin)) & (0x1 << ipin);
     printf("Read %i from pin %i",level,ipin);
     return level; 
 }
 
-// Write GPIO by ipin (0-192)
 void Overo::gpioWriteLevel(const unsigned ipin, bool level) {
     //printf("\nWriting %i to pin %i", level, ipin); 
     if (level)
@@ -43,7 +31,6 @@ void Overo::gpioWriteLevel(const unsigned ipin, bool level) {
         gpio.gpioClrLevel(ipin);
 }
 
-// Get GPIO Direction In/Out
 bool Overo::gpioGetDirection(const unsigned ipin) {
     volatile uint32_t* reg = gpio.ptrGPIODirection(ipin);
     uint32_t val = *reg;
@@ -51,7 +38,6 @@ bool Overo::gpioGetDirection(const unsigned ipin) {
     return dir; 
 }
 
-// Set GPIO Direction In/Out
 void Overo::gpioSetDirection(const unsigned ipin, bool dir) {
     volatile uint32_t* reg = gpio.ptrGPIODirection(ipin);
     uint32_t val = *reg;
@@ -63,12 +49,10 @@ void Overo::gpioSetDirection(const unsigned ipin, bool dir) {
     //printf("\ngpioSetDirection :: Writing %04X", val);
 }
 
-// Configures a given GPIO pin for a direction (1=OUT,0=in) and function
 void Overo::gpioConfigure(const unsigned ipin, bool dir) {
     gpioSetDirection(ipin, dir);
 }
 
-//Configure Input/Output directions for GPIOs
 void Overo::gpioConfigureAll() {
     for (int i=0; i<192; i++) {
         int config = layout.gpioConfiguration(i);
@@ -83,25 +67,15 @@ void Overo::gpioConfigureAll() {
     }
 }
 
-// --------------------------------------------------------------------------
-// STATIC GPIO functions
-// --------------------------------------------------------------------------
-
-//Number of GPIOs Available
-unsigned Overo::nGPIO() { 
-    return 192; 
-}
-
-// check if ipin is greater than the number of GPIOs
 bool Overo::hasGPIORegister(const unsigned ipin) { 
-    return ipin<nGPIO(); 
+    return ipin<nGPIO; 
 }
 
-// Curtain off unavailable GPIOs
 bool Overo::hasGPIOPin(const unsigned ipin) {
-    if((ipin==2) || ((ipin<=8) && (ipin>=5)) || (ipin>=nGPIO()))
+    if (ipin<0 || ipin>=nGPIO)
         return false;
-    return true;
+    else
+        return true;
 }
 
 uint64_t Overo::serialNumber() const {

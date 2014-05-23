@@ -1,4 +1,6 @@
-//Layout of signals of UCLA board
+/* 
+ * Maps layout of UCLA Board to Overo GPIO pins
+ */
 
 #ifndef LAYOUT_HPP
 #define LAYOUT_HPP
@@ -15,10 +17,7 @@ class Layout {
         //Configure GPIO Input/Output Direction
         static int gpioConfiguration(unsigned ipin); 
 
-        // --------------------------------------------------------------------------
         // Returns LAYOUT independent GPIO number 0-192 for Each Signal
-        // --------------------------------------------------------------------------
-
         static unsigned igpioN_M_RESET()     ; 
         static unsigned igpioEN_IO()         ;
 

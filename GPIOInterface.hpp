@@ -1,3 +1,9 @@
+/*
+ * Interface to access Overo EarthSTORM COM, Texas Instruments AM3703 CPU 
+ * Directly accesses CPU Physical Memory at /dev/mem by mapping into Virtual 
+ * address space. 
+ */
+
 #ifndef GPIOINTERFACE_H
 #define GPIOINTERFACE_H
 
@@ -17,6 +23,7 @@ class GPIOInterface {
 
         void gpioSetLevel(const unsigned ipin); 
         void gpioClrLevel(const unsigned ipin); 
+
     private: 
         // --------------------------------------------------------------------------
         // GPIO register (PHYSICAL) Address Definitions
@@ -72,7 +79,7 @@ class GPIOInterface {
         off_t physGPIOSetLevel(const unsigned ipin); 
 
 
-        // memory mapped address  stuff
+        // Base addresses of memory mapped address space
         volatile void*  makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length=mapSize);
         int             m_mmap_fd;
         volatile void*  m_gpio1_base;

@@ -1,8 +1,3 @@
-////////////////////////////////////////////////////////////////////////////////
-// Opens CPU Physical Memory at /dev/mem
-// Maps physical memory into virtual address space (unix command mmap)
-////////////////////////////////////////////////////////////////////////////////
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -19,11 +14,6 @@
 
 #define MUNMAP(VIRT) \
     munmap(const_cast<void*>(VIRT), mapSize)
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Public Members
-////////////////////////////////////////////////////////////////////////////////
 
 GPIOInterface::GPIOInterface(): 
     m_mmap_fd(-1), 
@@ -58,7 +48,6 @@ GPIOInterface::~GPIOInterface() {
     MUNMAP(m_gpio6_base);
 }
 
-
 volatile uint32_t* GPIOInterface::ptrGPIODirection(const unsigned ipin) {
     return phys2VirtGPIO32(physGPIODirection(ipin),ipin); 
 }
@@ -79,18 +68,9 @@ void GPIOInterface::gpioClrLevel(const unsigned ipin) {
     *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~(0x1 << ipin); 
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Private Members
-////////////////////////////////////////////////////////////////////////////////
-
-// Returns Virtual (memory mapped) address for a given GPIO pin 
 volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t phys, const unsigned ipin) {
-    if (ipin<32)  {
-        //printf("\nphys: %04X",phys); 
-        //printf("\nm_gpio1_base: %04X", m_gpio1_base); 
-        //printf("\nmapBaseGPIO1: %04X", mapBaseGPIO1); 
+    if (ipin<32)
         return phys2Virt32(phys,m_gpio1_base,mapBaseGPIO1); 
-    }
     else if (ipin<64)
         return phys2Virt32(phys,m_gpio2_base,mapBaseGPIO2);
     else if (ipin<96)
@@ -105,22 +85,15 @@ volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t phys, const unsigned ipi
         return 0; 
 }
 
-// Takes Physical Address and Returns pointer to memory mapped virtual address
 volatile uint32_t* GPIOInterface::phys2Virt32(off_t phys, volatile void* map_base_virt, off_t map_base_phys) {
     static off_t map_offset; 
     static volatile uint32_t* adr_virtual; 
 
     map_offset = phys - map_base_phys; 
-    //printf("\nmap_offset: %02X", map_offset); 
     adr_virtual = reinterpret_cast<volatile uint32_t*>(static_cast<volatile uint8_t*>(map_base_virt) + map_offset);
-    //printf("\nadr_virtual: %04X", adr_virtual); 
 
     return adr_virtual; 
 }
-
-// --------------------------------------------------------------------------
-// STATIC GPIO register (PHYSICAL) address functions
-// --------------------------------------------------------------------------
 
 off_t GPIOInterface::offset2adrGPIO(unsigned ipin, off_t offset) {
     if (ipin<0)                              
@@ -141,25 +114,17 @@ off_t GPIOInterface::offset2adrGPIO(unsigned ipin, off_t offset) {
         return(0);
 }
 
-// Returns physical address of GPIO Read Register for a given GPIO pin
 off_t GPIOInterface::physGPIOReadLevel(const unsigned ipin) {
     return offset2adrGPIO(ipin,gpio_offset_datain); 
 }
 
-// Returns physical address of Output Enable Register for a given GPIO pin
 off_t GPIOInterface::physGPIODirection(const unsigned ipin) {
     return offset2adrGPIO(ipin,gpio_offset_oe); 
 }
 
-// Returns physical address of Output Write Register for a given GPIO pin
 off_t GPIOInterface::physGPIOSetLevel(const unsigned ipin) { 
     return offset2adrGPIO(ipin,gpio_offset_dataout);
 }
-
-// --------------------------------------------------------------------------
-// static functions defining (physical) start of memory mapped regions
-// --------------------------------------------------------------------------
-
 
 volatile void* GPIOInterface::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length) {
     virtual_addr = mmap(0, length, PROT_READ|PROT_WRITE, MAP_SHARED, m_mmap_fd, physical_addr);
