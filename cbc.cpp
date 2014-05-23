@@ -25,109 +25,85 @@ static unsigned julery_isqrt(unsigned long val) {
     return g;
 }
 
-const char* usage_text = "The following commands are available:\n\
-                          \n\
-                          initialize CLK_DIV=4: Initialize the hardware. Should be done once after boot-up.\n\
-                          \n\
-                          power_down: Go into power saving mode. Power down encoders, USB and A3977.\n\
-                          \n\
-                          power_up:   Power up all on-board and off-board electronics.\n\
-                          \n\
-                          power_down_encoders:\n\
-                          Power down encoders.\n\
-                          \n\
-                          power_up_encoders:\n\
-                          Power up encoders.\n\
-                          \n\
-                          power_down_a3977:\n\
-                          Power down A3977 motor controllers.\n\
-                          \n\
-                          power_up_a3977:\n\
-                          Power up A3977 motor controllers.\n\
-                          \n\
-                          reset:      Send reset command to drive electronics.\n\
-                          \n\
-                          enable_sr:  Enable Synchronous Rectification (SR) mode.\n\
-                          \n\
-                          disable_sr: Disable Synchronous Rectification (SR) mode.\n\
-                          \n\
-                          set_microstep MS={1,2,4,8}:\n\
-                          Set number of micro steps to 1, 2, 4 or 8.\n\
-                          \n\
-                          enable_hi_current:\n\
-                          Enable high current mode on all drives.\n\
-                          \n\
-                          disable_hi_current:\n\
-                          Disable high current mode on all drives.\n\
-                          \n\
-                          enable DR={1-6} or DR=all:\n\
-                          Enable drive (DR).\n\
-                          \n\
-                          disable DR={1-6} or DR=all:\n\
-                          Disable drive (DR).\n\
-                          \n\
-                          enableUSB USB={1-7} or USB=all:\n\
-                          Enable USB (USB).\n\
-                          \n\
-                          disableUSB USB={1-7} or USB=all:\n\
-                          Disable USB (USB).\n\
-                          \n\
-                          step DR={1-6} NSTEP [DELAY]:\n\
-                          Step drive some number of steps (positive to extend, negative to\n\
-                                  retract) with delay between steps given by DELAY (default 5000).\n\
-                          \n\
-                          slew DR={1-6} [DIR={extend,retract}] [DELAY]:\n\
-                          Slew drive (DR) in given direction (DIR, default extend) with\n\
-                          delay between steps given by DELAY (default 5000).\n\
-                          \n\
-                          step_all DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP [DELAY]\n\
-                          Step all drives some number of steps (positive to extend,\n\
-                                  negative to retract and zero to not move that drive.)\n\
-                          \n\
-                          slew_all [DIR={extend,retract}] [DELAY]:\n\
-                          Slew all (enabled) drives in given direction (DIR, default \n\
-                                  extend) with delay between steps given by DELAY (default 5000).\n\
-                          \n\
-                          status:     Print drive status information\n\
-                          \n\
-                          measure ADC={1-8} CHAN={0-11} [MEAS=1 BURN=0 DELAY=100 SCALE=5.05]:\n\
-                          Measure voltage of the specified ADC channel. Channel can be\n\
-                          given as zero to specify all channels on one ADC. Channels 9, 10\n\
-                          and 11 correspond to internal reference voltages on the ADC.\n\
-                          Prints out statistics.\n\
-                          \n\
-                          measure_full ADC={1-8} CHAN={0-11} [MEAS=1 DELAY=100 SCALE=5.05]:\n\
-                          Measure voltage of the specified ADC channel. Channel can be\n\
-                          given as zero to specify all channels on one ADC. Channels 9, 10\n\
-                          and 11 correspond to internal reference voltages on the ADC.\n\
-                          Prints out raw data.\n\
-                          \n\
-                          calibrate DR={1-6} [NSTEP=10000] [NCYCLE=0] [DELAY=10000] [ADC=7] [NMEAS=1]\n\
-                          Step drive and read ADC after each step, printing its value to\n\
-                          the terminal. If NCYCLE is 0 or 1 then it specifies the direction\n\
-                          of the travel, otherwise it specifies the number of half cycles\n\
-                          of expansion and contraction to perform.\n\
-                          ";
+const char* usage_text = 
+        "initialize             CLK_DIV=4: Initialize the hardware. Should be done once after boot-up."
+        "\n"
+        "\npower_down             Go into power saving mode. Power down encoders, USB and A3977."
+        "\npower_up               Power up all on-board and off-board electronics."
+        "\n"
+        "\npower_down_encoders    Power down encoders."
+        "\npower_up_encoders      Power up encoders."
+        "\n"
+        "\npower_down_a3977       Power down A3977 motor controllers."
+        "\npower_up_a3977         Power up A3977 motor controllers."
+        "\n"
+        "\nreset                  Send reset command to drive electronics."
+        "\n"
+        "\nenable_sr              Enable Synchronous Rectification (SR) mode."
+        "\ndisable_sr             Disable Synchronous Rectification (SR) mode."
+        "\n"
+        "\nset_microstep          MS={1,2,4,8}."
+        "\n                       Set number of micro steps to 1, 2, 4 or 8."
+        "\n"
+        "\nenable_hi_current      Enable high current mode on all drives."
+        "\ndisable_hi_current     Disable high current mode on all drives."
+        "\n"
+        "\nenable                 DR={1-6} or DR=all"
+        "\n                       Enable motor driver."
+        "\ndisable                DR={1-6} or DR=all"
+        "\n                       Disable motor driver"
+        "\n"
+        "\nenableUSB              USB={1-7} or USB=all:"
+        "\n                       Enable USB (USB)."
+        "\ndisableUSB             USB={1-7} or USB=all:"
+        "\n                       Disable USB (USB)."
+        "\n"
+        "\nstep                   DR={1-6} NSTEP [DELAY]:"
+        "\n                       Step drive some number of steps (positive to"
+        "\n                       extend, negative to retract) with delay between"
+        "\n                       steps given by DELAY (default 5000)."
+        "\n"
+        "\nslew                   DR={1-6} [DIR={extend,retract}] [DELAY]:"
+        "\n                       Slew drive (DR) in given direction (DIR, default extend) "
+        "\n                       with delay between steps given by DELAY (default 5000)."
+        "\n"
+        "\nstep_all               DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP [DELAY]"
+        "\n                       Step all drives some number of steps (positive to extend,"
+        "\n                       negative to retract and zero to not move that drive.)"
+        "\n"
+        "\nslew_all               [DIR={extend,retract}] [DELAY]:"
+        "\n                       Slew all (enabled) drives in given direction (DIR, default "
+        "\n                       extend) with delay between steps given by DELAY (default 5000)."
+        "\n"
+        "\nstatus:                Print drive status information"
+        "\n"
+        "\nmeasure                ADC={1-8} CHAN={0-11} [MEAS=1 BURN=0 DELAY=100 SCALE=5.05]:"
+        "\n                       Measure voltage of the specified ADC channel. Channel can be"
+        "\n                       given as zero to specify all channels on one ADC. Channels 9, 10"
+        "\n                       and 11 correspond to internal reference voltages on the ADC."
+        "\n                       Prints out statistics."
+        "\n"
+        "\nmeasure_full           ADC={1-8} CHAN={0-11} [MEAS=1 DELAY=100 SCALE=5.05]:"
+        "\n                       Measure voltage of the specified ADC channel. Channel can be"
+        "\n                       given as zero to specify all channels on one ADC. Channels 9, 10"
+        "\n                       and 11 correspond to internal reference voltages on the ADC."
+        "\n                       Prints out raw data."
+        "\n"
+        "\ncalibrate              DR={1-6} [NSTEP=10000] [NCYCLE=0] [DELAY=10000] [ADC=7] [NMEAS=1]"
+        "\n                       Step drive and read ADC after each step, printing its value to"
+        "\n                       the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
+        "\n                       of the travel, otherwise it specifies the number of half cycles"
+        "\n                       of expansion and contraction to perform."
+        "\n"; 
 
 int usage(const char* program, std::ostream& stream, int status = EXIT_FAILURE) {
-    stream << "Usage: " << program << " command [command data]\n\n"
-        << usage_text;
+    stream << "Usage: " << program << " command [command data]\n\n" << usage_text;
     return status;
 }
-
-//#if defined(__arm__)
-//typedef Overo<> Sys;
-//#else
-//typedef Overo<SimulatedRegisters> Sys;
-//#endif
-//typedef Layout<> LO;
-
-
 
 int main(int argc, const char** argv) {
     return SubMain(argc, argv);
 }
-
 
 int SubMain(int argc, const char** argv, std::ostream& oStr) {
     const char* program = *argv;
