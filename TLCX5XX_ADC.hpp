@@ -17,8 +17,6 @@
 
 #include <stdint.h>
 
-#include <Bits.hpp>
-
 template<unsigned NBIT> class TLCX5XX_ADC {
     public:
 
