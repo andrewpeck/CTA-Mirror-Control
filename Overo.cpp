@@ -60,14 +60,17 @@ void Overo::gpioConfigure(const unsigned ipin, bool dir)
 
 void Overo::gpioConfigureAll()
 {
+    FILE * configfile; 
+    configfile = fopen ("gpioconf","w"); 
+
     for (int i=0; i<192; i++) {
         int config = layout.gpioConfiguration(i);
         if (config==0) { // output
-            printf("\nConfiguring gpio %i as output", i);
+            fprintf(configfile,"Configuring gpio %i as output\n", i);
             gpioSetDirection(i, 0);
         }
         if (config==1) {  // input
-            printf("\nConfiguring gpio %i as input", i);
+            fprintf(configfile,"Configuring gpio %i as input\n", i);
             gpioSetDirection(i, 1);
         }
     }
