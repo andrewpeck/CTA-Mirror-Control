@@ -268,9 +268,9 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
     else if(command == "testusb") {
         for (int i=0; i<1000000; i++) {
             if (i%2==0)
-                sys.gpioWriteLevel(layout.igpioUSBOff4(),1);
+                sys.gpioWriteLevel(layout.igpioUSBOff4,1);
             if (i%2==1)
-                sys.gpioWriteLevel(layout.igpioUSBOff4(),0);
+                sys.gpioWriteLevel(layout.igpioUSBOff4,0);
         }
     } // close testusb
     else if(command == "frequsb") {
@@ -282,9 +282,9 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         float period = (1000000/(frequency));
 
         for (int i=0; i<1000000; i++) {
-            sys.gpioWriteLevel(layout.igpioUSBOff4(),1);
+            sys.gpioWriteLevel(layout.igpioUSBOff4,1);
             usleep(period/2);
-            sys.gpioWriteLevel(layout.igpioUSBOff4(),0);
+            sys.gpioWriteLevel(layout.igpioUSBOff4,0);
             usleep(period/2);
         }
     } // close frequsb
@@ -501,7 +501,7 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
         oStr << "Drives:"
              << (mcb.isDriveControllersPoweredUp()?
                  (char*)"":(char*)" A3977-OFF")
-             << (sys.gpioReadLevel(layout.igpioReset())?
+             << (sys.gpioReadLevel(layout.igpioReset)?
                  (char*)"":(char*)" RESET")
              << (mcb.isDriveSREnabled()?
                  (char*)" SR":(char*)"");

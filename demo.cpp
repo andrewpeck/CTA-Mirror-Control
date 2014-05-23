@@ -124,10 +124,10 @@ int main(int argc, char** argv)
                         ix1a--;
                         dir=1;
                     }
-                    sys.gpioWriteLevel(layout.igpioDir1(),dir);
-                    sys.gpioWriteLevel(layout.igpioDir4(),dir);
-                    sys.gpioWriteLevel(layout.igpioStep1(),1);
-                    sys.gpioWriteLevel(layout.igpioStep4(),1);
+                    sys.gpioWriteLevel(layout.igpioDir1,dir);
+                    sys.gpioWriteLevel(layout.igpioDir4,dir);
+                    sys.gpioWriteLevel(layout.igpioStep1,1);
+                    sys.gpioWriteLevel(layout.igpioStep4,1);
                 }
 
                 if(ix2t != ix2a) {
@@ -138,10 +138,10 @@ int main(int argc, char** argv)
                         ix2a--;
                         dir=1;
                     }
-                    sys.gpioWriteLevel(layout.igpioDir2(),dir);
-                    sys.gpioWriteLevel(layout.igpioDir5(),dir);
-                    sys.gpioWriteLevel(layout.igpioStep2(),1);
-                    sys.gpioWriteLevel(layout.igpioStep5(),1);
+                    sys.gpioWriteLevel(layout.igpioDir2,dir);
+                    sys.gpioWriteLevel(layout.igpioDir5,dir);
+                    sys.gpioWriteLevel(layout.igpioStep2,1);
+                    sys.gpioWriteLevel(layout.igpioStep5,1);
                 }
 
                 if(ix3t != ix3a) {
@@ -152,21 +152,21 @@ int main(int argc, char** argv)
                         ix3a--;
                         dir=1;
                     }
-                    sys.gpioWriteLevel(layout.igpioDir3(),dir);
-                    sys.gpioWriteLevel(layout.igpioDir6(),dir);
-                    sys.gpioWriteLevel(layout.igpioStep3(),1);
-                    sys.gpioWriteLevel(layout.igpioStep6(),1);
+                    sys.gpioWriteLevel(layout.igpioDir3,dir);
+                    sys.gpioWriteLevel(layout.igpioDir6,dir);
+                    sys.gpioWriteLevel(layout.igpioStep3,1);
+                    sys.gpioWriteLevel(layout.igpioStep6,1);
                 }
 
                 //delay
                 for(volatile unsigned idelay=0; idelay<ndelay; idelay++);
 
-                sys.gpioWriteLevel(layout.igpioStep1(),0);
-                sys.gpioWriteLevel(layout.igpioStep2(),0);
-                sys.gpioWriteLevel(layout.igpioStep3(),0);
-                sys.gpioWriteLevel(layout.igpioStep4(),0);
-                sys.gpioWriteLevel(layout.igpioStep5(),0);
-                sys.gpioWriteLevel(layout.igpioStep6(),0);
+                sys.gpioWriteLevel(layout.igpioStep1,0);
+                sys.gpioWriteLevel(layout.igpioStep2,0);
+                sys.gpioWriteLevel(layout.igpioStep3,0);
+                sys.gpioWriteLevel(layout.igpioStep4,0);
+                sys.gpioWriteLevel(layout.igpioStep5,0);
+                sys.gpioWriteLevel(layout.igpioStep6,0);
 
                 //delay
                 for(volatile unsigned idelay=0; idelay<ndelay; idelay++);

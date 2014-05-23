@@ -26,7 +26,7 @@ void MirrorControlBoard::initialize(const unsigned ssp_clk_div)
     setUStep(USTEP_8);
     enableDriveSR();
     disableDriveHiCurrent();
-    m_sys.gpioWriteLevel(layout.igpioReset(),1);
+    m_sys.gpioWriteLevel(layout.igpioReset,1);
     initializeSPI();
 }
 
@@ -129,47 +129,47 @@ bool MirrorControlBoard::isUSBPoweredUp(unsigned iusb)
 
 void MirrorControlBoard::powerDownDriveControllers()
 {
-    m_sys.gpioWriteLevel(layout.igpioSleep(),0);
+    m_sys.gpioWriteLevel(layout.igpioSleep,0);
 }
 
 void MirrorControlBoard::powerUpDriveControllers()
 {
-    m_sys.gpioWriteLevel(layout.igpioSleep(),1);
+    m_sys.gpioWriteLevel(layout.igpioSleep,1);
 }
 
 bool MirrorControlBoard::isDriveControllersPoweredUp()
 {
-    return m_sys.gpioReadLevel(layout.igpioSleep())?true:false;
+    return m_sys.gpioReadLevel(layout.igpioSleep)?true:false;
 }
 
 void MirrorControlBoard::powerDownEncoders()
 {
-    m_sys.gpioWriteLevel(layout.igpioEncoderEnable(),0);
+    m_sys.gpioWriteLevel(layout.igpioEncoderEnable,0);
 }
 
 void MirrorControlBoard::powerUpEncoders()
 {
-    m_sys.gpioWriteLevel(layout.igpioEncoderEnable(),1);
+    m_sys.gpioWriteLevel(layout.igpioEncoderEnable,1);
 }
 
 bool MirrorControlBoard::isEncodersPoweredUp()
 {
-    return m_sys.gpioReadLevel(layout.igpioEncoderEnable())?true:false;
+    return m_sys.gpioReadLevel(layout.igpioEncoderEnable)?true:false;
 }
 
 void MirrorControlBoard::powerUpADCs()
 {
-    m_sys.gpioWriteLevel(layout.igpioPowerADC(),1);
+    m_sys.gpioWriteLevel(layout.igpioPowerADC,1);
 }
 
 void MirrorControlBoard::powerDownADCs()
 {
-    m_sys.gpioWriteLevel(layout.igpioPowerADC(),0);
+    m_sys.gpioWriteLevel(layout.igpioPowerADC,0);
 }
 
 bool MirrorControlBoard::isADCsPoweredUp()
 {
-    return m_sys.gpioReadLevel(layout.igpioPowerADC())?false:true;
+    return m_sys.gpioReadLevel(layout.igpioPowerADC)?false:true;
 }
 
 // ----------------------------------------------------------------------------
@@ -178,12 +178,12 @@ bool MirrorControlBoard::isADCsPoweredUp()
 
 void MirrorControlBoard::enableDriveSR(bool enable)
 {
-    m_sys.gpioWriteLevel(layout.igpioSR(), enable?0:1);
+    m_sys.gpioWriteLevel(layout.igpioSR, enable?0:1);
 }
 
 bool MirrorControlBoard::isDriveSREnabled()
 {
-    return m_sys.gpioReadLevel(layout.igpioSR())?false:true;
+    return m_sys.gpioReadLevel(layout.igpioSR)?false:true;
 }
 
 void MirrorControlBoard::setUStep(UStep ustep)
@@ -203,16 +203,16 @@ void MirrorControlBoard::setUStep(UStep ustep)
         mslog2 = 0x3;
         break;
     }
-    m_sys.gpioWriteLevel(layout.igpioMS1(), mslog2 & 0x1);
-    m_sys.gpioWriteLevel(layout.igpioMS2(), mslog2 & 0x2);
+    m_sys.gpioWriteLevel(layout.igpioMS1, mslog2 & 0x1);
+    m_sys.gpioWriteLevel(layout.igpioMS2, mslog2 & 0x2);
 }
 
 MirrorControlBoard::UStep MirrorControlBoard::getUStep()
 {
-    if(m_sys.gpioReadLevel(layout.igpioMS2()))
-        return m_sys.gpioReadLevel(layout.igpioMS1())?USTEP_8:USTEP_4;
+    if(m_sys.gpioReadLevel(layout.igpioMS2))
+        return m_sys.gpioReadLevel(layout.igpioMS1)?USTEP_8:USTEP_4;
     else
-        return m_sys.gpioReadLevel(layout.igpioMS1())?USTEP_2:USTEP_1;
+        return m_sys.gpioReadLevel(layout.igpioMS1)?USTEP_2:USTEP_1;
 }
 
 // Steps motor a single step in a direction specified by dir, with some delay controlling the io speed
@@ -236,46 +236,46 @@ void MirrorControlBoard:: stepOneDrive(unsigned idrive, Dir dir, unsigned ndelay
 // Steps all drives in a configurable direction... should be replaced with a loop over stepOneDrive
 void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Dir dr4_dir, Dir dr5_dir, Dir dr6_dir, unsigned ndelayloop)
 {
-    m_sys.gpioWriteLevel(layout.igpioDir1(),(dr1_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir2(),(dr2_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir3(),(dr3_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir4(),(dr4_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir5(),(dr5_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir6(),(dr6_dir==DIR_RETRACT)?1:0);
+    m_sys.gpioWriteLevel(layout.igpioDir1,(dr1_dir==DIR_RETRACT)?1:0);
+    m_sys.gpioWriteLevel(layout.igpioDir2,(dr2_dir==DIR_RETRACT)?1:0);
+    m_sys.gpioWriteLevel(layout.igpioDir3,(dr3_dir==DIR_RETRACT)?1:0);
+    m_sys.gpioWriteLevel(layout.igpioDir4,(dr4_dir==DIR_RETRACT)?1:0);
+    m_sys.gpioWriteLevel(layout.igpioDir5,(dr5_dir==DIR_RETRACT)?1:0);
+    m_sys.gpioWriteLevel(layout.igpioDir6,(dr6_dir==DIR_RETRACT)?1:0);
 
-    m_sys.gpioWriteLevel(layout.igpioStep1(),(dr1_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep2(),(dr2_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep3(),(dr3_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep4(),(dr4_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep5(),(dr5_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep6(),(dr6_dir==DIR_NONE)?0:1);
+    m_sys.gpioWriteLevel(layout.igpioStep1,(dr1_dir==DIR_NONE)?0:1);
+    m_sys.gpioWriteLevel(layout.igpioStep2,(dr2_dir==DIR_NONE)?0:1);
+    m_sys.gpioWriteLevel(layout.igpioStep3,(dr3_dir==DIR_NONE)?0:1);
+    m_sys.gpioWriteLevel(layout.igpioStep4,(dr4_dir==DIR_NONE)?0:1);
+    m_sys.gpioWriteLevel(layout.igpioStep5,(dr5_dir==DIR_NONE)?0:1);
+    m_sys.gpioWriteLevel(layout.igpioStep6,(dr6_dir==DIR_NONE)?0:1);
 
     loopDelay(ndelayloop);
 
-    m_sys.gpioWriteLevel(layout.igpioStep1(),0);
-    m_sys.gpioWriteLevel(layout.igpioStep2(),0);
-    m_sys.gpioWriteLevel(layout.igpioStep3(),0);
-    m_sys.gpioWriteLevel(layout.igpioStep4(),0);
-    m_sys.gpioWriteLevel(layout.igpioStep5(),0);
-    m_sys.gpioWriteLevel(layout.igpioStep6(),0);
+    m_sys.gpioWriteLevel(layout.igpioStep1,0);
+    m_sys.gpioWriteLevel(layout.igpioStep2,0);
+    m_sys.gpioWriteLevel(layout.igpioStep3,0);
+    m_sys.gpioWriteLevel(layout.igpioStep4,0);
+    m_sys.gpioWriteLevel(layout.igpioStep5,0);
+    m_sys.gpioWriteLevel(layout.igpioStep6,0);
 }
 
 void MirrorControlBoard::setPhaseZeroOnAllDrives()
 {
-    m_sys.gpioWriteLevel(layout.igpioReset(),0);
+    m_sys.gpioWriteLevel(layout.igpioReset,0);
     loopDelay(1000);
-    m_sys.gpioWriteLevel(layout.igpioReset(),1);
+    m_sys.gpioWriteLevel(layout.igpioReset,1);
 }
 
 void MirrorControlBoard::enableAllDrives(bool enable)
 {
     bool ienable = enable?0:1;
-    m_sys.gpioWriteLevel(layout.igpioEnable1(), ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable2(), ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable3(), ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable4(), ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable5(), ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable6(), ienable);
+    m_sys.gpioWriteLevel(layout.igpioEnable1, ienable);
+    m_sys.gpioWriteLevel(layout.igpioEnable2, ienable);
+    m_sys.gpioWriteLevel(layout.igpioEnable3, ienable);
+    m_sys.gpioWriteLevel(layout.igpioEnable4, ienable);
+    m_sys.gpioWriteLevel(layout.igpioEnable5, ienable);
+    m_sys.gpioWriteLevel(layout.igpioEnable6, ienable);
 }
 
 // Enable/Disable Stepper Motors
@@ -291,12 +291,12 @@ bool MirrorControlBoard::isDriveEnabled(unsigned idrive)
 
 void MirrorControlBoard::enableDriveHiCurrent(bool enable)
 {
-    m_sys.gpioWriteLevel(layout.igpioPwrIncBar(), enable?0:1);
+    m_sys.gpioWriteLevel(layout.igpioPwrIncBar, enable?0:1);
 }
 
 bool MirrorControlBoard::isDriveHiCurrentEnabled()
 {
-    return m_sys.gpioReadLevel(layout.igpioPwrIncBar())?false:true;
+    return m_sys.gpioReadLevel(layout.igpioPwrIncBar)?false:true;
 }
 
 //------------------------------------------------------------------------------
@@ -312,8 +312,8 @@ void MirrorControlBoard::initializeADC(unsigned iadc)
 
 void MirrorControlBoard::selectADC(unsigned iadc)
 {
-    m_sys.gpioWriteLevel(layout.igpioADCSel1(), iadc==0?1:0);
-    m_sys.gpioWriteLevel(layout.igpioADCSel2(), iadc==1?1:0);
+    m_sys.gpioWriteLevel(layout.igpioADCSel1, iadc==0?1:0);
+    m_sys.gpioWriteLevel(layout.igpioADCSel2, iadc==1?1:0);
 }
 
 uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned ndelayloop)

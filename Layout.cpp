@@ -35,7 +35,7 @@ int Layout::gpioConfiguration(unsigned igpio) {
         -1,    -1,   -1,   -1,   -1,     0,    0,    0,   -1,     0, 
 
         //71    72    73    74    75     76    77    78    79    80
-        0,      1,    0,   -1,    0,     0,    0,    0,    0,     0, 
+        0,      0,    0,   -1,    0,     0,    0,    0,    0,     0, 
 
         //81    82    83    84    85     86    87    88    89    90
         0,     -1,    0,    0,    0,    -1,    0,    0,    0,    -1, 
@@ -230,114 +230,113 @@ int Layout::pin140ToGPIO(unsigned ipin140) {
         return -1;
 } 
 
-unsigned Layout::igpioN_M_RESET()     { return pin140ToGPIO(N_MANUAL_RESET)     ;} 
-unsigned Layout::igpioEN_IO()         { return pin140ToGPIO(GPIO72_L_DD02)      ;}
+unsigned Layout::igpioN_M_RESET      =  pin140ToGPIO(N_MANUAL_RESET)     ; 
+unsigned Layout::igpioEN_IO          =  pin140ToGPIO(GPIO72_L_DD02)      ;
 
-unsigned Layout::igpioPowerADC()      { return pin140ToGPIO(GPIO150_MMC3_WP)    ;} //PowerADC
-unsigned Layout::igpioADCSel1()       { return pin140ToGPIO(GPIO83_L_DD13)      ;} //ADCSel1
-unsigned Layout::igpioADCSel2()       { return pin140ToGPIO(GPIO77_L_DD07)      ;} //ADCSel2
+unsigned Layout::igpioPowerADC       =  pin140ToGPIO(GPIO150_MMC3_WP)    ; //PowerADC
+unsigned Layout::igpioADCSel1        =  pin140ToGPIO(GPIO83_L_DD13)      ; //ADCSel1
+unsigned Layout::igpioADCSel2        =  pin140ToGPIO(GPIO77_L_DD07)      ; //ADCSel2
 
-unsigned Layout::igpioEncoderEnable() { return pin140ToGPIO(GPIO71_L_DD01)      ;} //EncoderEnable
+unsigned Layout::igpioEncoderEnable  =  pin140ToGPIO(GPIO71_L_DD01)      ; //EncoderEnable
 
-unsigned Layout::igpioConsoleRXD()    { return pin140ToGPIO(GPIO165_IR_RXD3)    ;} //ConsoleRXD
-unsigned Layout::igpioConsoleTXD()    { return pin140ToGPIO(GPIO166_IR_TXD3)    ;} //ConsoleTXD
+unsigned Layout::igpioConsoleRXD     =  pin140ToGPIO(GPIO165_IR_RXD3)    ; //ConsoleRXD
+unsigned Layout::igpioConsoleTXD     =  pin140ToGPIO(GPIO166_IR_TXD3)    ; //ConsoleTXD
 
-unsigned Layout::igpioTP1()           { return pin140ToGPIO(GPIO69_L_BIAS)      ;}
-unsigned Layout::igpioTP2()           { return pin140ToGPIO(GPIO86_L_DD16)      ;}
-unsigned Layout::igpioTP3()           { return pin140ToGPIO(GPIO90_L_DD20)      ;}
-unsigned Layout::igpioTP4()           { return pin140ToGPIO(GPIO170_HDQ_1WIRE)  ;}
-unsigned Layout::igpioTP5()           { return pin140ToGPIO(GPIO145_GPT10_PWM)  ;}
-unsigned Layout::igpioTP6()           { return pin140ToGPIO(GPIO82_L_DD12)      ;}
-unsigned Layout::igpioTP7()           { return pin140ToGPIO(GPIO93_L_DD23)      ;}
+unsigned Layout::igpioTP1            =  pin140ToGPIO(GPIO69_L_BIAS)      ;
+unsigned Layout::igpioTP2            =  pin140ToGPIO(GPIO86_L_DD16)      ;
+unsigned Layout::igpioTP3            =  pin140ToGPIO(GPIO90_L_DD20)      ;
+unsigned Layout::igpioTP4            =  pin140ToGPIO(GPIO170_HDQ_1WIRE)  ;
+unsigned Layout::igpioTP5            =  pin140ToGPIO(GPIO145_GPT10_PWM)  ;
+unsigned Layout::igpioTP6            =  pin140ToGPIO(GPIO82_L_DD12)      ;
+unsigned Layout::igpioTP7            =  pin140ToGPIO(GPIO93_L_DD23)      ;
 
+unsigned Layout::igpioUSBReset       =  pin140ToGPIO(GPIO74_L_DD04)      ; //USBReset
+unsigned Layout::igpioUSBOff1        =  pin140ToGPIO(GPIO14_MMC3_DAT4)   ; //USB1EnableBar
+unsigned Layout::igpioUSBOff2        =  pin140ToGPIO(GPIO18_MMC3_D0)     ; //USB2EnableBar
+unsigned Layout::igpioUSBOff3        =  pin140ToGPIO(GPIO80_L_DD10)      ; //USB3EnableBar
+unsigned Layout::igpioUSBOff4        =  pin140ToGPIO(GPIO_10)            ; //USB4EnableBar
+unsigned Layout::igpioUSBOff5        =  pin140ToGPIO(GPIO78_L_DD08)      ; //USB5EnableBar
+unsigned Layout::igpioUSBOff6        =  pin140ToGPIO(GPIO12_MMC3_CLK)    ; //USB6EnableBar
+unsigned Layout::igpioUSBOff7        =  pin140ToGPIO(GPIO17_MMC3_D3)     ; //USB7EnableBar
 
-unsigned Layout::igpioUSBReset()      { return pin140ToGPIO(GPIO74_L_DD04)      ;} //USBReset
-unsigned Layout::igpioUSBOff1()       { return pin140ToGPIO(GPIO14_MMC3_DAT4)   ;} //USB1EnableBar
-unsigned Layout::igpioUSBOff2()       { return pin140ToGPIO(GPIO18_MMC3_D0)     ;} //USB2EnableBar
-unsigned Layout::igpioUSBOff3()       { return pin140ToGPIO(GPIO80_L_DD10)      ;} //USB3EnableBar
-unsigned Layout::igpioUSBOff4()       { return pin140ToGPIO(GPIO_10)            ;} //USB4EnableBar
-unsigned Layout::igpioUSBOff5()       { return pin140ToGPIO(GPIO78_L_DD08)      ;} //USB5EnableBar
-unsigned Layout::igpioUSBOff6()       { return pin140ToGPIO(GPIO12_MMC3_CLK)    ;} //USB6EnableBar
-unsigned Layout::igpioUSBOff7()       { return pin140ToGPIO(GPIO17_MMC3_D3)     ;} //USB7EnableBar
+unsigned Layout::igpioMS1            =  pin140ToGPIO(GPIO146_GPT11_PWM)  ; //DRMS1
+unsigned Layout::igpioMS2            =  pin140ToGPIO(GPIO85_L_DD15)      ; //DRMS2
+unsigned Layout::igpioPwrIncBar      =  pin140ToGPIO(GPIO175_SPI1_CS1)   ; //DRPowerIncreaseBar
+unsigned Layout::igpioSR             =  pin140ToGPIO(GPIO91_L_DD21)      ; //DRSRBar
+unsigned Layout::igpioReset          =  pin140ToGPIO(GPIO147_GPT8_PWM)   ; //DRResetBar
+unsigned Layout::igpioSleep          =  pin140ToGPIO(GPIO84_L_DD14)      ; //DRSleepBar
 
-unsigned Layout::igpioMS1()           { return pin140ToGPIO(GPIO146_GPT11_PWM)  ;} //DRMS1
-unsigned Layout::igpioMS2()           { return pin140ToGPIO(GPIO85_L_DD15)      ;} //DRMS2
-unsigned Layout::igpioPwrIncBar()     { return pin140ToGPIO(GPIO175_SPI1_CS1)   ;} //DRPowerIncreaseBar
-unsigned Layout::igpioSR()            { return pin140ToGPIO(GPIO91_L_DD21)      ;} //DRSRBar
-unsigned Layout::igpioReset()         { return pin140ToGPIO(GPIO147_GPT8_PWM)   ;} //DRResetBar
-unsigned Layout::igpioSleep()         { return pin140ToGPIO(GPIO84_L_DD14)      ;} //DRSleepBar
+unsigned Layout::igpioStep1          =  pin140ToGPIO(GPIO67_L_LCLK)      ; //DR1Step
+unsigned Layout::igpioStep2          =  pin140ToGPIO(GPIO66_L_PCLK)      ; //DR2Step
+unsigned Layout::igpioStep3          =  pin140ToGPIO(GPIO88_L_DD18)      ; //DR3Step
+unsigned Layout::igpioStep4          =  pin140ToGPIO(GPIO_186)           ; //DR4Step
+unsigned Layout::igpioStep5          =  pin140ToGPIO(GPIO145_GPT10_PWM)  ; //DR5Step
+unsigned Layout::igpioStep6          =  pin140ToGPIO(GPIO23_MMC3_DAT5)   ; //DR6Step
 
-unsigned Layout::igpioStep1()         { return pin140ToGPIO(GPIO67_L_LCLK)      ;} //DR1Step
-unsigned Layout::igpioStep2()         { return pin140ToGPIO(GPIO66_L_PCLK)      ;} //DR2Step
-unsigned Layout::igpioStep3()         { return pin140ToGPIO(GPIO88_L_DD18)      ;} //DR3Step
-unsigned Layout::igpioStep4()         { return pin140ToGPIO(GPIO_186)           ;} //DR4Step
-unsigned Layout::igpioStep5()         { return pin140ToGPIO(GPIO145_GPT10_PWM)  ;} //DR5Step
-unsigned Layout::igpioStep6()         { return pin140ToGPIO(GPIO23_MMC3_DAT5)   ;} //DR6Step
+unsigned Layout::igpioDir1           =  pin140ToGPIO(GPIO76_L_DD06)      ; //DR1Dir
+unsigned Layout::igpioDir2           =  pin140ToGPIO(GPIO79_L_DD09)      ; //DR2Dir
+unsigned Layout::igpioDir3           =  pin140ToGPIO(GPIO87_L_DD17)      ; //DR3Dir
+unsigned Layout::igpioDir4           =  pin140ToGPIO(GPIO144_GPT9_PWM)   ; //DR4Dir
+unsigned Layout::igpioDir5           =  pin140ToGPIO(GPIO70_L_DD00)      ; //DR5Dir
+unsigned Layout::igpioDir6           =  pin140ToGPIO(GPIO20_MMC3_D2)     ; //DR6Dir
 
-unsigned Layout::igpioDir1()          { return pin140ToGPIO(GPIO76_L_DD06)      ;} //DR1Dir
-unsigned Layout::igpioDir2()          { return pin140ToGPIO(GPIO79_L_DD09)      ;} //DR2Dir
-unsigned Layout::igpioDir3()          { return pin140ToGPIO(GPIO87_L_DD17)      ;} //DR3Dir
-unsigned Layout::igpioDir4()          { return pin140ToGPIO(GPIO144_GPT9_PWM)   ;} //DR4Dir
-unsigned Layout::igpioDir5()          { return pin140ToGPIO(GPIO70_L_DD00)      ;} //DR5Dir
-unsigned Layout::igpioDir6()          { return pin140ToGPIO(GPIO20_MMC3_D2)     ;} //DR6Dir
+unsigned Layout::igpioEnable1        =  pin140ToGPIO(GPIO68_L_FCLK)      ; //DR1EnableBar
+unsigned Layout::igpioEnable2        =  pin140ToGPIO(GPIO73_L_DD03)      ; //DR2EnableBar
+unsigned Layout::igpioEnable3        =  pin140ToGPIO(GPIO89_L_DD19)      ; //DR3EnableBar
+unsigned Layout::igpioEnable4        =  pin140ToGPIO(GPIO81_L_DD11)      ; //DR4EnableBar
+unsigned Layout::igpioEnable5        =  pin140ToGPIO(GPIO92_L_DD22)      ; //DR5EnableBar
+unsigned Layout::igpioEnable6        =  pin140ToGPIO(GPIO75_L_DD05)      ; //DR6EnableBar
 
-unsigned Layout::igpioEnable1()       { return pin140ToGPIO(GPIO68_L_FCLK)      ;} //DR1EnableBar
-unsigned Layout::igpioEnable2()       { return pin140ToGPIO(GPIO73_L_DD03)      ;} //DR2EnableBar
-unsigned Layout::igpioEnable3()       { return pin140ToGPIO(GPIO89_L_DD19)      ;} //DR3EnableBar
-unsigned Layout::igpioEnable4()       { return pin140ToGPIO(GPIO81_L_DD11)      ;} //DR4EnableBar
-unsigned Layout::igpioEnable5()       { return pin140ToGPIO(GPIO92_L_DD22)      ;} //DR5EnableBar
-unsigned Layout::igpioEnable6()       { return pin140ToGPIO(GPIO75_L_DD05)      ;} //DR6EnableBar
-
-unsigned Layout::igpioSPI_Tx()        { return pin140ToGPIO(GPIO172_SPI1_MOSI)  ;} 
-unsigned Layout::igpioSPI_Rx()        { return pin140ToGPIO(GPIO173_SPI1_MISO)  ;}
-unsigned Layout::igpioSPI_Sclk()      { return pin140ToGPIO(GPIO171_SPI1_CLK)   ;}
-unsigned Layout::igpioSPI_SFRM_bar()  { return pin140ToGPIO(GPIO174_SPI1_CS0)   ;}
+unsigned Layout::igpioSPI_Tx         =  pin140ToGPIO(GPIO172_SPI1_MOSI)  ; 
+unsigned Layout::igpioSPI_Rx         =  pin140ToGPIO(GPIO173_SPI1_MISO)  ;
+unsigned Layout::igpioSPI_Sclk       =  pin140ToGPIO(GPIO171_SPI1_CLK)   ;
+unsigned Layout::igpioSPI_SFRM_bar   =  pin140ToGPIO(GPIO174_SPI1_CS0)   ;
 
 unsigned Layout::igpioDir(const unsigned idrive) {
     static const unsigned igpio[] = { 
-        igpioDir1(),
-        igpioDir2(),
-        igpioDir3(),
-        igpioDir4(),
-        igpioDir5(),
-        igpioDir6()
+        igpioDir1,
+        igpioDir2,
+        igpioDir3,
+        igpioDir4,
+        igpioDir5,
+        igpioDir6
     };
     return igpio[idrive];
 }
 
 unsigned Layout::igpioStep(const unsigned idrive) {
     static const unsigned igpio[] = { 
-        igpioStep1(),
-        igpioStep2(),
-        igpioStep3(),
-        igpioStep4(),
-        igpioStep5(),
-        igpioStep6()
+        igpioStep1,
+        igpioStep2,
+        igpioStep3,
+        igpioStep4,
+        igpioStep5,
+        igpioStep6
     };
     return igpio[idrive];
 }
 
 unsigned Layout::igpioEnable(const unsigned idrive) {
     static const unsigned igpio[] = { 
-        igpioEnable1(),
-        igpioEnable2(),
-        igpioEnable3(),
-        igpioEnable4(),
-        igpioEnable5(),
-        igpioEnable6()
+        igpioEnable1,
+        igpioEnable2,
+        igpioEnable3,
+        igpioEnable4,
+        igpioEnable5,
+        igpioEnable6
     };
     return igpio[idrive];
 }
 
 unsigned Layout::igpioUSBOff(const unsigned iusb) {
     static const unsigned igpio[] = { 
-        igpioUSBOff1(),
-        igpioUSBOff2(),
-        igpioUSBOff3(),
-        igpioUSBOff4(),
-        igpioUSBOff5(),
-        igpioUSBOff6(),
-        igpioUSBOff7()
+        igpioUSBOff1,
+        igpioUSBOff2,
+        igpioUSBOff3,
+        igpioUSBOff4,
+        igpioUSBOff5,
+        igpioUSBOff6,
+        igpioUSBOff7
     };
     return igpio[iusb];
 }
