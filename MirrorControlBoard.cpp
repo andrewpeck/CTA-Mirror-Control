@@ -9,9 +9,6 @@
 
 typedef TLC3548 ADC; 
 
-//Overo MirrorControlBoard::m_sys; 
-//Layout MirrorControlBoard::layout; 
-
 MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nusb(nusb>7?7:nusb) {
     if (no_initialize)
         return; 
@@ -264,9 +261,9 @@ bool MirrorControlBoard::isDriveHiCurrentEnabled() {
     return m_sys.gpioReadLevel(layout.igpioPwrIncBar())?false:true;
 }
 
-// ----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // ADCs
-// ----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 void MirrorControlBoard::initializeADC(unsigned iadc) {
     selectADC(iadc);                                        // Assert Chip Select for ADC in question
@@ -403,6 +400,10 @@ void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmea
         loopDelay(ndelayloop);
     }
 }
+
+//------------------------------------------------------------------------------
+// General Purpose Utilities
+//------------------------------------------------------------------------------
 
 void MirrorControlBoard::loopDelay(unsigned nloop) { 
     for(volatile unsigned iloop=0;iloop<nloop;iloop++);
