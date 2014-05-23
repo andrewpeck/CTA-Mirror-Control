@@ -28,12 +28,6 @@ demo: demo.o $(LIBOBJECTS)
 uboot_conf: uboot_conf.o $(LIBOBJECTS)
 	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
 
-#SpiInterface: SpiInterface.o $(LIBOBJECTS)
-#	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
-#
-#Layout: Layout.o $(LIBOBJECTS)
-#	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
-
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(MYCXXFLAGS) -c $<
 
