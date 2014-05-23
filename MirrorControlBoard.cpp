@@ -14,7 +14,7 @@ MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nus
     if (no_initialize)
         return;
     else {
-        printf("Powering down all chips...");
+        //printf("Powering down all chips...");
         powerDownAll();
     }
 }
