@@ -126,10 +126,10 @@ int SubMain(int argc, const char** argv, std::ostream& oStr)
 
     if((command == "initialize") || (command == "init") || (command == "config")) {
 
-        printf("\nConfiguring GPIOs...");
+        printf("Configuring GPIOs...\n");
         sys.gpioConfigureAll();
 
-        printf("\nPowering Up Base...");
+        printf("Powering Up Base...\n");
         mcb.powerUpBase();
 
         return EXIT_SUCCESS;
