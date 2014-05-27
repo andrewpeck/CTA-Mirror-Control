@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <linux/types.h>
+
 #include <linux/spi/spidev.h>
 #include <SpiInterface.hpp>
 
@@ -66,37 +67,37 @@ uint32_t SpiInterface::WriteRead (uint32_t data)
     //printf("\nOpening SPI device %s", device);
     fd = open(device, O_RDWR);
     if (fd < 0)
-        pabort("can't open spi device");
+        pabort("spidev driver error: can't open spi device");
 
     // set spi mode
     //printf("\nSetting SPI Mode 0x%02X: ", mode);
     ret = ioctl(fd, SPI_IOC_WR_MODE, &mode);
     if (ret == -1)
-        pabort("can't set spi mode");
+        pabort("spidev driver error: can't set spi mode");
 
     // read back spi mode
     ret = ioctl(fd, SPI_IOC_RD_MODE, &mode);
     //printf("\nReading SPI Mode 0x%02X: ", mode);
     if (ret == -1)
-        pabort("can't get spi mode");
+        pabort("spidev driver error: can't get spi mode");
 
     // set bits per word
     ret = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
     if (ret == -1)
-        pabort("can't set bits per word");
+        pabort("spidev driver error: can't set bits per word");
 
     ret = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &bits);
     if (ret == -1)
-        pabort("can't get bits per word");
+        pabort("spidev driver error: can't get bits per word");
 
-    // max speed hz
+    // set speed in hertz
     ret = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
     if (ret == -1)
-        pabort("can't set max speed hz");
+        pabort("spidev driver error: can't set max speed hz");
 
     ret = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &speed);
     if (ret == -1)
-        pabort("can't get max speed hz");
+        pabort("spidev driver error: can't get max speed hz");
 
     //printf("spi mode: %d\n", mode);
     //printf("bits per word: %d\n", bits);
