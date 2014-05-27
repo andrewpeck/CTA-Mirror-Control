@@ -67,7 +67,7 @@ private:
     off_t physGPIOSetLevel(const unsigned ipin);
 
     // Base addresses of memory mapped address space
-    volatile void*  makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length=mapSize);
+    volatile void*  makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length=4096);
     int             m_mmap_fd;
     volatile void*  m_gpio1_base;
     volatile void*  m_gpio2_base;
