@@ -27,10 +27,6 @@ public:
     Overo();
     ~Overo();
 
-    // --------------------------------------------------------------------------
-    // GPIO utility functions
-    // --------------------------------------------------------------------------
-
     // Read GPIO by ipin (0-192)
     bool gpioReadLevel(const unsigned ipin);
 
@@ -49,13 +45,6 @@ public:
     //Configure Input/Output directions for GPIOs
     void gpioConfigureAll();
 
-    // --------------------------------------------------------------------------
-    // Utility functions
-    // --------------------------------------------------------------------------
-
-    // Print some board Information from /proc/cpu
-    uint64_t serialNumber() const;
-
 private:
     // Instantiate objects
     GPIOInterface gpio;
@@ -63,12 +52,6 @@ private:
 
     // Number of GPIOs Available
     static const int nGPIO = 192;
-
-    // check if ipin is greater than the number of GPIOs
-    bool hasGPIORegister(const unsigned ipin);
-
-    // Curtain off unavailable GPIOs
-    bool hasGPIOPin(const unsigned ipin);
 };
 
 #endif

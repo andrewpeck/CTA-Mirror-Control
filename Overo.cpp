@@ -26,7 +26,6 @@ bool Overo::gpioReadLevel(const unsigned ipin)
 
 void Overo::gpioWriteLevel(const unsigned ipin, bool level)
 {
-    //printf("\nWriting %i to pin %i", level, ipin);
     if (level)
         gpio.gpioSetLevel(ipin);
     else
@@ -78,49 +77,3 @@ void Overo::gpioConfigureAll()
         }
     }
 }
-
-bool Overo::hasGPIORegister(const unsigned ipin)
-{
-    return ipin<nGPIO;
-}
-
-bool Overo::hasGPIOPin(const unsigned ipin)
-{
-    if (ipin<0 || ipin>=nGPIO)
-        return false;
-    else
-        return true;
-}
-
-uint64_t Overo::serialNumber() const
-{
-    std::ifstream stream("/proc/cpuinfo");
-    if(!stream.good())return 0;
-    std::string line;
-    while(getline(stream,line))
-    {
-        std::string key;
-        std::string::size_type ichar=0;
-        while(ichar<line.size())
-        {
-            char c = line[ichar];
-            if(c==':')break;
-            if(!isspace(c))key += tolower(c);
-            ichar++;
-        }
-        if(ichar<line.size())ichar++;
-        while((ichar<line.size())&&(isspace(line[ichar])))ichar++;
-        if((key == "serial")&&(ichar<line.size()))
-        {
-            std::string val;
-            while((ichar<line.size())&&(isxdigit(line[ichar])))
-                val += line[ichar++];
-            std::istringstream sstream(val);
-            uint64_t serial = 0;
-            sstream >> std::hex >> serial;
-            return serial;
-        }
-    }
-    return 0;
-}
-
