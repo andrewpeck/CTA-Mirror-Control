@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <MirrorControlBoard.hpp>
+#include <GPIOInterface.hpp>
 
 MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nusb(nusb>7?7:nusb)
 {
@@ -21,20 +22,20 @@ void MirrorControlBoard::initialize(const unsigned ssp_clk_div)
     setUStep(USTEP_8);
     enableDriveSR();
     disableDriveHiCurrent();
-    m_sys.gpioWriteLevel(layout.igpioReset,1);
-    initializeSPI();
+    gpio.WriteLevel(layout.igpioReset,1);
+    //initializeSPI();
 }
 
-void MirrorControlBoard::initializeSPI()
-{
-    //void spiConfigure (int issp, unsigned clk_phase, bool clk_polarity, bool clk_div, bool epol, int word_length) {
-    //for (int issp=0; issp<=8; issp++) { m_sys.spiConfigure (issp, 0, 0, 4, 1, 0xF); }
-    //printf("Enabling SPI");
-    //m_sys.spiEnable(ADC_SPI);
-    //printf("Configuring SPI");
-    //m_sys.spiConfigure (ADC_SPI, 0, 0, 4, 1, 0xF);
-    //m_sys.spiFlush (ADC_SPI);
-}
+//void MirrorControlBoard::initializeSPI()
+//{
+//    void spiConfigure (int issp, unsigned clk_phase, bool clk_polarity, bool clk_div, bool epol, int word_length) {
+//    for (int issp=0; issp<=8; issp++) { m_sys.spiConfigure (issp, 0, 0, 4, 1, 0xF); }
+//    printf("Enabling SPI");
+//    m_sys.spiEnable(ADC_SPI);
+//    printf("Configuring SPI");
+//    m_sys.spiConfigure (ADC_SPI, 0, 0, 4, 1, 0xF);
+//    m_sys.spiFlush (ADC_SPI);
+//}
 
 void MirrorControlBoard::powerDownAll()
 {
@@ -108,67 +109,67 @@ void MirrorControlBoard::powerUpAllUSB()
 
 void MirrorControlBoard::powerDownUSB(unsigned iusb)
 {
-    m_sys.gpioWriteLevel(layout.igpioUSBOff(iusb),1);
+    gpio.WriteLevel(layout.igpioUSBOff(iusb),1);
 }
 
 void MirrorControlBoard::powerUpUSB(unsigned iusb)
 {
-    m_sys.gpioWriteLevel(layout.igpioUSBOff(iusb),0);
+    gpio.WriteLevel(layout.igpioUSBOff(iusb),0);
 }
 
 bool MirrorControlBoard::isUSBPoweredUp(unsigned iusb)
 {
-    return m_sys.gpioReadLevel(layout.igpioUSBOff(iusb))?false:true;
+    return gpio.ReadLevel(layout.igpioUSBOff(iusb))?false:true;
 }
 
 void MirrorControlBoard::powerDownDriveControllers()
 {
-    m_sys.gpioWriteLevel(layout.igpioSleep,0);
+    gpio.WriteLevel(layout.igpioSleep,0);
 }
 
 void MirrorControlBoard::powerUpDriveControllers()
 {
-    m_sys.gpioWriteLevel(layout.igpioSleep,1);
+    gpio.WriteLevel(layout.igpioSleep,1);
 }
 
 bool MirrorControlBoard::isDriveControllersPoweredUp()
 {
-    return m_sys.gpioReadLevel(layout.igpioSleep)?true:false;
+    return gpio.ReadLevel(layout.igpioSleep)?true:false;
 }
 
 void MirrorControlBoard::powerDownEncoders()
 {
-    m_sys.gpioWriteLevel(layout.igpioEncoderEnable,0);
+    gpio.WriteLevel(layout.igpioEncoderEnable,0);
 }
 
 void MirrorControlBoard::powerUpEncoders()
 {
-    m_sys.gpioWriteLevel(layout.igpioEncoderEnable,1);
+    gpio.WriteLevel(layout.igpioEncoderEnable,1);
 }
 
 bool MirrorControlBoard::isEncodersPoweredUp()
 {
-    return m_sys.gpioReadLevel(layout.igpioEncoderEnable)?true:false;
+    return gpio.ReadLevel(layout.igpioEncoderEnable)?true:false;
 }
 
 void MirrorControlBoard::powerUpADCs()
 {
-    m_sys.gpioWriteLevel(layout.igpioPowerADC,1);
+    gpio.WriteLevel(layout.igpioPowerADC,1);
 }
 
 void MirrorControlBoard::powerDownADCs()
 {
-    m_sys.gpioWriteLevel(layout.igpioPowerADC,0);
+    gpio.WriteLevel(layout.igpioPowerADC,0);
 }
 
 bool MirrorControlBoard::isADCsPoweredUp()
 {
-    return m_sys.gpioReadLevel(layout.igpioPowerADC)?false:true;
+    return gpio.ReadLevel(layout.igpioPowerADC)?false:true;
 }
 
 void MirrorControlBoard::enableDriveSR(bool enable)
 {
-    m_sys.gpioWriteLevel(layout.igpioSR, enable?0:1);
+    gpio.WriteLevel(layout.igpioSR, enable?0:1);
 }
 
 
@@ -179,7 +180,7 @@ void MirrorControlBoard::disableDriveSR()
 
 bool MirrorControlBoard::isDriveSREnabled()
 {
-    return m_sys.gpioReadLevel(layout.igpioSR)?false:true;
+    return gpio.ReadLevel(layout.igpioSR)?false:true;
 }
 
 void MirrorControlBoard::setUStep(UStep ustep)
@@ -200,81 +201,81 @@ void MirrorControlBoard::setUStep(UStep ustep)
             mslog2 = 0x3;
             break;
     }
-    m_sys.gpioWriteLevel(layout.igpioMS1, mslog2 & 0x1);
-    m_sys.gpioWriteLevel(layout.igpioMS2, mslog2 & 0x2);
+    gpio.WriteLevel(layout.igpioMS1, mslog2 & 0x1);
+    gpio.WriteLevel(layout.igpioMS2, mslog2 & 0x2);
 }
 
 MirrorControlBoard::UStep MirrorControlBoard::getUStep()
 {
-    if(m_sys.gpioReadLevel(layout.igpioMS2))
-        return m_sys.gpioReadLevel(layout.igpioMS1)?USTEP_8:USTEP_4;
+    if(gpio.ReadLevel(layout.igpioMS2))
+        return gpio.ReadLevel(layout.igpioMS1)?USTEP_8:USTEP_4;
     else
-        return m_sys.gpioReadLevel(layout.igpioMS1)?USTEP_2:USTEP_1;
+        return gpio.ReadLevel(layout.igpioMS1)?USTEP_2:USTEP_1;
 }
 
 void MirrorControlBoard:: stepOneDrive(unsigned idrive, Dir dir, unsigned ndelayloop)
 {
     // Write Direction to the DIR pin
-    m_sys.gpioWriteLevel(layout.igpioDir(idrive),(dir==DIR_RETRACT)?1:0);
+    gpio.WriteLevel(layout.igpioDir(idrive),(dir==DIR_RETRACT)?1:0);
 
     // Writes one step to STEP pin
     unsigned igpio = layout.igpioStep(idrive);
-    m_sys.gpioWriteLevel(igpio,(dir==DIR_NONE)?0:1);
+    gpio.WriteLevel(igpio,(dir==DIR_NONE)?0:1);
 
     // a delay
     loopDelay(ndelayloop);
 
     // Toggle pin back to low
-    m_sys.gpioWriteLevel(igpio,0);
+    gpio.WriteLevel(igpio,0);
 }
 
 void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Dir dr4_dir, Dir dr5_dir, Dir dr6_dir, unsigned ndelayloop)
 {
-    m_sys.gpioWriteLevel(layout.igpioDir1,(dr1_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir2,(dr2_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir3,(dr3_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir4,(dr4_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir5,(dr5_dir==DIR_RETRACT)?1:0);
-    m_sys.gpioWriteLevel(layout.igpioDir6,(dr6_dir==DIR_RETRACT)?1:0);
+    gpio.WriteLevel(layout.igpioDir1,(dr1_dir==DIR_RETRACT)?1:0);
+    gpio.WriteLevel(layout.igpioDir2,(dr2_dir==DIR_RETRACT)?1:0);
+    gpio.WriteLevel(layout.igpioDir3,(dr3_dir==DIR_RETRACT)?1:0);
+    gpio.WriteLevel(layout.igpioDir4,(dr4_dir==DIR_RETRACT)?1:0);
+    gpio.WriteLevel(layout.igpioDir5,(dr5_dir==DIR_RETRACT)?1:0);
+    gpio.WriteLevel(layout.igpioDir6,(dr6_dir==DIR_RETRACT)?1:0);
 
-    m_sys.gpioWriteLevel(layout.igpioStep1,(dr1_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep2,(dr2_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep3,(dr3_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep4,(dr4_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep5,(dr5_dir==DIR_NONE)?0:1);
-    m_sys.gpioWriteLevel(layout.igpioStep6,(dr6_dir==DIR_NONE)?0:1);
+    gpio.WriteLevel(layout.igpioStep1,(dr1_dir==DIR_NONE)?0:1);
+    gpio.WriteLevel(layout.igpioStep2,(dr2_dir==DIR_NONE)?0:1);
+    gpio.WriteLevel(layout.igpioStep3,(dr3_dir==DIR_NONE)?0:1);
+    gpio.WriteLevel(layout.igpioStep4,(dr4_dir==DIR_NONE)?0:1);
+    gpio.WriteLevel(layout.igpioStep5,(dr5_dir==DIR_NONE)?0:1);
+    gpio.WriteLevel(layout.igpioStep6,(dr6_dir==DIR_NONE)?0:1);
 
     loopDelay(ndelayloop);
 
-    m_sys.gpioWriteLevel(layout.igpioStep1,0);
-    m_sys.gpioWriteLevel(layout.igpioStep2,0);
-    m_sys.gpioWriteLevel(layout.igpioStep3,0);
-    m_sys.gpioWriteLevel(layout.igpioStep4,0);
-    m_sys.gpioWriteLevel(layout.igpioStep5,0);
-    m_sys.gpioWriteLevel(layout.igpioStep6,0);
+    gpio.WriteLevel(layout.igpioStep1,0);
+    gpio.WriteLevel(layout.igpioStep2,0);
+    gpio.WriteLevel(layout.igpioStep3,0);
+    gpio.WriteLevel(layout.igpioStep4,0);
+    gpio.WriteLevel(layout.igpioStep5,0);
+    gpio.WriteLevel(layout.igpioStep6,0);
 }
 
 void MirrorControlBoard::setPhaseZeroOnAllDrives()
 {
-    m_sys.gpioWriteLevel(layout.igpioReset,0);
+    gpio.WriteLevel(layout.igpioReset,0);
     loopDelay(1000);
-    m_sys.gpioWriteLevel(layout.igpioReset,1);
+    gpio.WriteLevel(layout.igpioReset,1);
 }
 
 void MirrorControlBoard::enableDrive(unsigned idrive, bool enable)
 {
-    m_sys.gpioWriteLevel(layout.igpioEnable(idrive), enable?0:1);
+    gpio.WriteLevel(layout.igpioEnable(idrive), enable?0:1);
 }
 
 void MirrorControlBoard::enableAllDrives(bool enable)
 {
     bool ienable = enable?0:1;
-    m_sys.gpioWriteLevel(layout.igpioEnable1, ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable2, ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable3, ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable4, ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable5, ienable);
-    m_sys.gpioWriteLevel(layout.igpioEnable6, ienable);
+    gpio.WriteLevel(layout.igpioEnable1, ienable);
+    gpio.WriteLevel(layout.igpioEnable2, ienable);
+    gpio.WriteLevel(layout.igpioEnable3, ienable);
+    gpio.WriteLevel(layout.igpioEnable4, ienable);
+    gpio.WriteLevel(layout.igpioEnable5, ienable);
+    gpio.WriteLevel(layout.igpioEnable6, ienable);
 }
 
 void MirrorControlBoard::disableDrive(unsigned idrive)
@@ -289,12 +290,12 @@ void MirrorControlBoard::disableAllDrives()
 
 bool MirrorControlBoard::isDriveEnabled(unsigned idrive)
 {
-    return m_sys.gpioReadLevel(layout.igpioEnable(idrive))?false:true;
+    return gpio.ReadLevel(layout.igpioEnable(idrive))?false:true;
 }
 
 void MirrorControlBoard::enableDriveHiCurrent(bool enable)
 {
-    m_sys.gpioWriteLevel(layout.igpioPwrIncBar, enable?0:1);
+    gpio.WriteLevel(layout.igpioPwrIncBar, enable?0:1);
 }
 
 void MirrorControlBoard::disableDriveHiCurrent()
@@ -305,7 +306,7 @@ void MirrorControlBoard::disableDriveHiCurrent()
 
 bool MirrorControlBoard::isDriveHiCurrentEnabled()
 {
-    return m_sys.gpioReadLevel(layout.igpioPwrIncBar)?false:true;
+    return gpio.ReadLevel(layout.igpioPwrIncBar)?false:true;
 }
 
 //------------------------------------------------------------------------------
@@ -321,8 +322,8 @@ void MirrorControlBoard::initializeADC(unsigned iadc)
 
 void MirrorControlBoard::selectADC(unsigned iadc)
 {
-    m_sys.gpioWriteLevel(layout.igpioADCSel1, iadc==0?1:0);
-    m_sys.gpioWriteLevel(layout.igpioADCSel2, iadc==1?1:0);
+    gpio.WriteLevel(layout.igpioADCSel1, iadc==0?1:0);
+    gpio.WriteLevel(layout.igpioADCSel2, iadc==1?1:0);
 }
 
 uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned ndelayloop)

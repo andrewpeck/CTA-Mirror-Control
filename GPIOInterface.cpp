@@ -19,6 +19,7 @@
 //------------------------------------------------------------------------------
 // Constructor + Destructor
 //------------------------------------------------------------------------------
+
 GPIOInterface::GPIOInterface():
     m_mmap_fd(-1),
     m_gpio1_base(),
@@ -60,22 +61,22 @@ GPIOInterface::~GPIOInterface()
 // Public Members
 //------------------------------------------------------------------------------
 
-bool GPIOInterface::gpioReadLevel(const unsigned ipin)
+bool GPIOInterface::ReadLevel(const unsigned ipin)
 {
     bool level = *(ptrGPIOReadLevel(ipin)) & (0x1 << ipin);
-    printf("Read %i from pin %i",level,ipin);
+    //printf("Read %i from pin %i",level,ipin);
     return level;
 }
 
-void GPIOInterface::gpioWriteLevel(const unsigned ipin, bool level)
+void GPIOInterface::WriteLevel(const unsigned ipin, bool level)
 {
     if (level)
-        gpioSetLevel(ipin);
+        SetLevel(ipin);
     else
-        gpioClrLevel(ipin);
+        ClrLevel(ipin);
 }
 
-bool GPIOInterface::gpioGetDirection(const unsigned ipin)
+bool GPIOInterface::GetDirection(const unsigned ipin)
 {
     volatile uint32_t* reg = ptrGPIODirection(ipin);
     uint32_t val = *reg;
@@ -83,7 +84,7 @@ bool GPIOInterface::gpioGetDirection(const unsigned ipin)
     return dir;
 }
 
-void GPIOInterface::gpioSetDirection(const unsigned ipin, bool dir)
+void GPIOInterface::SetDirection(const unsigned ipin, bool dir)
 {
     volatile uint32_t* reg = ptrGPIODirection(ipin);
     uint32_t val = *reg;
@@ -95,12 +96,12 @@ void GPIOInterface::gpioSetDirection(const unsigned ipin, bool dir)
     //printf("\ngpioSetDirection :: Writing %04X", val);
 }
 
-void GPIOInterface::gpioConfigure(const unsigned ipin, bool dir)
+void GPIOInterface::Configure(const unsigned ipin, bool dir)
 {
-    gpioSetDirection(ipin, dir);
+    SetDirection(ipin, dir);
 }
 
-void GPIOInterface::gpioConfigureAll()
+void GPIOInterface::ConfigureAll()
 {
     FILE * configfile;
     configfile = fopen ("gpioconf","w");
@@ -111,12 +112,12 @@ void GPIOInterface::gpioConfigureAll()
         if (config==0)   // output
         {
             fprintf(configfile,"Configuring gpio %i as output\n", i);
-            gpioSetDirection(i, 0);
+            SetDirection(i, 0);
         }
         if (config==1)    // input
         {
             fprintf(configfile,"Configuring gpio %i as input\n", i);
-            gpioSetDirection(i, 1);
+            SetDirection(i, 1);
         }
     }
 }
@@ -140,13 +141,13 @@ volatile uint32_t* GPIOInterface::ptrGPIOReadLevel(const unsigned ipin)
     return phys2VirtGPIO32(physGPIOReadLevel(ipin),ipin);
 }
 
-void GPIOInterface::gpioSetLevel(const unsigned ipin)
+void GPIOInterface::SetLevel(const unsigned ipin)
 {
     // Write a One to the bit specified by ipin
     *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | 0x1 << ipin;
 }
 
-void GPIOInterface::gpioClrLevel(const unsigned ipin)
+void GPIOInterface::ClrLevel(const unsigned ipin)
 {
     // Write a zero to the bit specified by ipin
     *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~(0x1 << ipin);

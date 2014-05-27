@@ -37,9 +37,9 @@ int main(int argc, const char** argv)
             cbc.usage();
 
         if (strcmp(*argv,"up")==0)
-            mcb.powerUpAll(); 
+            mcb.powerUpAll();
         else if (strcmp(*argv,"down")==0)
-            mcb.powerDownAll(); 
+            mcb.powerDownAll();
     }
     else if (command == "power_down")
         mcb.powerDownAll();
@@ -433,7 +433,7 @@ int main(int argc, const char** argv)
 int cbc::initialize()
 {
     printf("Configuring GPIOs...\n");
-    sys.gpioConfigureAll();
+    gpio.ConfigureAll();
 
     printf("Powering Up Base...\n");
     mcb.powerUpBase();
@@ -541,29 +541,29 @@ void cbc::testusb()
     for (int i=0; i<1000000; i++)
     {
         if (i%2==0)
-            sys.gpioWriteLevel(layout.igpioUSBOff4,1);
+            gpio.WriteLevel(layout.igpioUSBOff4,1);
         if (i%2==1)
-            sys.gpioWriteLevel(layout.igpioUSBOff4,0);
+            gpio.WriteLevel(layout.igpioUSBOff4,0);
     }
 }
 
 void cbc::frequsb(unsigned frequency)
 {
     int period = (1000000000/(frequency));
-    struct timespec time, time2; 
-    time.tv_sec=0; 
-    time.tv_nsec= (period/2); 
+    struct timespec time, time2;
+    time.tv_sec=0;
+    time.tv_nsec= (period=period/2);
     //int period = (1000000/(frequency));
-    //period=period/2; 
+    //period=period/2;
 
     for (int i=0; i<1000000; i++)
     {
-        sys.gpioWriteLevel(layout.igpioUSBOff4,1);
-        nanosleep(&time,&time2); 
-        //usleep(period); 
-        sys.gpioWriteLevel(layout.igpioUSBOff4,0);
-        usleep(period); 
-        nanosleep(&time,&time2); 
+        gpio.WriteLevel(layout.igpioUSBOff4,1);
+        nanosleep(&time,&time2);
+        //usleep(period);
+        gpio.WriteLevel(layout.igpioUSBOff4,0);
+        //usleep(period);
+        nanosleep(&time,&time2);
     }
 }
 
@@ -677,7 +677,7 @@ void cbc::status()
     std::cout << "Drives:"
         << (mcb.isDriveControllersPoweredUp()?
                 (char*)"":(char*)" A3977-OFF")
-        << (sys.gpioReadLevel(layout.igpioReset)?
+        << (gpio.ReadLevel(layout.igpioReset)?
                 (char*)"":(char*)" RESET")
         << (mcb.isDriveSREnabled()?
                 (char*)" SR":(char*)"");
@@ -722,7 +722,7 @@ void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn,
 
     printf("ADC:        %i\n",          iadc+1);
     printf("Channels:   %i to %i\n",    zchan+1,nchan);
-    printf("Nburn:      %i\n",          nburn); 
+    printf("Nburn:      %i\n",          nburn);
     printf("NDelay:     %i\n",          ndelay);
     printf("FullVolt    %f\n\n",        volt_full);
 

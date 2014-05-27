@@ -49,7 +49,7 @@ public:
     int usage();
 
 private:
-    GPIOInterface sys;
+    GPIOInterface gpio;
     Layout layout;
     MirrorControlBoard mcb;
     TLC3548_ADC adc; 

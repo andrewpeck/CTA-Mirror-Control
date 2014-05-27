@@ -25,7 +25,7 @@ public:
     // sets microstep, enables drive SR (synchronous rectification), disables hi current, resets drive phase
     void initialize(const unsigned ssp_clk_div);
     // used to be useful. using spidev driver it is no longer needed. 
-    void initializeSPI();
+    // void initializeSPI();
 
     //------------------------------------------------------------------------------
     // Power Control Function Prototypes
@@ -128,7 +128,7 @@ public:
     void loopDelay(unsigned nloop);
 
 private:
-    GPIOInterface m_sys;
+    GPIOInterface gpio;
     Layout layout;
     SpiInterface spi;
     TLC3548_ADC ADC; 

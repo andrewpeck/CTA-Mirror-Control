@@ -1,7 +1,7 @@
 /*
- * Interface to access Overo EarthSTORM COM, Texas Instruments AM3703 CPU
- * Directly accesses CPU Physical Memory at /dev/mem by mapping into Virtual
- * address space.
+ * Interface to access GPIO Moduels of Overo EarthSTORM COM, Texas Instruments
+ * AM3703 CPU Directly accesses CPU Physical Memory at /dev/mem by mapping into
+ * virtual address space.
  */
 
 #ifndef GPIOINTERFACE_H
@@ -18,23 +18,23 @@ public:
     GPIOInterface();
     ~GPIOInterface();
 
-    // Read GPIO by ipin (0-192)
-    bool gpioReadLevel(const unsigned ipin);
+    // Read GPIO by ipin (0-191)
+    bool ReadLevel(const unsigned ipin);
 
-    // Write GPIO by ipin (0-192)
-    void gpioWriteLevel(const unsigned ipin, bool level);
+    // Write GPIO by ipin (0-191)
+    void WriteLevel(const unsigned ipin, bool level);
 
     // Get GPIO Direction In/Out
-    bool gpioGetDirection(const unsigned ipin);
+    bool GetDirection(const unsigned ipin);
 
-    // Set GPIO Direction In/Out
-    void gpioSetDirection(const unsigned ipin, bool dir);
+    // Set GPIO Direction In/Out (0-191)
+    void SetDirection(const unsigned ipin, bool dir);
 
-    // Configures a given GPIO pin for a direction (1=OUT,0=in) and function
-    void gpioConfigure(const unsigned ipin, bool dir);
+    // Configures a given GPIO pin for a direction (1=OUT,0=in) and function (0-191) 
+    void Configure(const unsigned ipin, bool dir);
 
-    //Configure Input/Output directions for GPIOs
-    void gpioConfigureAll();
+    // Configure Input/Output directions for ALL GPIOs
+    void ConfigureAll();
 
 private:
 
@@ -45,8 +45,8 @@ private:
     volatile uint32_t* ptrGPIODirection(const unsigned ipin);
     volatile uint32_t* ptrGPIOSetLevel(const unsigned ipin);
 
-    void gpioSetLevel(const unsigned ipin);
-    void gpioClrLevel(const unsigned ipin);
+    void SetLevel(const unsigned ipin);
+    void ClrLevel(const unsigned ipin);
 
     // --------------------------------------------------------------------------
     // GPIO register (PHYSICAL) Address Definitions

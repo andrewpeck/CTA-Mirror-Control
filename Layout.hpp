@@ -22,9 +22,9 @@ public:
     static unsigned igpioN_M_RESET     ;
     static unsigned igpioEN_IO         ;
 
-    static unsigned igpioPowerADC      ; //PowerADC
-    static unsigned igpioADCSel1       ; //ADCSel1
-    static unsigned igpioADCSel2       ; //ADCSel2
+    static unsigned igpioPowerADC      ; //PowerADC                 OUTPUT
+    static unsigned igpioADCSel1       ; //ADCSel1                  OUTPUT
+    static unsigned igpioADCSel2       ; //ADCSel2                  OUTPUT
 
     static unsigned igpioEncoderEnable ; //EncoderEnable
 
@@ -40,45 +40,46 @@ public:
     static unsigned igpioTP7           ;
 
     static unsigned igpioUSBReset      ; //USBReset
-    static unsigned igpioUSBOff1       ; //USB1EnableBar
-    static unsigned igpioUSBOff2       ; //USB2EnableBar
-    static unsigned igpioUSBOff3       ; //USB3EnableBar
-    static unsigned igpioUSBOff4       ; //USB4EnableBar
-    static unsigned igpioUSBOff5       ; //USB5EnableBar
-    static unsigned igpioUSBOff6       ; //USB6EnableBar
-    static unsigned igpioUSBOff7       ; //USB7EnableBar
+    static unsigned igpioUSBOff1       ; //USB1EnableBar            OUTPUT
+    static unsigned igpioUSBOff2       ; //USB2EnableBar            OUTPUT
+    static unsigned igpioUSBOff3       ; //USB3EnableBar            OUTPUT
+    static unsigned igpioUSBOff4       ; //USB4EnableBar            OUTPUT
+    static unsigned igpioUSBOff5       ; //USB5EnableBar            OUTPUT
+    static unsigned igpioUSBOff6       ; //USB6EnableBar            OUTPUT
+    static unsigned igpioUSBOff7       ; //USB7EnableBar            OUTPUT
 
-    static unsigned igpioMS1           ; //DRMS1
-    static unsigned igpioMS2           ; //DRMS2
-    static unsigned igpioPwrIncBar     ; //DRPowerIncreaseBar
-    static unsigned igpioSR            ; //DRSRBar
-    static unsigned igpioReset         ; //DRResetBar
-    static unsigned igpioSleep         ; //DRSleepBar
+    static unsigned igpioMS1           ; //DRMS1                    OUTPUT
+    static unsigned igpioMS2           ; //DRMS2                    OUTPUT
 
-    static unsigned igpioStep1         ; //DR1Step
-    static unsigned igpioStep2         ; //DR2Step
-    static unsigned igpioStep3         ; //DR3Step
-    static unsigned igpioStep4         ; //DR4Step
-    static unsigned igpioStep5         ; //DR5Step
-    static unsigned igpioStep6         ; //DR6Step
+    static unsigned igpioPwrIncBar     ; //DRPowerIncreaseBar       OUTPUT
+    static unsigned igpioSR            ; //DRSRBar                  OUTPUT
+    static unsigned igpioReset         ; //DRResetBar               OUTPUT
+    static unsigned igpioSleep         ; //DRSleepBar               OUTPUT
 
-    static unsigned igpioDir1          ; //DR1Dir
-    static unsigned igpioDir2          ; //DR2Dir
-    static unsigned igpioDir3          ; //DR3Dir
-    static unsigned igpioDir4          ; //DR4Dir
-    static unsigned igpioDir5          ; //DR5Dir
-    static unsigned igpioDir6          ; //DR6Dir
+    static unsigned igpioStep1         ; //DR1Step                  OUTPUT
+    static unsigned igpioStep2         ; //DR2Step                  OUTPUT
+    static unsigned igpioStep3         ; //DR3Step                  OUTPUT
+    static unsigned igpioStep4         ; //DR4Step                  OUTPUT
+    static unsigned igpioStep5         ; //DR5Step                  OUTPUT
+    static unsigned igpioStep6         ; //DR6Step                  OUTPUT
 
-    static unsigned igpioEnable1       ; //DR1EnableBar
-    static unsigned igpioEnable2       ; //DR2EnableBar
-    static unsigned igpioEnable3       ; //DR3EnableBar
-    static unsigned igpioEnable4       ; //DR4EnableBar
-    static unsigned igpioEnable5       ; //DR5EnableBar
-    static unsigned igpioEnable6       ; //DR6EnableBar
+    static unsigned igpioDir1          ; //DR1Dir                   OUTPUT
+    static unsigned igpioDir2          ; //DR2Dir                   OUTPUT
+    static unsigned igpioDir3          ; //DR3Dir                   OUTPUT
+    static unsigned igpioDir4          ; //DR4Dir                   OUTPUT
+    static unsigned igpioDir5          ; //DR5Dir                   OUTPUT
+    static unsigned igpioDir6          ; //DR6Dir                   OUTPUT
 
-    static unsigned igpioSPI_Tx        ; //SPI MOSI
-    static unsigned igpioSPI_Rx        ; //SPI MISO
-    static unsigned igpioSPI_Sclk      ; //SPI CLK
+    static unsigned igpioEnable1       ; //DR1EnableBar             OUTPUT
+    static unsigned igpioEnable2       ; //DR2EnableBar             OUTPUT
+    static unsigned igpioEnable3       ; //DR3EnableBar             OUTPUT
+    static unsigned igpioEnable4       ; //DR4EnableBar             OUTPUT
+    static unsigned igpioEnable5       ; //DR5EnableBar             OUTPUT
+    static unsigned igpioEnable6       ; //DR6EnableBar             OUTPUT
+
+    static unsigned igpioSPI_Tx        ; //SPI MOSI                 OUTPUT
+    static unsigned igpioSPI_Rx        ; //SPI MISO                 INPUT
+    static unsigned igpioSPI_Sclk      ; //SPI CLK                  OUTPUT
     static unsigned igpioSPI_SFRM_bar  ; 
 
     // Returns Motor Direction Control Pin GPIO Number for a given idrive
