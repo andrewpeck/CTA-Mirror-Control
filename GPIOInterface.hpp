@@ -10,12 +10,35 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <sys/mman.h>
+#include <Layout.hpp>
 
 class GPIOInterface
 {
 public:
     GPIOInterface();
     ~GPIOInterface();
+
+    // Read GPIO by ipin (0-192)
+    bool gpioReadLevel(const unsigned ipin);
+
+    // Write GPIO by ipin (0-192)
+    void gpioWriteLevel(const unsigned ipin, bool level);
+
+    // Get GPIO Direction In/Out
+    bool gpioGetDirection(const unsigned ipin);
+
+    // Set GPIO Direction In/Out
+    void gpioSetDirection(const unsigned ipin, bool dir);
+
+    // Configures a given GPIO pin for a direction (1=OUT,0=in) and function
+    void gpioConfigure(const unsigned ipin, bool dir);
+
+    //Configure Input/Output directions for GPIOs
+    void gpioConfigureAll();
+
+private:
+
+    static const int nGPIO = 192;
 
     // Functions to return pointers to mapped GPIO registers
     volatile uint32_t* ptrGPIOReadLevel(const unsigned ipin);
@@ -24,8 +47,6 @@ public:
 
     void gpioSetLevel(const unsigned ipin);
     void gpioClrLevel(const unsigned ipin);
-
-private:
 
     // --------------------------------------------------------------------------
     // GPIO register (PHYSICAL) Address Definitions
@@ -80,5 +101,8 @@ private:
     volatile void*  m_gpio4_base;
     volatile void*  m_gpio5_base;
     volatile void*  m_gpio6_base;
+
+    Layout layout; 
+
 };
 #endif

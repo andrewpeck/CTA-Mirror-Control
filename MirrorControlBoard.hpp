@@ -7,9 +7,9 @@
 #define MIRRORCONTROLBOARD_HPP
 
 #include <Layout.hpp>
-#include <Overo.hpp>
 #include <SpiInterface.hpp>
 #include <TLC3548_ADC.hpp>
+#include <GPIOInterface.hpp>
 #include <vector>
 
 class MirrorControlBoard
@@ -128,7 +128,7 @@ public:
     void loopDelay(unsigned nloop);
 
 private:
-    Overo m_sys;
+    GPIOInterface m_sys;
     Layout layout;
     SpiInterface spi;
     TLC3548_ADC ADC; 

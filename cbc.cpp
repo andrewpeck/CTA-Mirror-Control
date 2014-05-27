@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <cbc.hpp>
+#include <stdio.h>
 #define NCHANMAX 11
 
 int main(int argc, const char** argv)

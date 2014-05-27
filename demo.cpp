@@ -1,6 +1,6 @@
-////////////////////////////////////////////////////////////////////////////////
-// Hexapod motion demo
-////////////////////////////////////////////////////////////////////////////////
+/*
+ * Hexapod motion demo
+ */
 
 #include <iostream>
 #include <iomanip>
@@ -9,11 +9,11 @@
 #include <cassert>
 #include <cmath>
 
-#include <Overo.hpp>
+#include <GPIOInterface.hpp>
 #include <Layout.hpp>
 #include <TLC3548_ADC.hpp>
 
-/* by Jim Ulery */
+//fast integer square root by Jim Ulery
 static unsigned julery_isqrt(unsigned long val)
 {
     unsigned long temp, g=0, b = 0x8000, bshft = 15;
@@ -29,28 +29,24 @@ static unsigned julery_isqrt(unsigned long val)
     return g;
 }
 
-const char* usage_text = "where \"amplitude\" is the amplitude of the motion in steps (half the total\n\
-                          peak-to-peak motion), \"delay\" is the length of the delay loop and\n\
-                          \"period_factor\" is the period of the motion in units of amplitude*2*PI\n\
-                          (this factor must be greater than or equal to 1.0).\n";
+const char* usage_text = "\n    amplitude [delay=5000] [period_factor=1.0]\n"
+                         "\n    where \"amplitude\" is the amplitude of the motion in steps"
+                         "\n    (half the total peak-to-peak motion), \"delay\" is the length"
+                         "\n    of the delay loop and \"period_factor\" is the period of the"
+                         "\n    motion in units of amplitude*2*PI (this factor must be"
+                         "\n    greater than or equal to 1.0).";
 
 void usage(const char* program, std::ostream& stream, int status = EXIT_FAILURE)
 {
-    stream << "Usage: "
-           << program << " amplitude [delay=5000] [period_factor=1.0]\n\n"
-           << usage_text;
+    stream << "Usage: " << program << usage_text;
     exit(status);
 }
 
-//#if defined(__arm__)
-//typedef Overo<> Sys;
-//#else
-//typedef Overo<SimulatedRegisters> Sys;
-//#endif
-
-
 int main(int argc, char** argv)
 {
+    GPIOInterface sys;
+    Layout layout;
+
     char* program = *argv;
     argv++, argc--;
 
@@ -72,7 +68,8 @@ int main(int argc, char** argv)
         argv++, argc--;
     }
 
-    if(pfactor<1.0)pfactor=1.0;
+    if(pfactor<1.0)
+        pfactor=1.0;
 
     unsigned nperiod = lroundf(pfactor*float(iamp)*M_PI*2.0);
 
@@ -109,9 +106,6 @@ int main(int argc, char** argv)
     int64_t ix1a = -iamp;
     int64_t ix2a = -iamp;
     int64_t ix3a = -iamp;
-
-    Overo sys;
-    Layout layout;
 
     while(1)
     {

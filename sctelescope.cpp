@@ -140,12 +140,9 @@ int main(int argc, char** argv)
     std::cout << std::dec;
     unsigned npin = sys.nGPIO();
     for(unsigned ipin=0; ipin<npin; ipin++)
-        if(sys.hasGPIOPin(ipin))
-        {
-            std::cout << ipin << ' ' << int(sys.gpioGetDirection(ipin)) << ' '
-                      //<< int(sys.gpioGetAltFunc(ipin)) << ' '
-                      << int(sys.gpioReadLevel(ipin)) << '\n';
-        }
+        std::cout << ipin << ' ' << int(sys.gpioGetDirection(ipin)) << ' '
+                    //<< int(sys.gpioGetAltFunc(ipin)) << ' '
+                    << int(sys.gpioReadLevel(ipin)) << '\n';
 
 //#if 0
 //    sys.sspConfigure(TESTSSP,1,32,sys.SSP_FF_SPI,

@@ -7,7 +7,8 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <sys/mman.h>
-
+#include <cstdio>
+#include <stdio.h>
 #include <GPIOInterface.hpp>
 
 #define MMAPFAIL ((void*)-1)
@@ -15,6 +16,9 @@
 #define MUNMAP(VIRT) \
     munmap(const_cast<void*>(VIRT), 4096)
 
+//------------------------------------------------------------------------------
+// Constructor + Destructor
+//------------------------------------------------------------------------------
 GPIOInterface::GPIOInterface():
     m_mmap_fd(-1),
     m_gpio1_base(),
@@ -51,6 +55,75 @@ GPIOInterface::~GPIOInterface()
     MUNMAP(m_gpio5_base);
     MUNMAP(m_gpio6_base);
 }
+
+//------------------------------------------------------------------------------
+// Public Members
+//------------------------------------------------------------------------------
+
+bool GPIOInterface::gpioReadLevel(const unsigned ipin)
+{
+    bool level = *(ptrGPIOReadLevel(ipin)) & (0x1 << ipin);
+    printf("Read %i from pin %i",level,ipin);
+    return level;
+}
+
+void GPIOInterface::gpioWriteLevel(const unsigned ipin, bool level)
+{
+    if (level)
+        gpioSetLevel(ipin);
+    else
+        gpioClrLevel(ipin);
+}
+
+bool GPIOInterface::gpioGetDirection(const unsigned ipin)
+{
+    volatile uint32_t* reg = ptrGPIODirection(ipin);
+    uint32_t val = *reg;
+    bool dir = !!(val & (0x1<<ipin));
+    return dir;
+}
+
+void GPIOInterface::gpioSetDirection(const unsigned ipin, bool dir)
+{
+    volatile uint32_t* reg = ptrGPIODirection(ipin);
+    uint32_t val = *reg;
+    if(dir==1)
+        val |= (0x1<<ipin);
+    else
+        val &= ~(0x1<<ipin);
+    *reg = val;
+    //printf("\ngpioSetDirection :: Writing %04X", val);
+}
+
+void GPIOInterface::gpioConfigure(const unsigned ipin, bool dir)
+{
+    gpioSetDirection(ipin, dir);
+}
+
+void GPIOInterface::gpioConfigureAll()
+{
+    FILE * configfile;
+    configfile = fopen ("gpioconf","w");
+
+    for (int i=0; i<192; i++)
+    {
+        int config = layout.gpioConfiguration(i);
+        if (config==0)   // output
+        {
+            fprintf(configfile,"Configuring gpio %i as output\n", i);
+            gpioSetDirection(i, 0);
+        }
+        if (config==1)    // input
+        {
+            fprintf(configfile,"Configuring gpio %i as input\n", i);
+            gpioSetDirection(i, 1);
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+// Private Members
+//------------------------------------------------------------------------------
 
 volatile uint32_t* GPIOInterface::ptrGPIODirection(const unsigned ipin)
 {
@@ -148,7 +221,6 @@ off_t GPIOInterface::physGPIOSetLevel(const unsigned ipin)
 
 volatile void* GPIOInterface::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length)
 {
-    // Create a virtual addressing space for a given physical address
     virtual_addr = mmap(0, length, PROT_READ|PROT_WRITE, MAP_SHARED, m_mmap_fd, physical_addr);
 
     // Error Handling

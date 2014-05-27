@@ -1,4 +1,6 @@
-// SpiInterface.hpp
+/*
+ * SpiInterface.hpp -
+ */
 
 #ifndef SPIINTERFACE_HPP
 #define SPIINTERFACE_HPP
@@ -9,9 +11,9 @@
 class SpiInterface
 {
 public:
-    SpiInterface();                     //Constructor
-    ~SpiInterface();                    //Destructor
-
+    //SpiInterface(const char *device, uint8_t mode, uint8_t bits, uint32_t speed, uint16_t delay);
+    SpiInterface();
+    ~SpiInterface();
 
     // Write a 32 bit integer to MOSI.
     // 32 bit MISO value is returned.
