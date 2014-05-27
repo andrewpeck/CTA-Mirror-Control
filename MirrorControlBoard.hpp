@@ -1,5 +1,7 @@
-//Class which implements useful mid-level functionality for the mirror
-//control board.
+/*
+ * Class which implements useful mid-level functionality for the mirror
+ * control board.
+ */
 
 #ifndef MIRRORCONTROLBOARD_HPP
 #define MIRRORCONTROLBOARD_HPP
@@ -10,130 +12,128 @@
 #include <TLC3548_ADC.hpp>
 #include <vector>
 
-//#if defined(__arm__)
-//typedef Overo<> Sys;
-//Overo Sys;
-//#else
-//typedef Overo<SimulatedRegisters> Sys;
-//#endif
-
-
 class MirrorControlBoard
 {
-    public:
-        MirrorControlBoard(bool no_initialize = true, unsigned nusb = 7);
-        ~MirrorControlBoard();
+public:
+    MirrorControlBoard(bool no_initialize = true, unsigned nusb = 7);
+    ~MirrorControlBoard();
 
-        enum UStep { USTEP_1, USTEP_2, USTEP_4, USTEP_8 };
-        enum Dir { DIR_EXTEND, DIR_RETRACT, DIR_NONE };
-        enum GPIODir { DIR_OUTPUT, DIR_INPUT};
+    enum UStep { USTEP_1, USTEP_2, USTEP_4, USTEP_8 };
+    enum Dir { DIR_EXTEND, DIR_RETRACT, DIR_NONE };
+    enum GPIODir { DIR_OUTPUT, DIR_INPUT};
 
-        void initialize(const unsigned ssp_clk_div);
-        void initializeSPI();
+    // sets microstep, enables drive SR (synchronous rectification), disables hi current, resets drive phase
+    void initialize(const unsigned ssp_clk_div);
+    // used to be useful. using spidev driver it is no longer needed. 
+    void initializeSPI();
 
-        ////////////////////////////////////////////////////////////////////////////////
-        // Power Control Function Prototypes
-        ////////////////////////////////////////////////////////////////////////////////
-        void powerDownAll();
-        void powerUpAll();
+    //------------------------------------------------------------------------------
+    // Power Control Function Prototypes
+    //------------------------------------------------------------------------------
+    void powerDownAll();
+    void powerUpAll();
 
-        void powerDownBase();
-        void powerUpBase();
+    void powerDownBase();
+    void powerUpBase();
 
-        void powerDownAllUSB();
-        void powerUpAllUSB();
-        void powerDownUSB(unsigned iusb);
-        void powerUpUSB(unsigned iusb);
-        bool isUSBPoweredUp(unsigned iusb);
+    // Set the USB power enable_bar bit
+    void powerDownUSB(unsigned iusb);
+    void powerDownAllUSB();
 
-        void powerDownDriveControllers();
-        void powerUpDriveControllers();
-        bool isDriveControllersPoweredUp();
+    // Clear the USB power enable_bar bit
+    void powerUpUSB(unsigned iusb);
+    void powerUpAllUSB();
 
-        void powerDownEncoders();
-        void powerUpEncoders();
-        bool isEncodersPoweredUp();
+    // Check the USB power enable_bar bit
+    bool isUSBPoweredUp(unsigned iusb);
 
-        void powerUpADCs();
-        void powerDownADCs();
-        bool isADCsPoweredUp();
+    void powerDownDriveControllers();
+    void powerUpDriveControllers();
+    bool isDriveControllersPoweredUp();
 
-        ////////////////////////////////////////////////////////////////////////////////
-        // Motor Driver Function Prototypes
-        ////////////////////////////////////////////////////////////////////////////////
-        void stepOneDrive(unsigned idrive, Dir dir, unsigned ndelayloop = 3000);
-        void stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir,
-                Dir dr4_dir, Dir dr5_dir, Dir dr6_dir,
-                unsigned ndelayloop = 3000);
-        void setPhaseZeroOnAllDrives();
+    void powerDownEncoders();
+    void powerUpEncoders();
+    bool isEncodersPoweredUp();
 
-        void enableDriveSR(bool enable = true);
-        void disableDriveSR()
-        {
-            enableDriveSR(false);
-        }
-        bool isDriveSREnabled();
+    void powerUpADCs();
+    void powerDownADCs();
+    bool isADCsPoweredUp();
 
-        void setUStep(UStep ustep);
-        UStep getUStep();
+    //------------------------------------------------------------------------------
+    // Motor Driver Function Prototypes
+    //------------------------------------------------------------------------------
 
-        void enableAllDrives(bool enable = true);
-        void disableAllDrives()
-        {
-            enableAllDrives(false);
-        }
+    // Steps motor a single step in a direction specified by dir, with some delay controlling the io speed
+    void stepOneDrive(unsigned idrive, Dir dir, unsigned ndelayloop = 3000);
 
-        void enableDrive(unsigned idrive, bool enable = true);
-        void disableDrive(unsigned idrive)
-        {
-            enableDrive(idrive, false);
-        }
-        bool isDriveEnabled(unsigned idrive);
+    // Simultaneously Steps all drives in a configurable direction..
+    void stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir,
+            Dir dr4_dir, Dir dr5_dir, Dir dr6_dir,
+            unsigned ndelayloop = 3000);
 
-        void enableDriveHiCurrent(bool enable = true);
-        void disableDriveHiCurrent()
-        {
-            enableDriveHiCurrent(false);
-        }
-        bool isDriveHiCurrentEnabled();
+    void setPhaseZeroOnAllDrives();
 
-        ////////////////////////////////////////////////////////////////////////////////
-        // ADC Function Prototypes
-        ////////////////////////////////////////////////////////////////////////////////
-        void initializeADC(unsigned iadc);
-        void selectADC(unsigned iadc);
-        uint32_t measureADC(unsigned iadc, unsigned ichan, unsigned ndelayloop = 100);
-        void measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop);
-        uint32_t measureADCWithBurn(unsigned iadc, unsigned ichan, unsigned ndelayloop = 100);
-        void measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop);
-        void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn = 0, unsigned ndelayloop = 100);
-        void measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas, unsigned ndelayloop = 100);
-        int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0)
-        {
-            int meas = int(measureADCWithBurn(7, ichan));
-            int calib_range = calib_lo - calib_hi;
-            meas -= calib_hi;
-            meas *= ticks_per_rev;
-            meas /= calib_range;
-            if (correction && meas>=0 && meas<int(ticks_per_rev))
-                meas+=correction[meas];
-            return meas;
-        }
+    void enableDriveSR(bool enable = true);
+    void disableDriveSR(); 
+    bool isDriveSREnabled();
 
-        // --------------------------------------------------------------------------
-        // Utility functions
-        // --------------------------------------------------------------------------
+    void setUStep(UStep ustep);
+    UStep getUStep();
 
-        void loopDelay(unsigned nloop);
-        void usecDelay(unsigned nusec);
+    // Enable or Disable Stepper Motors
+    void enableDrive(unsigned idrive, bool enable = true);
+    void enableAllDrives(bool enable = true);
+    void disableDrive(unsigned idrive); 
+    void disableAllDrives(); 
 
-    private:
-        Overo m_sys;
-        Layout layout;
-        SpiInterface spi;
-        TLC3548_ADC ADC; 
-        unsigned          m_nusb;
-        unsigned          m_ssp_clk_div;
+    // Check Stepper Motor Enabled
+    bool isDriveEnabled(unsigned idrive);
+
+    void enableDriveHiCurrent(bool enable = true);
+    void disableDriveHiCurrent(); 
+    bool isDriveHiCurrentEnabled();
+
+    //------------------------------------------------------------------------------
+    // ADC Function Prototypes
+    //------------------------------------------------------------------------------
+
+    // Asserts Correct ADC Chip Select Line
+    void selectADC(unsigned iadc);
+
+    // Writes initialization codes to ADC
+    void initializeADC(unsigned iadc);
+
+    // Measures ADC and returns result as value
+    uint32_t measureADC(unsigned iadc, unsigned ichan, unsigned ndelayloop = 100);
+    // Measures ADC for some number of loops and fills the results into a vector
+    void measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas, unsigned ndelayloop = 100);
+    // Measures ADC over several \Channels and Fulls data into an array (data)
+    void measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop);
+
+    // Measures by having the ADC sample a few times before reading out from the FIFO (don't know the purpose)
+    uint32_t measureADCWithBurn(unsigned iadc, unsigned ichan, unsigned ndelayloop = 100);
+    // Loop over ADC Channels taking measurements and filling data array. Also has the ADC sample a few times before reading data
+    void measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop);
+
+    // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics.. 
+    void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn = 0, unsigned ndelayloop = 100);
+
+    // Measure encoder position
+    int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0); 
+
+    // --------------------------------------------------------------------------
+    // Utility functions
+    // --------------------------------------------------------------------------
+
+    void loopDelay(unsigned nloop);
+
+private:
+    Overo m_sys;
+    Layout layout;
+    SpiInterface spi;
+    TLC3548_ADC ADC; 
+    unsigned          m_nusb;
+    unsigned          m_ssp_clk_div;
 };
 
 #endif // defined MIRRORCONTROLBOARD_HPP

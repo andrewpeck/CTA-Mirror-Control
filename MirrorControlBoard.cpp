@@ -1,7 +1,7 @@
-////////////////////////////////////////////////////////////////////////////////
-// MirrorControlBoard.cpp - Class which implements useful mid-level
-//                          functionality for the mirror control board.
-////////////////////////////////////////////////////////////////////////////////
+/*  
+ *  MirrorControlBoard.cpp - Class which implements useful mid-level
+ *  functionality for the mirror control board.
+ */
 
 #include <cassert>
 #include <MirrorControlBoard.hpp>
@@ -106,13 +106,11 @@ void MirrorControlBoard::powerUpAllUSB()
     }
 }
 
-// Set the USB power enable_bar bit
 void MirrorControlBoard::powerDownUSB(unsigned iusb)
 {
     m_sys.gpioWriteLevel(layout.igpioUSBOff(iusb),1);
 }
 
-// Clear the USB power enable_bar bit
 void MirrorControlBoard::powerUpUSB(unsigned iusb)
 {
     m_sys.gpioWriteLevel(layout.igpioUSBOff(iusb),0);
@@ -168,13 +166,15 @@ bool MirrorControlBoard::isADCsPoweredUp()
     return m_sys.gpioReadLevel(layout.igpioPowerADC)?false:true;
 }
 
-// ----------------------------------------------------------------------------
-// Drives
-// ----------------------------------------------------------------------------
-
 void MirrorControlBoard::enableDriveSR(bool enable)
 {
     m_sys.gpioWriteLevel(layout.igpioSR, enable?0:1);
+}
+
+
+void MirrorControlBoard::disableDriveSR()
+{
+    enableDriveSR(false);
 }
 
 bool MirrorControlBoard::isDriveSREnabled()
@@ -187,18 +187,18 @@ void MirrorControlBoard::setUStep(UStep ustep)
     unsigned mslog2 = 0;
     switch(ustep)
     {
-    case USTEP_1:
-        mslog2 = 0x0;
-        break;
-    case USTEP_2:
-        mslog2 = 0x1;
-        break;
-    case USTEP_4:
-        mslog2 = 0x2;
-        break;
-    case USTEP_8:
-        mslog2 = 0x3;
-        break;
+        case USTEP_1:
+            mslog2 = 0x0;
+            break;
+        case USTEP_2:
+            mslog2 = 0x1;
+            break;
+        case USTEP_4:
+            mslog2 = 0x2;
+            break;
+        case USTEP_8:
+            mslog2 = 0x3;
+            break;
     }
     m_sys.gpioWriteLevel(layout.igpioMS1, mslog2 & 0x1);
     m_sys.gpioWriteLevel(layout.igpioMS2, mslog2 & 0x2);
@@ -212,7 +212,6 @@ MirrorControlBoard::UStep MirrorControlBoard::getUStep()
         return m_sys.gpioReadLevel(layout.igpioMS1)?USTEP_2:USTEP_1;
 }
 
-// Steps motor a single step in a direction specified by dir, with some delay controlling the io speed
 void MirrorControlBoard:: stepOneDrive(unsigned idrive, Dir dir, unsigned ndelayloop)
 {
     // Write Direction to the DIR pin
@@ -229,8 +228,6 @@ void MirrorControlBoard:: stepOneDrive(unsigned idrive, Dir dir, unsigned ndelay
     m_sys.gpioWriteLevel(igpio,0);
 }
 
-
-// Steps all drives in a configurable direction... should be replaced with a loop over stepOneDrive
 void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Dir dr4_dir, Dir dr5_dir, Dir dr6_dir, unsigned ndelayloop)
 {
     m_sys.gpioWriteLevel(layout.igpioDir1,(dr1_dir==DIR_RETRACT)?1:0);
@@ -264,6 +261,11 @@ void MirrorControlBoard::setPhaseZeroOnAllDrives()
     m_sys.gpioWriteLevel(layout.igpioReset,1);
 }
 
+void MirrorControlBoard::enableDrive(unsigned idrive, bool enable)
+{
+    m_sys.gpioWriteLevel(layout.igpioEnable(idrive), enable?0:1);
+}
+
 void MirrorControlBoard::enableAllDrives(bool enable)
 {
     bool ienable = enable?0:1;
@@ -275,10 +277,14 @@ void MirrorControlBoard::enableAllDrives(bool enable)
     m_sys.gpioWriteLevel(layout.igpioEnable6, ienable);
 }
 
-// Enable/Disable Stepper Motors
-void MirrorControlBoard::enableDrive(unsigned idrive, bool enable)
+void MirrorControlBoard::disableDrive(unsigned idrive)
 {
-    m_sys.gpioWriteLevel(layout.igpioEnable(idrive), enable?0:1);
+    enableDrive(idrive, false);
+}
+
+void MirrorControlBoard::disableAllDrives()
+{
+    enableAllDrives(false);
 }
 
 bool MirrorControlBoard::isDriveEnabled(unsigned idrive)
@@ -290,6 +296,12 @@ void MirrorControlBoard::enableDriveHiCurrent(bool enable)
 {
     m_sys.gpioWriteLevel(layout.igpioPwrIncBar, enable?0:1);
 }
+
+void MirrorControlBoard::disableDriveHiCurrent()
+{
+    enableDriveHiCurrent(false);
+}
+
 
 bool MirrorControlBoard::isDriveHiCurrentEnabled()
 {
@@ -331,6 +343,35 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned 
     return ADC.decodeUSB(datum);
 }
 
+void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas, unsigned ndelayloop)
+{
+    selectADC(iadc);
+    uint32_t code = ADC.codeSelect(ichan);
+    unsigned nloop = nmeas;
+    vMeas.resize(nmeas);
+
+    // Loop over number of measurements
+    for(unsigned iloop=0; iloop <= nloop; iloop++)
+    {
+        uint32_t datum;
+        // last loop
+        if (iloop == nloop)
+            datum = spi.WriteRead(ADC.codeReadFIFO());
+        // not the last loop
+        else
+            datum = spi.WriteRead(code);
+
+        if (iloop == 0)
+            continue;
+
+        // decode data and fill array
+        datum = ADC.decodeUSB(datum);
+        vMeas[iloop - 1] = datum;
+
+        loopDelay(ndelayloop);
+    }
+}
+
 void MirrorControlBoard::measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop)
 {
     // adc chip select
@@ -350,46 +391,76 @@ void MirrorControlBoard::measureManyADC(uint32_t* data, unsigned iadc, unsigned 
         loopDelay(ndelayloop);
     }
 
+    // Read data from FIFO
     datum = spi.WriteRead(ADC.codeReadFIFO());
+
+    // Decode data and fill array
     if(nchan>0)
         data[nchan-1] = ADC.decodeUSB(datum);
 }
 
 uint32_t MirrorControlBoard::measureADCWithBurn(unsigned iadc, unsigned ichan, unsigned ndelayloop)
 {
+    // ADC Chip Select
     selectADC(iadc);
+
+    // Select ADC Channel
     uint32_t code = ADC.codeSelect(ichan);
+
+    // Read
     spi.WriteRead(code);
+
+    // Some delay
     loopDelay(ndelayloop);
+
+    // Read
     spi.WriteRead(code);
+
+    // Some delay
     loopDelay(ndelayloop);
+
+    // save last data
     uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
 
+    // return decoded data
     return ADC.decodeUSB(datum);
 }
 
 void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop)
 {
+    // ADC Chip Select
     selectADC(iadc);
+    // Loop Over the Number of ADC channels
     for(unsigned ichan=0; ichan<nchan; ichan++)
     {
         uint32_t code = ADC.codeSelect(zchan+ichan);
+        // Read ADC Channel
         uint32_t datum = spi.WriteRead(code);
+
+
+        // Decode data and fill array
         if(ichan>0)
             data[ichan-1] = ADC.decodeUSB(datum);
 
+        // some delay
         loopDelay(ndelayloop);
+
+        // Read ADC Channel again (discarding results)
         spi.WriteRead(code);
+
+        // Some Delay
         loopDelay(ndelayloop);
     }
 
+    // Read last data 
     uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
 
+    // Decode data and fill array
     if(nchan>0)
         data[nchan-1] = ADC.decodeUSB(datum);
 }
 
-void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn, unsigned ndelayloop)
+void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn, unsigned ndelayloop)
 {
     selectADC(iadc);
     uint32_t code = ADC.codeSelect(ichan);
@@ -398,22 +469,36 @@ void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned
     sumsq = 0;
     max = 0;
     min = ~max;
+    // Loop over number of measurements
     for(unsigned iloop=0; iloop<nloop; iloop++)
     {
+        // Read data
         uint32_t datum = spi.WriteRead(code);
         if (iloop>nburn)
         {
+            // Decode data
             datum = ADC.decodeUSB(datum);
+            // Typecast to 64 bit integer.. 
             uint64_t datum64 = datum;
+
+            // Accumulate statistics
             sum+=datum;
             sumsq+=datum64*datum64;
-            if(datum>max)max=datum;
-            if(datum<min)min=datum;
+            if(datum>max)
+                max=datum;
+            if(datum<min)
+                min=datum;
         }
+        // some delay
         loopDelay(ndelayloop);
     }
+
+    // Read last FIFO
     uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
+    //decode data
     datum = ADC.decodeUSB(datum);
+
+    //typecast and accumulate statistics
     uint64_t datum64 = datum;
     sum+=datum;
     sumsq+=datum64*datum64;
@@ -424,29 +509,17 @@ void MirrorControlBoard:: measureADCStat(unsigned iadc, unsigned ichan, unsigned
         min=datum;
 }
 
-void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas, unsigned ndelayloop)
+
+int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev, const int* correction)
 {
-    selectADC(iadc);
-    uint32_t code = ADC.codeSelect(ichan);
-    unsigned nloop = nmeas;
-    vMeas.resize(nmeas);
-
-    for(unsigned iloop=0; iloop <= nloop; iloop++)
-    {
-        uint32_t datum;
-        if(iloop == nloop)
-            datum = spi.WriteRead(ADC.codeReadFIFO());
-        else
-            datum = spi.WriteRead(code);
-
-        if(iloop == 0)
-            continue;
-
-        datum = ADC.decodeUSB(datum);
-        vMeas[iloop - 1] = datum;
-
-        loopDelay(ndelayloop);
-    }
+    int meas = int(measureADCWithBurn(7, ichan));
+    int calib_range = calib_lo - calib_hi;
+    meas -= calib_hi;
+    meas *= ticks_per_rev;
+    meas /= calib_range;
+    if (correction && meas>=0 && meas<int(ticks_per_rev))
+        meas+=correction[meas];
+    return meas;
 }
 
 //------------------------------------------------------------------------------
