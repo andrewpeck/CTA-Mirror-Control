@@ -28,7 +28,7 @@ int main(int argc, const char** argv)
     std::string command = *argv;
     argv++, argc--;
 
-    if (command ==  "init")
+    if ( (command ==  "init") | (command == "initialize") | (command=="config") )
         cbc.initialize();
     else if (command == "power")
     {
@@ -786,13 +786,17 @@ void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned n
 
     std::vector< std::vector<uint32_t> > vecChanMeas(NCHANMAX);
 
+    // Fill vector with adc measurments for all specified channels
     for(unsigned ichan=zchan; ichan<nchan; ichan++)
         mcb.measureADC(iadc, ichan, nmeas, vecChanMeas[ichan], ndelay);
 
+    // Loop over the number of measurements requested
     for(unsigned i = 0; i < nmeas; ++i)
     {
+        // Loop over the number of channels
         for(unsigned ichan=zchan; ichan<nchan; ichan++)
         {
+            // Print voltage
             printf("%06.04f ", adc.voltData(vecChanMeas[ichan][i]));
         }
         printf("\n");
@@ -928,7 +932,7 @@ std::string cbc::usage_text =
 "\n    power_down_a3977       Power down A3977 motor controllers."
 "\n    power_up_a3977         Power up A3977 motor controllers."
 "\n    "
-"\n    reset                  Send reset command to drive electronics."
+"\n    reset                  Resets phase to zero on all drives."
 "\n    "
 "\n    enable_sr              Enable Synchronous Rectification (SR) mode."
 "\n    disable_sr             Disable Synchronous Rectification (SR) mode."
