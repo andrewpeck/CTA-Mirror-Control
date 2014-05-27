@@ -43,6 +43,7 @@ GPIOInterface::GPIOInterface():
 
 GPIOInterface::~GPIOInterface()
 {
+    // Unmap everything 
     MUNMAP(m_gpio1_base);
     MUNMAP(m_gpio2_base);
     MUNMAP(m_gpio3_base);
@@ -68,11 +69,13 @@ volatile uint32_t* GPIOInterface::ptrGPIOReadLevel(const unsigned ipin)
 
 void GPIOInterface::gpioSetLevel(const unsigned ipin)
 {
+    // Write a One to the bit specified by ipin
     *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | 0x1 << ipin;
 }
 
 void GPIOInterface::gpioClrLevel(const unsigned ipin)
 {
+    // Write a zero to the bit specified by ipin
     *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~(0x1 << ipin);
 }
 
@@ -99,7 +102,10 @@ volatile uint32_t* GPIOInterface::phys2Virt32(off_t phys, volatile void* map_bas
     static off_t map_offset;
     static volatile uint32_t* adr_virtual;
 
+    // map offset is the difference between the physical address and the physical base address
     map_offset = phys - map_base_phys;
+
+    // virtual address the base of the virtual address + the map_offset with some fancy typecasting done for poor reasons
     adr_virtual = reinterpret_cast<volatile uint32_t*>(static_cast<volatile uint8_t*>(map_base_virt) + map_offset);
 
     return adr_virtual;
@@ -142,7 +148,10 @@ off_t GPIOInterface::physGPIOSetLevel(const unsigned ipin)
 
 volatile void* GPIOInterface::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length)
 {
+    // Create a virtual addressing space for a given physical address
     virtual_addr = mmap(0, length, PROT_READ|PROT_WRITE, MAP_SHARED, m_mmap_fd, physical_addr);
+
+    // Error Handling
     if (&virtual_addr==MMAPFAIL)
         exit(EXIT_FAILURE);
     else

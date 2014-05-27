@@ -15,7 +15,7 @@ public:
     Layout();
     ~Layout();
 
-    //Configure GPIO Input/Output Direction
+    // Returns GPIO Input/Output Direction for given GPIO
     static int gpioConfiguration(unsigned ipin);
 
     // Returns LAYOUT independent GPIO number 0-192 for Each Signal
@@ -76,10 +76,10 @@ public:
     static unsigned igpioEnable5       ; //DR5EnableBar
     static unsigned igpioEnable6       ; //DR6EnableBar
 
-    static unsigned igpioSPI_Tx        ;
-    static unsigned igpioSPI_Rx        ;
-    static unsigned igpioSPI_Sclk      ;
-    static unsigned igpioSPI_SFRM_bar  ;
+    static unsigned igpioSPI_Tx        ; //SPI MOSI
+    static unsigned igpioSPI_Rx        ; //SPI MISO
+    static unsigned igpioSPI_Sclk      ; //SPI CLK
+    static unsigned igpioSPI_SFRM_bar  ; 
 
     // Returns Motor Direction Control Pin GPIO Number for a given idrive
     static unsigned igpioDir(const unsigned idrive);
@@ -94,7 +94,6 @@ public:
     static unsigned igpioUSBOff(const unsigned iusb);
 
 private:
-
     //Maps Overo output pins (J1 1-70, J 71-140) to GPIO Pins
     //-1 is returned for a pin140 that is not a GPIO
     static int pin140ToGPIO(unsigned ipin140);

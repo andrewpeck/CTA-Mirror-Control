@@ -26,6 +26,7 @@ public:
     void gpioClrLevel(const unsigned ipin);
 
 private:
+
     // --------------------------------------------------------------------------
     // GPIO register (PHYSICAL) Address Definitions
     // --------------------------------------------------------------------------
@@ -66,9 +67,13 @@ private:
     // Returns physical address of Output Write Register for a given GPIO pin
     off_t physGPIOSetLevel(const unsigned ipin);
 
-    // Base addresses of memory mapped address space
+    // Create a virtual addressing space for a given physical address
     volatile void*  makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length=4096);
+
+    // Memory mapped file descriptor
     int             m_mmap_fd;
+
+    // Base addresses of memory mapped address space
     volatile void*  m_gpio1_base;
     volatile void*  m_gpio2_base;
     volatile void*  m_gpio3_base;
