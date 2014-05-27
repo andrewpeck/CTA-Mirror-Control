@@ -45,23 +45,10 @@ private:
     static const off_t gpio_offset_setdataout    = 0x094;
 
     // --------------------------------------------------------------------------
-    // GPIO Register Mapped Address Definitions
-    // --------------------------------------------------------------------------
-
-    static const off_t mapSize       = 4096;
-    static const off_t mapMask       = ~(mapSize-1);
-
-    static const off_t mapBaseGPIO1 = physBaseGPIO1 & mapMask;
-    static const off_t mapBaseGPIO2 = physBaseGPIO2 & mapMask;
-    static const off_t mapBaseGPIO3 = physBaseGPIO3 & mapMask;
-    static const off_t mapBaseGPIO4 = physBaseGPIO4 & mapMask;
-    static const off_t mapBaseGPIO5 = physBaseGPIO5 & mapMask;
-    static const off_t mapBaseGPIO6 = physBaseGPIO6 & mapMask;
-
-    // --------------------------------------------------------------------------
     // Functions to Return Addresses for GPIO pins
     // --------------------------------------------------------------------------
 
+    // Adds register offset to correct base address to produce physical address
     off_t offset2adrGPIO(unsigned ipin, off_t offset);
 
     // Returns Virtual (memory mapped) address for a given GPIO pin
@@ -78,7 +65,6 @@ private:
 
     // Returns physical address of Output Write Register for a given GPIO pin
     off_t physGPIOSetLevel(const unsigned ipin);
-
 
     // Base addresses of memory mapped address space
     volatile void*  makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length=mapSize);

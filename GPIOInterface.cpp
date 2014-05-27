@@ -32,13 +32,13 @@ GPIOInterface::GPIOInterface():
         exit(EXIT_FAILURE);
     }
 
-    //      virtual adr    physical adr
-    makeMap(m_gpio1_base, mapBaseGPIO1);
-    makeMap(m_gpio2_base, mapBaseGPIO2);
-    makeMap(m_gpio3_base, mapBaseGPIO3);
-    makeMap(m_gpio4_base, mapBaseGPIO4);
-    makeMap(m_gpio5_base, mapBaseGPIO5);
-    makeMap(m_gpio6_base, mapBaseGPIO6);
+    //      virtual adr   physical adr
+    makeMap(m_gpio1_base, physBaseGPIO1);
+    makeMap(m_gpio2_base, physBaseGPIO2);
+    makeMap(m_gpio3_base, physBaseGPIO3);
+    makeMap(m_gpio4_base, physBaseGPIO4);
+    makeMap(m_gpio5_base, physBaseGPIO5);
+    makeMap(m_gpio6_base, physBaseGPIO6);
 }
 
 GPIOInterface::~GPIOInterface()
@@ -79,17 +79,17 @@ void GPIOInterface::gpioClrLevel(const unsigned ipin)
 volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t phys, const unsigned ipin)
 {
     if (ipin<32)
-        return phys2Virt32(phys,m_gpio1_base,mapBaseGPIO1);
+        return phys2Virt32(phys,m_gpio1_base,physBaseGPIO1);
     else if (ipin<64)
-        return phys2Virt32(phys,m_gpio2_base,mapBaseGPIO2);
+        return phys2Virt32(phys,m_gpio2_base,physBaseGPIO2);
     else if (ipin<96)
-        return phys2Virt32(phys,m_gpio3_base,mapBaseGPIO3);
+        return phys2Virt32(phys,m_gpio3_base,physBaseGPIO3);
     else if (ipin<128)
-        return phys2Virt32(phys,m_gpio4_base,mapBaseGPIO4);
+        return phys2Virt32(phys,m_gpio4_base,physBaseGPIO4);
     else if (ipin<160)
-        return phys2Virt32(phys,m_gpio5_base,mapBaseGPIO5);
+        return phys2Virt32(phys,m_gpio5_base,physBaseGPIO5);
     else if (ipin<192)
-        return phys2Virt32(phys,m_gpio6_base,mapBaseGPIO6);
+        return phys2Virt32(phys,m_gpio6_base,physBaseGPIO6);
     else
         return 0;
 }
