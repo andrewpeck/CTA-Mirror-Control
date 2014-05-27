@@ -10,6 +10,7 @@
 #include <cstring>
 #include <vector>
 #include <unistd.h>
+#include <time.h>
 #include <cbc.hpp>
 #define NCHANMAX 11
 
@@ -29,6 +30,16 @@ int main(int argc, const char** argv)
 
     if (command ==  "init")
         cbc.initialize();
+    else if (command == "power")
+    {
+        if(argc==0)
+            cbc.usage();
+
+        if (strcmp(*argv,"up")==0)
+            mcb.powerUpAll(); 
+        else if (strcmp(*argv,"down")==0)
+            mcb.powerDownAll(); 
+    }
     else if (command == "power_down")
         mcb.powerDownAll();
     else if (command == "power_up")
@@ -85,7 +96,7 @@ int main(int argc, const char** argv)
 
         cbc.disable(idrive);
     }
-    else if (command == "enableusb")
+    else if ( (command == "enableusb") | (command == "enableUSB") )
     {
         if(argc==0)
             cbc.usage();
@@ -98,19 +109,27 @@ int main(int argc, const char** argv)
 
         cbc.enableusb(iusb);
     }
-    else if (command == "disableusb")
+    else if ((command == "disableusb") | (command == "disableUSB"))
     {
         if(argc==0)
             cbc.usage();
 
         unsigned iusb;
         if (strcmp(*argv,"all")==0)
-            iusb=0;
+            iusb=0; //iusb=0 for all channels
         else
             iusb = atoi(*argv);
 
         cbc.disableusb(iusb);
     }
+    //------------------------------------------------------------------------------
+    // Some option handlers for backwards compatibility
+    else if (command == "enable_all") { cbc.enable(0); }
+    else if (command == "disable_all") { cbc.disable(0); }
+    else if (command == "enableUSB_all") { cbc.disableusb(0); }
+    else if (command == "disableUSB_all") { cbc.disableusb(0); }
+    // end of legacy functions..
+    //------------------------------------------------------------------------------
     else if (command == "testusb")
         cbc.testusb();
 
@@ -529,14 +548,21 @@ void cbc::testusb()
 
 void cbc::frequsb(unsigned frequency)
 {
-    float period = (1000000/(frequency));
+    int period = (1000000000/(frequency));
+    struct timespec time, time2; 
+    time.tv_sec=0; 
+    time.tv_nsec= (period/2); 
+    //int period = (1000000/(frequency));
+    //period=period/2; 
 
     for (int i=0; i<1000000; i++)
     {
         sys.gpioWriteLevel(layout.igpioUSBOff4,1);
-        usleep(period/2);
+        nanosleep(&time,&time2); 
+        //usleep(period); 
         sys.gpioWriteLevel(layout.igpioUSBOff4,0);
-        usleep(period/2);
+        usleep(period); 
+        nanosleep(&time,&time2); 
     }
 }
 
@@ -891,9 +917,10 @@ std::string cbc::usage_text =
 "CBC Usage:"
 "\n    command                {required arguments} [optional arguments]\n"
 "\n    initialize             Initialize the hardware. Should be done once after boot-up."
+"\n                           Configures GPIOs, turns on all hardware except USBs."
 "\n    "
-"\n    power_down             Go into power saving mode. Power down encoders, USB and A3977."
-"\n    power_up               Power up all on-board and off-board electronics."
+"\n    power down             Go into power saving mode. Power down encoders, USB and A3977."
+"\n    power up               Power up all on-board and off-board electronics."
 "\n    "
 "\n    power_down_encoders    Power down encoders."
 "\n    power_up_encoders      Power up encoders."

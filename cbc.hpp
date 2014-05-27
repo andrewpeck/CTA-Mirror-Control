@@ -30,7 +30,6 @@ public:
     int usage();
 
 private:
-
     Overo sys;
     Layout layout;
     MirrorControlBoard mcb;
