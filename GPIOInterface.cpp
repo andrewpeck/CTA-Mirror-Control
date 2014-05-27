@@ -13,7 +13,7 @@
 #define MMAPFAIL ((void*)-1)
 
 #define MUNMAP(VIRT) \
-    munmap(const_cast<void*>(VIRT), mapSize)
+    munmap(const_cast<void*>(VIRT), 4096)
 
 GPIOInterface::GPIOInterface():
     m_mmap_fd(-1),
