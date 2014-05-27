@@ -13,6 +13,7 @@
 #include <time.h>
 #include <cbc.hpp>
 #include <stdio.h>
+#include <pthread.h>
 #define NCHANMAX 11
 
 int main(int argc, const char** argv)
@@ -134,12 +135,26 @@ int main(int argc, const char** argv)
     else if (command == "testusb")
         cbc.testusb();
 
-    else if (command == "frequsb")
+    else if (command == "freqloop")
     {
         if (argc==0)
             cbc.usage();
         unsigned frequency = atoi(*argv);
-        cbc.frequsb(frequency);
+        cbc.freqloop(frequency);
+    }
+    else if (command == "frequ")
+    {
+        if (argc==0)
+            cbc.usage();
+        unsigned frequency = atoi(*argv);
+        cbc.frequ(frequency);
+    }
+    else if (command == "freqn")
+    {
+        if (argc==0)
+            cbc.usage();
+        unsigned frequency = atoi(*argv);
+        cbc.freqn(frequency);
     }
     else if (command == "step")
     {
@@ -155,13 +170,13 @@ int main(int argc, const char** argv)
         argc--, argv++;
 
         // delay
-        unsigned ndelay = 5000;
+        unsigned frequency = 400;
         if(argc)
         {
-            ndelay = atoi(*argv);
+            frequency = atoi(*argv);
             argc--, argv++;
         }
-        cbc.step(idrive, nstep, ndelay);
+        cbc.step(idrive, nstep, frequency);
     }
     else if (command == "slew")
     {
@@ -190,17 +205,14 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        // default delay = 5000 steps
-        unsigned ndelay = 5000;
-
-        // take optional argument for delay
+        unsigned frequency = 400; // Hz
         if(argc)
         {
-            ndelay = atoi(*argv);
+            frequency = atoi(*argv);
             argc--, argv++;
         }
 
-        cbc.slew(idrive, dir, ndelay);
+        cbc.slew(idrive, dir, frequency);
     }
     else if (command == "step_all")
     {
@@ -225,15 +237,13 @@ int main(int argc, const char** argv)
         if(argc)
             nstep6 = atoi(*argv), argc--, argv++;
 
-        // default delay = 5000
-        unsigned ndelay = 5000;
-        // otherwise choose a delay via argument
+        unsigned frequency = 400; // Hz
         if(argc)
         {
-            ndelay = atoi(*argv);
+            frequency = atoi(*argv);
             argc--, argv++;
         }
-        cbc.step_all(nstep1, nstep2, nstep3, nstep4, nstep5, nstep6, ndelay);
+        cbc.step_all(nstep1, nstep2, nstep3, nstep4, nstep5, nstep6, frequency);
     }
     else if (command == "slew_all")
     {
@@ -255,14 +265,14 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        unsigned ndelay = 5000;
+        unsigned frequency = 400;
         if(argc)
         {
-            ndelay = atoi(*argv);
+            frequency = atoi(*argv);
             argc--, argv++;
         }
 
-        cbc.slew_all(dir, ndelay);
+        cbc.slew_all(dir, frequency);
     }
     else if (command == "status")
         cbc.status();
@@ -381,9 +391,8 @@ int main(int argc, const char** argv)
         //if(ncycle <= 1)
         //    dir = ncycle, ncycle = 1;
 
-        // default delay = 10000
+        // delay 
         unsigned ndelay = 10000;
-        // otherwise... take argument
         if(argc)
         {
             ndelay = atoi(*argv);
@@ -547,27 +556,50 @@ void cbc::testusb()
     }
 }
 
-void cbc::frequsb(unsigned frequency)
+void cbc::frequ(unsigned frequency)
 {
-    int period = (1000000000/(frequency));
-    struct timespec time, time2;
-    time.tv_sec=0;
-    time.tv_nsec= (period=period/2);
-    //int period = (1000000/(frequency));
-    //period=period/2;
+    int period = (1000000/(frequency));
+    period=period/2;
 
-    for (int i=0; i<1000000; i++)
+    for (int i=0; i<1000; i++)
     {
         gpio.WriteLevel(layout.igpioUSBOff4,1);
-        nanosleep(&time,&time2);
-        //usleep(period);
+        usleep(period);
         gpio.WriteLevel(layout.igpioUSBOff4,0);
-        //usleep(period);
-        nanosleep(&time,&time2);
+        usleep(period);
+    }
+}
+void cbc::freqn(unsigned frequency)
+{
+    // Increase Scheduleing Priority for this Loop
+    int policy;
+    struct sched_param param;
+    pthread_getschedparam(pthread_self(), &policy, &param);
+    param.sched_priority = sched_get_priority_max(policy);
+    policy = SCHED_FIFO; 
+    pthread_setschedparam(pthread_self(), policy, &param);
+
+    for (int i=0; i<1000; i++)
+    {
+        gpio.WriteLevel(layout.igpioUSBOff4,1);
+        mcb.waitHalfPeriod(frequency);
+        gpio.WriteLevel(layout.igpioUSBOff4,0);
+        mcb.waitHalfPeriod(frequency);
     }
 }
 
-void cbc::step(unsigned idrive, int nstep, unsigned ndelay)
+void cbc::freqloop(unsigned nloop)
+{
+    for (int i=0; i<1000; i++)
+    {
+        gpio.WriteLevel(layout.igpioUSBOff4,1);
+        for(volatile unsigned iloop=0; iloop<nloop; iloop++);
+        gpio.WriteLevel(layout.igpioUSBOff4,0);
+        for(volatile unsigned iloop=0; iloop<nloop; iloop++);
+    }
+}
+
+void cbc::step(unsigned idrive, int nstep, unsigned frequency)
 {
     // whine if invalid actuator number
     if ((idrive<1)||(idrive>6))
@@ -585,12 +617,12 @@ void cbc::step(unsigned idrive, int nstep, unsigned ndelay)
     // loop over number of steps
     for (unsigned istep=0; istep<unsigned(nstep); istep++)
     {
-        mcb.stepOneDrive(idrive, dir, ndelay);
-        mcb.loopDelay(ndelay);
+        mcb.stepOneDrive(idrive, dir, frequency);
+        mcb.waitHalfPeriod(frequency);
     }
 }
 
-void cbc::slew(unsigned idrive, MirrorControlBoard::Dir dir, unsigned ndelay)
+void cbc::slew(unsigned idrive, MirrorControlBoard::Dir dir, unsigned frequency)
 {
     // whine if invalid drivenumber
     if ((idrive<1)||(idrive>6))
@@ -602,12 +634,12 @@ void cbc::slew(unsigned idrive, MirrorControlBoard::Dir dir, unsigned ndelay)
     // Loop forever while stepping the motor
     while(1)
     {
-        mcb.stepOneDrive(idrive, dir, ndelay);
-        mcb.loopDelay(ndelay);
+        mcb.stepOneDrive(idrive, dir, frequency);
+        mcb.waitHalfPeriod(frequency);
     }
 }
 
-void cbc::step_all(int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6, unsigned ndelay)
+void cbc::step_all(int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6, unsigned frequency)
 {
     // loop while theres still some stepping to do..
     while(nstep1!=0 || nstep2!=0 || nstep3!=0 || nstep4!=0 || nstep5!=0 || nstep6!=0)
@@ -657,18 +689,18 @@ void cbc::step_all(int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, i
             dir6 = MirrorControlBoard::DIR_RETRACT, nstep6++;
 
         // step all drives once in specified directions
-        mcb.stepAllDrives(dir1, dir2, dir3, dir4, dir5, dir6, ndelay);
+        mcb.stepAllDrives(dir1, dir2, dir3, dir4, dir5, dir6, frequency);
         // some delay
-        mcb.loopDelay(ndelay);
+        mcb.waitHalfPeriod(frequency);
     }
 }
 
-void cbc::slew_all(MirrorControlBoard::Dir dir, unsigned ndelay)
+void cbc::slew_all(MirrorControlBoard::Dir dir, unsigned frequency)
 {
     while(1)
     {
         mcb.stepAllDrives(dir, dir, dir, dir, dir, dir);
-        mcb.loopDelay(ndelay);
+        mcb.waitHalfPeriod(frequency);
     }
 }
 
@@ -852,7 +884,7 @@ void cbc::calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned n
             // Move motor one step
             mcb.stepOneDrive(idrive, dir);
             // Wait a moment
-            mcb.loopDelay(ndelay);
+            usleep(ndelay);
             // Measure on ADC
             mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn, ndelay_adc);
         } // close (for istep)
@@ -954,22 +986,21 @@ std::string cbc::usage_text =
 "\n    disableusb             {USB 1-7, or all"
 "\n                           Disable USB (USB)."
 "\n    "
-"\n    step                   {DR 1-6} {NSTEPS} [DELAY]"
+"\n    step                   {DR 1-6} {NSTEPS} [Frequency]"
 "\n                           Step drive some number of steps (positive to"
-"\n                           extend, negative to retract) with delay between"
-"\n                           steps given by DELAY (default 5000)."
+"\n                           extend, negative to retract) with frequency in Hz (default=400)"
 "\n    "
-"\n    slew                   {DR 1-6} [DIR=(extend/retract)] [DELAY]"
+"\n    slew                   {DR 1-6} [DIR=(extend/retract)] [Frequency]"
 "\n                           Slew drive (DR) in given direction (DIR, default extend) "
-"\n                           with delay between steps given by DELAY (default 5000)."
+"\n                           with frequency in Hz (default = 400)."
 "\n    "
-"\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [DELAY]"
+"\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [Frequency]"
 "\n                           Step all drives some number of steps (positive to extend,"
 "\n                           negative to retract and zero to not move that drive.)"
 "\n    "
-"\n    slew_all               [DIR=(extend/retract)] [DELAY]"
+"\n    slew_all               [DIR=(extend/retract)] [Frequency]"
 "\n                           Slew all (enabled) drives in given direction (DIR, default "
-"\n                           extend) with delay between steps given by DELAY (default 5000)."
+"\n                           extend) with frequency of steps in Hz (default=400)."
 "\n    "
 "\n    status                 Print drive status information"
 "\n    "

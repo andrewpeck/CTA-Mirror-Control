@@ -64,12 +64,12 @@ public:
     //------------------------------------------------------------------------------
 
     // Steps motor a single step in a direction specified by dir, with some delay controlling the io speed
-    void stepOneDrive(unsigned idrive, Dir dir, unsigned ndelayloop = 3000);
+    void stepOneDrive(unsigned idrive, Dir dir, unsigned frequency = 400);
 
     // Simultaneously Steps all drives in a configurable direction..
     void stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir,
             Dir dr4_dir, Dir dr5_dir, Dir dr6_dir,
-            unsigned ndelayloop = 3000);
+            unsigned frequency = 400);
 
     void setPhaseZeroOnAllDrives();
 
@@ -125,7 +125,9 @@ public:
     // Utility functions
     // --------------------------------------------------------------------------
 
-    void loopDelay(unsigned nloop);
+    // Sleeps for a half-cycle of the frequency given in the argument...
+    // calibrated over the range from 0-1000 Hz.. should work elsewhere 
+    void waitHalfPeriod(unsigned frequency);
 
 private:
     GPIOInterface gpio;

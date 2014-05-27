@@ -6,6 +6,8 @@
 #include <cassert>
 #include <MirrorControlBoard.hpp>
 #include <GPIOInterface.hpp>
+#include <unistd.h>
+#include <time.h>
 
 MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nusb(nusb>7?7:nusb)
 {
@@ -213,7 +215,7 @@ MirrorControlBoard::UStep MirrorControlBoard::getUStep()
         return gpio.ReadLevel(layout.igpioMS1)?USTEP_2:USTEP_1;
 }
 
-void MirrorControlBoard:: stepOneDrive(unsigned idrive, Dir dir, unsigned ndelayloop)
+void MirrorControlBoard:: stepOneDrive(unsigned idrive, Dir dir, unsigned frequency)
 {
     // Write Direction to the DIR pin
     gpio.WriteLevel(layout.igpioDir(idrive),(dir==DIR_RETRACT)?1:0);
@@ -223,13 +225,13 @@ void MirrorControlBoard:: stepOneDrive(unsigned idrive, Dir dir, unsigned ndelay
     gpio.WriteLevel(igpio,(dir==DIR_NONE)?0:1);
 
     // a delay
-    loopDelay(ndelayloop);
+    waitHalfPeriod(frequency);
 
     // Toggle pin back to low
     gpio.WriteLevel(igpio,0);
 }
 
-void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Dir dr4_dir, Dir dr5_dir, Dir dr6_dir, unsigned ndelayloop)
+void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Dir dr4_dir, Dir dr5_dir, Dir dr6_dir, unsigned frequency)
 {
     gpio.WriteLevel(layout.igpioDir1,(dr1_dir==DIR_RETRACT)?1:0);
     gpio.WriteLevel(layout.igpioDir2,(dr2_dir==DIR_RETRACT)?1:0);
@@ -245,7 +247,7 @@ void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Di
     gpio.WriteLevel(layout.igpioStep5,(dr5_dir==DIR_NONE)?0:1);
     gpio.WriteLevel(layout.igpioStep6,(dr6_dir==DIR_NONE)?0:1);
 
-    loopDelay(ndelayloop);
+    waitHalfPeriod(frequency);
 
     gpio.WriteLevel(layout.igpioStep1,0);
     gpio.WriteLevel(layout.igpioStep2,0);
@@ -258,7 +260,7 @@ void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Di
 void MirrorControlBoard::setPhaseZeroOnAllDrives()
 {
     gpio.WriteLevel(layout.igpioReset,0);
-    loopDelay(1000);
+    waitHalfPeriod(400);
     gpio.WriteLevel(layout.igpioReset,1);
 }
 
@@ -336,7 +338,7 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned 
     spi.WriteRead(code);
 
     // some delay
-    loopDelay(ndelayloop);
+    usleep(ndelayloop);
 
     // Read ADC
     uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
@@ -369,7 +371,7 @@ void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmea
         datum = ADC.decodeUSB(datum);
         vMeas[iloop - 1] = datum;
 
-        loopDelay(ndelayloop);
+        usleep(ndelayloop);
     }
 }
 
@@ -389,7 +391,7 @@ void MirrorControlBoard::measureManyADC(uint32_t* data, unsigned iadc, unsigned 
             data[ichan-1] = ADC.decodeUSB(datum);
 
         // some delay
-        loopDelay(ndelayloop);
+        usleep(ndelayloop);
     }
 
     // Read data from FIFO
@@ -412,13 +414,13 @@ uint32_t MirrorControlBoard::measureADCWithBurn(unsigned iadc, unsigned ichan, u
     spi.WriteRead(code);
 
     // Some delay
-    loopDelay(ndelayloop);
+    usleep(ndelayloop);
 
     // Read
     spi.WriteRead(code);
 
     // Some delay
-    loopDelay(ndelayloop);
+    usleep(ndelayloop);
 
     // save last data
     uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
@@ -444,13 +446,13 @@ void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, u
             data[ichan-1] = ADC.decodeUSB(datum);
 
         // some delay
-        loopDelay(ndelayloop);
+        usleep(ndelayloop);
 
         // Read ADC Channel again (discarding results)
         spi.WriteRead(code);
 
         // Some Delay
-        loopDelay(ndelayloop);
+        usleep(ndelayloop);
     }
 
     // Read last data 
@@ -491,7 +493,7 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
                 min=datum;
         }
         // some delay
-        loopDelay(ndelayloop);
+        usleep(ndelayloop);
     }
 
     // Read last FIFO
@@ -527,7 +529,17 @@ int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsign
 // General Purpose Utilities
 //------------------------------------------------------------------------------
 
-void MirrorControlBoard::loopDelay(unsigned nloop)
+void MirrorControlBoard::waitHalfPeriod(unsigned frequency)
 {
-    for(volatile unsigned iloop=0; iloop<nloop; iloop++);
+    // nanosleep isn't exacly perfect... this is an empirically derived factor 
+    // to let frequency inputs actually be what you get out (more-or-less)
+    if (frequency>60)
+        frequency = ((frequency - 40)*(10))/6; 
+
+    int period = (1000000000/(frequency));
+    struct timespec time, time2;
+    time.tv_sec=0;
+    time.tv_nsec= (period=period/2);
+    nanosleep(&time,&time2);
+    //for(volatile unsigned iloop=0; iloop<nloop; iloop++);
 }

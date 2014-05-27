@@ -24,17 +24,19 @@ public:
 
     // some temp functions for testing gpios
     void testusb        ();
-    void frequsb        (unsigned frequency);
+    void freqloop       (unsigned nloop);
+    void frequ          (unsigned frequency);
+    void freqn          (unsigned frequency);
 
     //Step drive some number of steps (positive to extend, negative to retract). 
-    void step(unsigned idrive, int nstep, unsigned ndelay);
+    void step(unsigned idrive, int nstep, unsigned frequency);
     //Step all drives some number of steps
-    void step_all(int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6, unsigned ndelay);
+    void step_all(int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6, unsigned frequency);
 
     // Slew drive (DR) in given direction (move as far as possible)
-    void slew(unsigned idrive, MirrorControlBoard::Dir dir, unsigned ndelay);
+    void slew(unsigned idrive, MirrorControlBoard::Dir dir, unsigned frequency);
     // Slew all (enabled) drives in given direction (DIR, default 
-    void slew_all(MirrorControlBoard::Dir dir, unsigned ndelay);
+    void slew_all(MirrorControlBoard::Dir dir, unsigned frequency);
 
     // Print drive status information. 
     void status();
