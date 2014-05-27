@@ -27,6 +27,7 @@ uint32_t TLC3548_ADC::codeInitialize()
 uint32_t TLC3548_ADC::codeConfig(SamplePeriod sp, ReferenceSelect rs,
         ConversionClock cc, ConversionMode cm, SweepSequence ss, InputMode im,
         OutputFormat of, PinFunction pf, TriggerLevel tl) 
+
 {
     uint32_t cfr = 0;
     if (rs == RS_EXTERNAL)               
@@ -69,7 +70,8 @@ uint32_t TLC3548_ADC::codeConfig(SamplePeriod sp, ReferenceSelect rs,
             break;
     };
 
-    if(pf == PF_EOC)                    cfr |= 0x004;
+    if(pf == PF_EOC)
+        cfr |= 0x004;
 
     switch(tl)
     {
