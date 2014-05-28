@@ -255,13 +255,13 @@ unsigned Layout::igpioTP6            =  pin140ToGPIO(GPIO82_L_DD12)      ;
 unsigned Layout::igpioTP7            =  pin140ToGPIO(GPIO93_L_DD23)      ;
 
 unsigned Layout::igpioUSBReset       =  pin140ToGPIO(GPIO74_L_DD04)      ; //USBReset
-unsigned Layout::igpioUSBOff1        =  pin140ToGPIO(GPIO14_MMC3_DAT4)   ; //USB1EnableBar          
-unsigned Layout::igpioUSBOff2        =  pin140ToGPIO(GPIO18_MMC3_D0)     ; //USB2EnableBar          
-unsigned Layout::igpioUSBOff3        =  pin140ToGPIO(GPIO80_L_DD10)      ; //USB3EnableBar          
-unsigned Layout::igpioUSBOff4        =  pin140ToGPIO(GPIO_10)            ; //USB4EnableBar          
-unsigned Layout::igpioUSBOff5        =  pin140ToGPIO(GPIO78_L_DD08)      ; //USB5EnableBar          
-unsigned Layout::igpioUSBOff6        =  pin140ToGPIO(GPIO12_MMC3_CLK)    ; //USB6EnableBar          
-unsigned Layout::igpioUSBOff7        =  pin140ToGPIO(GPIO17_MMC3_D3)     ; //USB7EnableBar          
+unsigned Layout::igpioUSBOff1        =  pin140ToGPIO(GPIO14_MMC3_DAT4)   ; //USB1EnableBar
+unsigned Layout::igpioUSBOff2        =  pin140ToGPIO(GPIO18_MMC3_D0)     ; //USB2EnableBar
+unsigned Layout::igpioUSBOff3        =  pin140ToGPIO(GPIO80_L_DD10)      ; //USB3EnableBar
+unsigned Layout::igpioUSBOff4        =  pin140ToGPIO(GPIO_10)            ; //USB4EnableBar
+unsigned Layout::igpioUSBOff5        =  pin140ToGPIO(GPIO78_L_DD08)      ; //USB5EnableBar
+unsigned Layout::igpioUSBOff6        =  pin140ToGPIO(GPIO12_MMC3_CLK)    ; //USB6EnableBar
+unsigned Layout::igpioUSBOff7        =  pin140ToGPIO(GPIO17_MMC3_D3)     ; //USB7EnableBar
 
 unsigned Layout::igpioMS1            =  pin140ToGPIO(GPIO146_GPT11_PWM)  ; //DRMS1
 unsigned Layout::igpioMS2            =  pin140ToGPIO(GPIO85_L_DD15)      ; //DRMS2
@@ -270,26 +270,26 @@ unsigned Layout::igpioSR             =  pin140ToGPIO(GPIO91_L_DD21)      ; //DRS
 unsigned Layout::igpioReset          =  pin140ToGPIO(GPIO147_GPT8_PWM)   ; //DRResetBar
 unsigned Layout::igpioSleep          =  pin140ToGPIO(GPIO84_L_DD14)      ; //DRSleepBar
 
-unsigned Layout::igpioStep1          =  pin140ToGPIO(GPIO67_L_LCLK)      ; //DR1Step                
-unsigned Layout::igpioStep2          =  pin140ToGPIO(GPIO66_L_PCLK)      ; //DR2Step                
-unsigned Layout::igpioStep3          =  pin140ToGPIO(GPIO88_L_DD18)      ; //DR3Step                
-unsigned Layout::igpioStep4          =  pin140ToGPIO(GPIO_186)           ; //DR4Step                
-unsigned Layout::igpioStep5          =  pin140ToGPIO(GPIO145_GPT10_PWM)  ; //DR5Step                
-unsigned Layout::igpioStep6          =  pin140ToGPIO(GPIO23_MMC3_DAT5)   ; //DR6Step                
+unsigned Layout::igpioStep1          =  pin140ToGPIO(GPIO67_L_LCLK)      ; //DR1Step
+unsigned Layout::igpioStep2          =  pin140ToGPIO(GPIO66_L_PCLK)      ; //DR2Step
+unsigned Layout::igpioStep3          =  pin140ToGPIO(GPIO88_L_DD18)      ; //DR3Step
+unsigned Layout::igpioStep4          =  pin140ToGPIO(GPIO_186)           ; //DR4Step
+unsigned Layout::igpioStep5          =  pin140ToGPIO(GPIO145_GPT10_PWM)  ; //DR5Step
+unsigned Layout::igpioStep6          =  pin140ToGPIO(GPIO23_MMC3_DAT5)   ; //DR6Step
 
-unsigned Layout::igpioDir1           =  pin140ToGPIO(GPIO76_L_DD06)      ; //DR1Dir                 
-unsigned Layout::igpioDir2           =  pin140ToGPIO(GPIO79_L_DD09)      ; //DR2Dir                 
-unsigned Layout::igpioDir3           =  pin140ToGPIO(GPIO87_L_DD17)      ; //DR3Dir                 
-unsigned Layout::igpioDir4           =  pin140ToGPIO(GPIO144_GPT9_PWM)   ; //DR4Dir                 
-unsigned Layout::igpioDir5           =  pin140ToGPIO(GPIO70_L_DD00)      ; //DR5Dir                 
-unsigned Layout::igpioDir6           =  pin140ToGPIO(GPIO20_MMC3_D2)     ; //DR6Dir                 
+unsigned Layout::igpioDir1           =  pin140ToGPIO(GPIO76_L_DD06)      ; //DR1Dir
+unsigned Layout::igpioDir2           =  pin140ToGPIO(GPIO79_L_DD09)      ; //DR2Dir
+unsigned Layout::igpioDir3           =  pin140ToGPIO(GPIO87_L_DD17)      ; //DR3Dir
+unsigned Layout::igpioDir4           =  pin140ToGPIO(GPIO144_GPT9_PWM)   ; //DR4Dir
+unsigned Layout::igpioDir5           =  pin140ToGPIO(GPIO70_L_DD00)      ; //DR5Dir
+unsigned Layout::igpioDir6           =  pin140ToGPIO(GPIO20_MMC3_D2)     ; //DR6Dir
 
-unsigned Layout::igpioEnable1        =  pin140ToGPIO(GPIO68_L_FCLK)      ; //DR1EnableBar           
-unsigned Layout::igpioEnable2        =  pin140ToGPIO(GPIO73_L_DD03)      ; //DR2EnableBar           
-unsigned Layout::igpioEnable3        =  pin140ToGPIO(GPIO89_L_DD19)      ; //DR3EnableBar           
-unsigned Layout::igpioEnable4        =  pin140ToGPIO(GPIO81_L_DD11)      ; //DR4EnableBar           
-unsigned Layout::igpioEnable5        =  pin140ToGPIO(GPIO92_L_DD22)      ; //DR5EnableBar           
-unsigned Layout::igpioEnable6        =  pin140ToGPIO(GPIO75_L_DD05)      ; //DR6EnableBar           
+unsigned Layout::igpioEnable1        =  pin140ToGPIO(GPIO68_L_FCLK)      ; //DR1EnableBar
+unsigned Layout::igpioEnable2        =  pin140ToGPIO(GPIO73_L_DD03)      ; //DR2EnableBar
+unsigned Layout::igpioEnable3        =  pin140ToGPIO(GPIO89_L_DD19)      ; //DR3EnableBar
+unsigned Layout::igpioEnable4        =  pin140ToGPIO(GPIO81_L_DD11)      ; //DR4EnableBar
+unsigned Layout::igpioEnable5        =  pin140ToGPIO(GPIO92_L_DD22)      ; //DR5EnableBar
+unsigned Layout::igpioEnable6        =  pin140ToGPIO(GPIO75_L_DD05)      ; //DR6EnableBar
 
 unsigned Layout::igpioSPI_Tx         =  pin140ToGPIO(GPIO172_SPI1_MOSI)  ;
 unsigned Layout::igpioSPI_Rx         =  pin140ToGPIO(GPIO173_SPI1_MISO)  ;
