@@ -391,7 +391,7 @@ int main(int argc, const char** argv)
         //if(ncycle <= 1)
         //    dir = ncycle, ncycle = 1;
 
-        // delay 
+        // delay
         unsigned ndelay = 10000;
         if(argc)
         {
@@ -576,7 +576,7 @@ void cbc::freqn(unsigned frequency)
     struct sched_param param;
     pthread_getschedparam(pthread_self(), &policy, &param);
     param.sched_priority = sched_get_priority_max(policy);
-    policy = SCHED_FIFO; 
+    policy = SCHED_FIFO;
     pthread_setschedparam(pthread_self(), policy, &param);
 
     for (int i=0; i<1000; i++)
@@ -706,35 +706,83 @@ void cbc::slew_all(MirrorControlBoard::Dir dir, unsigned frequency)
 
 void cbc::status()
 {
-    std::cout << "Drives:"
-        << (mcb.isDriveControllersPoweredUp()?
-                (char*)"":(char*)" A3977-OFF")
-        << (gpio.ReadLevel(layout.igpioReset)?
-                (char*)"":(char*)" RESET")
-        << (mcb.isDriveSREnabled()?
-                (char*)" SR":(char*)"");
+    printf("Mirror Control Board status: \n");
 
+    // Motor Driver Status
+    printf("\nA3977 Drive Controllers:        ");
+    if (mcb.isDriveControllersPoweredUp())
+        printf("Enabled");
+    else
+        printf("Disabled");
+
+    // Reset Status
+    printf("\nDrive Reset:                    ");
+    if (gpio.ReadLevel(layout.igpioReset))
+        printf("Enabled");
+    else
+        printf("Disabled");
+
+    // SR Status
+    printf("\nSynchonous Rectification (SR):  ");
+    if (mcb.isDriveSREnabled())
+        printf("Enabled");
+    else
+        printf("Disabled");
+
+    // Microstep Status
+    printf("\nDrive microstep set to:         ");
     switch(mcb.getUStep())
     {
         case MirrorControlBoard::USTEP_8:
-            std::cout << " 8-uSTEP";
+            printf("8-uSTEP");
             break;
         case MirrorControlBoard::USTEP_4:
-            std::cout << " 4-uSTEP";
+            printf("4-uSTEP");
             break;
         case MirrorControlBoard::USTEP_2:
-            std::cout << " 2-uSTEP";
+            printf("2-uSTEP");
             break;
         case MirrorControlBoard::USTEP_1:
-            std::cout << " 1-uSTEP";
+            printf("1-uSTEP");
             break;
     }
-    std::cout << (mcb.isDriveHiCurrentEnabled()?  (char*)" HI-CURRENT":(char*)"") << (mcb.isEncodersPoweredUp()?  (char*)" ENCODERS-ON":(char*)"ENCODERS-OFF") << '\n';
 
+    // Hi Current Status
+    printf("\nHi-Current Mode:                ");
+    if (mcb.isDriveHiCurrentEnabled())
+        printf("Enabled");
+    else
+        printf("Disabled");
+
+    // Encoder Status
+    printf("\nEncoders:                       ");
+    if (mcb.isEncodersPoweredUp())
+        printf("Enabled");
+    else
+        printf("Disabled");
+
+    // Print Drive Status
+    printf("\n");
     for(unsigned idrive=0; idrive<6; idrive++)
     {
-        std::cout << "  " << idrive+1 << ":" << (mcb.isDriveEnabled(idrive)?  " ENABLED ":" DISABLED") << '\n';
+        if (mcb.isDriveEnabled(idrive))
+            printf("\nDrive %i                         Enabled",  idrive+1);
+        else
+            printf("\nDrive %i                         Disabled", idrive+1);
     }
+
+    // Print USB Status
+    printf("\n");
+    for (unsigned iusb=0; iusb<7; iusb++)
+    {
+        if (mcb.isUSBPoweredUp(iusb))
+            printf("\nUSB %i                           Enabled",  iusb+1);
+        else
+            printf("\nUSB %i                           Disabled",  iusb+1);
+    }
+
+
+    printf("\n");
 }
 
 void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, unsigned ndelay, float volt_full, int hex_out)
@@ -970,7 +1018,7 @@ std::string cbc::usage_text =
 "\n    enable_sr              Enable Synchronous Rectification (SR) mode."
 "\n    disable_sr             Disable Synchronous Rectification (SR) mode."
 "\n    "
-"\n    set_microstep          {MS = 1,2,4,8}"
+"\n    set_microstep          {MS 1,2,4,8}"
 "\n                           Set number of micro steps to 1, 2, 4 or 8."
 "\n    "
 "\n    enable_hi_current      Enable high current mode on all drives."
