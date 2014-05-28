@@ -30,7 +30,7 @@ public:
     // Set GPIO Direction In/Out (0-191)
     void SetDirection(const unsigned ipin, bool dir);
 
-    // Configures a given GPIO pin for a direction (1=OUT,0=in) and function (0-191) 
+    // Configures a given GPIO pin for a direction (1=OUT,0=in) and function (0-191)
     void Configure(const unsigned ipin, bool dir);
 
     // Configure Input/Output directions for ALL GPIOs
@@ -102,7 +102,9 @@ private:
     volatile void*  m_gpio5_base;
     volatile void*  m_gpio6_base;
 
-    Layout layout; 
+    unsigned MaskPin (unsigned ipin);
+
+    Layout layout;
 
 };
 #endif

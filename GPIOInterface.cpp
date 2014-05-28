@@ -63,7 +63,7 @@ GPIOInterface::~GPIOInterface()
 
 bool GPIOInterface::ReadLevel(const unsigned ipin)
 {
-    bool level = *(ptrGPIOReadLevel(ipin)) & (0x1 << ipin);
+    bool level = *(ptrGPIOReadLevel(ipin)) & MaskPin(ipin);
     //printf("Read %i from pin %i",level,ipin);
     return level;
 }
@@ -80,19 +80,17 @@ bool GPIOInterface::GetDirection(const unsigned ipin)
 {
     volatile uint32_t* reg = ptrGPIODirection(ipin);
     uint32_t val = *reg;
-    bool dir = !!(val & (0x1<<ipin));
+    bool dir = !!(val & MaskPin(ipin));
     return dir;
 }
 
 void GPIOInterface::SetDirection(const unsigned ipin, bool dir)
 {
     volatile uint32_t* reg = ptrGPIODirection(ipin);
-    uint32_t val = *reg;
     if(dir==1)
-        val |= (0x1<<ipin);
+        *reg |= (MaskPin(ipin));
     else
-        val &= ~(0x1<<ipin);
-    *reg = val;
+        *reg &= ~(MaskPin(ipin));
     //printf("\ngpioSetDirection :: Writing %04X", val);
 }
 
@@ -144,13 +142,13 @@ volatile uint32_t* GPIOInterface::ptrGPIOReadLevel(const unsigned ipin)
 void GPIOInterface::SetLevel(const unsigned ipin)
 {
     // Write a One to the bit specified by ipin
-    *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | 0x1 << ipin;
+    *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | MaskPin(ipin);
 }
 
 void GPIOInterface::ClrLevel(const unsigned ipin)
 {
     // Write a zero to the bit specified by ipin
-    *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~(0x1 << ipin);
+    *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~(MaskPin(ipin));
 }
 
 volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t phys, const unsigned ipin)
@@ -179,7 +177,7 @@ volatile uint32_t* GPIOInterface::phys2Virt32(off_t phys, volatile void* map_bas
     // map offset is the difference between the physical address and the physical base address
     map_offset = phys - map_base_phys;
 
-    // virtual address the base of the virtual address + the map_offset with some fancy typecasting done for poor reasons
+    // virtual address the base of the virtual address + the map_offset with some fancy typecasting done for possibly poor reasons
     adr_virtual = reinterpret_cast<volatile uint32_t*>(static_cast<volatile uint8_t*>(map_base_virt) + map_offset);
 
     return adr_virtual;
@@ -189,7 +187,7 @@ off_t GPIOInterface::offset2adrGPIO(unsigned ipin, off_t offset)
 {
     if (ipin<0)
         return (0);
-    else if (ipin<32)
+    else if (ipin<32)  
         return(physBaseGPIO1+offset);
     else if (ipin<64)
         return(physBaseGPIO2+offset);
@@ -229,4 +227,8 @@ volatile void* GPIOInterface::makeMap(volatile void*& virtual_addr, off_t physic
         exit(EXIT_FAILURE);
     else
         return &virtual_addr;
+}
+
+unsigned GPIOInterface::MaskPin (unsigned ipin) {
+    return (0x1 << (ipin % 32)); 
 }
