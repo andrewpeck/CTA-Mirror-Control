@@ -23,7 +23,7 @@ public:
     void disableusb     (int iusb);
 
     // some temp functions for testing gpios
-    void testusb        ();
+    void testgpio       (unsigned igpio);
     void freqloop       (unsigned nloop);
     void frequ          (unsigned frequency);
     void freqn          (unsigned frequency);

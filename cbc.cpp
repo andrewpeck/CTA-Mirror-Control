@@ -132,9 +132,13 @@ int main(int argc, const char** argv)
     else if (command == "disableUSB_all") { cbc.disableusb(0); }
     // end of legacy functions..
     //------------------------------------------------------------------------------
-    else if (command == "testusb")
-        cbc.testusb();
-
+    else if (command == "testgpio")
+    {
+        if (argc==0)
+            cbc.usage();
+        unsigned igpio = atoi(*argv);
+        cbc.testgpio(igpio);
+    }
     else if (command == "freqloop")
     {
         if (argc==0)
@@ -552,14 +556,15 @@ void cbc::disableusb(int iusb)
     }
 }
 
-void cbc::testusb()
+void cbc::testgpio(unsigned igpio)
 {
-    for (int i=0; i<1000000; i++)
+    for (int i=0; i<10000000; i++)
     {
         if (i%2==0)
-            gpio.WriteLevel(layout.igpioUSBOff4,1);
+            gpio.WriteLevel(igpio,1);
         if (i%2==1)
-            gpio.WriteLevel(layout.igpioUSBOff4,0);
+            gpio.WriteLevel(igpio,0);
+        usleep(1000);
     }
 }
 
