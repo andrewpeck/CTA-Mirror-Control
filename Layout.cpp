@@ -234,8 +234,8 @@ int Layout::pin140ToGPIO(unsigned ipin140)
         return -1;
 }
 
-unsigned Layout::igpioN_M_RESET      =  pin140ToGPIO(N_MANUAL_RESET)     ;
-unsigned Layout::igpioEN_IO          =  pin140ToGPIO(GPIO72_L_DD02)      ;
+unsigned Layout::igpioN_M_RESET      =  pin140ToGPIO(N_MANUAL_RESET)     ; 
+unsigned Layout::igpioEN_IO          =  pin140ToGPIO(GPIO72_L_DD02)      ; //Level Shifter Enable
 
 unsigned Layout::igpioPowerADC       =  pin140ToGPIO(GPIO150_MMC3_WP)    ; //PowerADC
 unsigned Layout::igpioADCSel1        =  pin140ToGPIO(GPIO83_L_DD13)      ; //ADCSel1

@@ -442,10 +442,17 @@ int main(int argc, const char** argv)
 int cbc::initialize()
 {
     printf("Configuring GPIOs...\n");
+
+    // configure gpio directions
     gpio.ConfigureAll();
+
+    // turn on level shifters
+    gpio.WriteLevel(Layout.igpioEN_IO, 1); 
 
     printf("Powering Up Base...\n");
     mcb.powerUpBase();
+
+
 
     return EXIT_SUCCESS;
 }
