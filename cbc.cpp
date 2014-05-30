@@ -452,13 +452,11 @@ int cbc::initialize()
     printf("Powering up and configuring base...\n");
     mcb.powerUpBase();
 
-    //disable all usbs
+    //disable all usbs except 1
     printf("Turn off USBs...\n");
-    disableusb(0);
-
-    //enable just usb 1
-    printf("Enabling USB1...\n");
-    enableusb(1);
+    for (int i=2; i<=7; i++) {
+        disableusb(i);
+    }
 
     return EXIT_SUCCESS;
 }
@@ -843,7 +841,7 @@ void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn,
         else
         {
             float adcmean = adc.voltData(mean,      volt_full);
-            float adcrms  = adc.voltData(mean,      volt_full);
+            float adcrms  = adc.voltData(rms,       volt_full);
             float adcmax  = adc.voltData(max[ichan],volt_full);
             float adcmin  = adc.voltData(min[ichan],volt_full);
 
