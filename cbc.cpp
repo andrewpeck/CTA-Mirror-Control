@@ -450,15 +450,15 @@ int cbc::initialize()
     gpio.ConfigureAll();
 
     printf("Powering up and configuring base...\n");
-    mcb.powerUpBase(); 
+    mcb.powerUpBase();
 
     //disable all usbs
     printf("Turn off USBs...\n");
-    disableusb(0); 
+    disableusb(0);
 
     //enable just usb 1
     printf("Enabling USB1...\n");
-    enableusb(1); 
+    enableusb(1);
 
     return EXIT_SUCCESS;
 }
