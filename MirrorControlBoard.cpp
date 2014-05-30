@@ -1,4 +1,4 @@
-/*  
+/*
  *  MirrorControlBoard.cpp - Class which implements useful mid-level
  *  functionality for the mirror control board.
  */
@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <time.h>
 
-MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nusb(nusb>7?7:nusb) { }
+MirrorControlBoard::MirrorControlBoard() { }
 MirrorControlBoard::~MirrorControlBoard() { }
 
 void MirrorControlBoard::powerDownAll()
@@ -27,7 +27,7 @@ void MirrorControlBoard::powerUpAll()
 void MirrorControlBoard::powerUpBase()
 {
     // turn on level shifters
-    gpio.WriteLevel(layout.igpioEN_IO, 1); 
+    gpio.WriteLevel(layout.igpioEN_IO, 1);
 
     // Power up the A3977 chips
     powerUpDriveControllers();
@@ -36,10 +36,10 @@ void MirrorControlBoard::powerUpBase()
     setUStep(MirrorControlBoard::USTEP_8);
 
     // turn off all drives
-    disableAllDrives(); 
+    disableAllDrives();
 
     // reset drives
-    setPhaseZeroOnAllDrives(); 
+    setPhaseZeroOnAllDrives();
 
     // Power up encoders
     powerUpEncoders();
@@ -430,7 +430,7 @@ void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, u
         usleep(ndelayloop);
     }
 
-    // Read last data 
+    // Read last data
     uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
 
     // Decode data and fill array
@@ -456,7 +456,7 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
         {
             // Decode data
             datum = ADC.decodeUSB(datum);
-            // Typecast to 64 bit integer.. 
+            // Typecast to 64 bit integer..
             uint64_t datum64 = datum;
 
             // Accumulate statistics
@@ -506,10 +506,10 @@ int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsign
 
 void MirrorControlBoard::waitHalfPeriod(unsigned frequency)
 {
-    // nanosleep isn't exacly perfect... this is an empirically derived factor 
+    // nanosleep isn't exacly perfect... this is an empirically derived factor
     // to let frequency inputs actually be what you get out (more-or-less)
     if (frequency>60)
-        frequency = ((frequency - 40)*(10))/6; 
+        frequency = ((frequency - 40)*(10))/6;
 
     int period = (1000000000/(frequency));
     struct timespec time, time2;

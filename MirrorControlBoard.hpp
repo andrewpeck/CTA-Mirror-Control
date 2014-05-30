@@ -15,7 +15,7 @@
 class MirrorControlBoard
 {
 public:
-    MirrorControlBoard(bool no_initialize = true, unsigned nusb = 7);
+    MirrorControlBoard();
     ~MirrorControlBoard();
 
     enum UStep { USTEP_1, USTEP_2, USTEP_4, USTEP_8 };
@@ -132,7 +132,7 @@ private:
     Layout layout;
     SpiInterface spi;
     TLC3548_ADC ADC;
-    unsigned          m_nusb;
+    static const unsigned m_nusb=7;
     unsigned          m_ssp_clk_div;
 };
 
