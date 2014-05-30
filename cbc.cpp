@@ -126,10 +126,10 @@ int main(int argc, const char** argv)
     }
     //------------------------------------------------------------------------------
     // Some option handlers for backwards compatibility
-    else if (command == "enable_all") { cbc.enable(0); }
-    else if (command == "disable_all") { cbc.disable(0); }
-    else if (command == "enableUSB_all") { cbc.disableusb(0); }
-    else if (command == "disableUSB_all") { cbc.disableusb(0); }
+    else if (command == "enable_all")       { cbc.enable(0); }
+    else if (command == "disable_all")      { cbc.disable(0); }
+    else if (command == "enableUSB_all")    { cbc.disableusb(0); }
+    else if (command == "disableUSB_all")   { cbc.disableusb(0); }
     // end of legacy functions..
     //------------------------------------------------------------------------------
     else if (command == "testgpio")
@@ -445,18 +445,20 @@ int main(int argc, const char** argv)
 
 int cbc::initialize()
 {
-    printf("Configuring GPIOs...\n");
-
     // configure gpio directions
+    printf("Configuring GPIOs...\n");
     gpio.ConfigureAll();
 
-    // turn on level shifters
-    gpio.WriteLevel(Layout.igpioEN_IO, 1); 
+    printf("Powering up and configuring base...\n");
+    mcb.powerUpBase(); 
 
-    printf("Powering Up Base...\n");
-    mcb.powerUpBase();
+    //disable all usbs
+    printf("Turn off USBs...\n");
+    disableusb(0); 
 
-
+    //enable just usb 1
+    printf("Enabling USB1...\n");
+    enableusb(1); 
 
     return EXIT_SUCCESS;
 }
@@ -730,9 +732,9 @@ void cbc::status()
     // Reset Status
     printf("\nDrive Reset:                    ");
     if (gpio.ReadLevel(layout.igpioReset))
-        printf("Enabled");
-    else
         printf("Disabled");
+    else
+        printf("Enabled");
 
     // SR Status
     printf("\nSynchonous Rectification (SR):  ");

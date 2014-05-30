@@ -9,35 +9,8 @@
 #include <unistd.h>
 #include <time.h>
 
-MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nusb(nusb>7?7:nusb)
-{
-    if (no_initialize)
-        return;
-    else
-        powerDownAll();
-}
-
+MirrorControlBoard::MirrorControlBoard(bool no_initialize, unsigned nusb): m_nusb(nusb>7?7:nusb) { }
 MirrorControlBoard::~MirrorControlBoard() { }
-
-void MirrorControlBoard::initialize(const unsigned ssp_clk_div)
-{
-    setUStep(USTEP_8);
-    enableDriveSR();
-    disableDriveHiCurrent();
-    gpio.WriteLevel(layout.igpioReset,1);
-    //initializeSPI();
-}
-
-//void MirrorControlBoard::initializeSPI()
-//{
-//    void spiConfigure (int issp, unsigned clk_phase, bool clk_polarity, bool clk_div, bool epol, int word_length) {
-//    for (int issp=0; issp<=8; issp++) { m_sys.spiConfigure (issp, 0, 0, 4, 1, 0xF); }
-//    printf("Enabling SPI");
-//    m_sys.spiEnable(ADC_SPI);
-//    printf("Configuring SPI");
-//    m_sys.spiConfigure (ADC_SPI, 0, 0, 4, 1, 0xF);
-//    m_sys.spiFlush (ADC_SPI);
-//}
 
 void MirrorControlBoard::powerDownAll()
 {
@@ -53,17 +26,26 @@ void MirrorControlBoard::powerUpAll()
 
 void MirrorControlBoard::powerUpBase()
 {
+    // turn on level shifters
+    gpio.WriteLevel(layout.igpioEN_IO, 1); 
+
     // Power up the A3977 chips
     powerUpDriveControllers();
+    enableDriveSR();
+    disableDriveHiCurrent();
+    setUStep(MirrorControlBoard::USTEP_8);
+
+    // turn off all drives
+    disableAllDrives(); 
+
+    // reset drives
+    setPhaseZeroOnAllDrives(); 
 
     // Power up encoders
     powerUpEncoders();
 
     // Power up ADCs
     powerUpADCs();
-
-    // Power up SSP clock and initialize port
-    //initializeSPI();
 
     // Initialize on-board ADC
     initializeADC(0);
@@ -75,13 +57,6 @@ void MirrorControlBoard::powerDownBase()
     // Set on-board ADC into sleep mode
     selectADC(7);
     spi.WriteRead(ADC.codeSWPowerDown());
-
-    // Set PWM state
-    //m_sys.pwmSetDutyCycle(0, 0, false);
-    //m_sys.pwmSetDutyCycle(1, 0, false);
-    //m_sys.pwmSetDutyCycle(2, 0, false);
-    //m_sys.pwmSetDutyCycle(3, 0, false);
-    //m_sys.clockDisablePWM();
 
     // Power down ADCs
     powerDownADCs();

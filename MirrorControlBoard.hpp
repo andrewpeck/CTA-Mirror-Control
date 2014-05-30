@@ -22,17 +22,15 @@ public:
     enum Dir { DIR_EXTEND, DIR_RETRACT, DIR_NONE };
     enum GPIODir { DIR_OUTPUT, DIR_INPUT};
 
-    // sets microstep, enables drive SR (synchronous rectification), disables hi current, resets drive phase
-    void initialize(const unsigned ssp_clk_div);
-    // used to be useful. using spidev driver it is no longer needed. 
-    // void initializeSPI();
-
     //------------------------------------------------------------------------------
     // Power Control Function Prototypes
     //------------------------------------------------------------------------------
+
+    // Powers down everything
     void powerDownAll();
     void powerUpAll();
 
+    // Powers down everything except USB
     void powerDownBase();
     void powerUpBase();
 
@@ -74,7 +72,7 @@ public:
     void setPhaseZeroOnAllDrives();
 
     void enableDriveSR(bool enable = true);
-    void disableDriveSR(); 
+    void disableDriveSR();
     bool isDriveSREnabled();
 
     void setUStep(UStep ustep);
@@ -83,14 +81,14 @@ public:
     // Enable or Disable Stepper Motors
     void enableDrive(unsigned idrive, bool enable = true);
     void enableAllDrives(bool enable = true);
-    void disableDrive(unsigned idrive); 
-    void disableAllDrives(); 
+    void disableDrive(unsigned idrive);
+    void disableAllDrives();
 
     // Check Stepper Motor Enabled
     bool isDriveEnabled(unsigned idrive);
 
     void enableDriveHiCurrent(bool enable = true);
-    void disableDriveHiCurrent(); 
+    void disableDriveHiCurrent();
     bool isDriveHiCurrentEnabled();
 
     //------------------------------------------------------------------------------
@@ -115,25 +113,25 @@ public:
     // Loop over ADC Channels taking measurements and filling data array. Also has the ADC sample a few times before reading data
     void measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop);
 
-    // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics.. 
+    // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
     void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn = 0, unsigned ndelayloop = 100);
 
     // Measure encoder position
-    int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0); 
+    int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0);
 
     // --------------------------------------------------------------------------
     // Utility functions
     // --------------------------------------------------------------------------
 
     // Sleeps for a half-cycle of the frequency given in the argument...
-    // calibrated over the range from 0-1000 Hz.. should work elsewhere 
+    // calibrated over the range from 0-1000 Hz.. should work elsewhere
     void waitHalfPeriod(unsigned frequency);
 
 private:
     GPIOInterface gpio;
     Layout layout;
     SpiInterface spi;
-    TLC3548_ADC ADC; 
+    TLC3548_ADC ADC;
     unsigned          m_nusb;
     unsigned          m_ssp_clk_div;
 };
