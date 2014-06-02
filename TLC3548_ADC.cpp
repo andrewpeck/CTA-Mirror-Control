@@ -27,7 +27,6 @@ uint32_t TLC3548_ADC::codeInitialize()
 uint32_t TLC3548_ADC::codeConfig(SamplePeriod sp, ReferenceSelect rs,
         ConversionClock cc, ConversionMode cm, SweepSequence ss, InputMode im,
         OutputFormat of, PinFunction pf, TriggerLevel tl) 
-
 {
     uint32_t cfr = 0;
     if (rs == RS_EXTERNAL)               
@@ -109,12 +108,14 @@ uint32_t TLC3548_ADC::codeSelect(unsigned ichan)
 {
     if(ichan<8)
         return codeSelectChannel(ichan);
-    else if(ichan==9)
+    else if (ichan==8)
+        return codeSelectRefP();
+    else if (ichan==9)
         return codeSelectRefMid();
-    else if(ichan==10)
+    else if (ichan==10)
         return codeSelectRefM();
     else
-        return codeSelectRefP();
+        return (0); 
 }
 
 uint32_t TLC3548_ADC::codeReadFIFO()

@@ -53,7 +53,7 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data)
     for (ret = 0; ret < txsize; ret++)
     {
         //printf("\nret = %02X",(rx[ret]));
-        read |= (rx[ret]) << 8*((txsize-1)-ret);
+        read |= (rx[ret]) << 8*(ret);
     }
 
     //printf("\nRead = 0x%04X ", read);

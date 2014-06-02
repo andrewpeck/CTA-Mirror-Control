@@ -46,15 +46,15 @@ public:
 
     uint32_t codeInitialize();
     uint32_t codeConfig(
-            SamplePeriod sp    = SP_SHORT,
+            SamplePeriod    sp = SP_SHORT,
             ReferenceSelect rs = RS_EXTERNAL,
             ConversionClock cc = CC_INTERNAL,
-            ConversionMode cm  = CM_ONE_SHOT,
-            SweepSequence ss   = SS_01234567,
-            InputMode im       = IM_SINGLE_ENDED,
-            OutputFormat of    = OF_BOB,
-            PinFunction pf     = PF_EOC,
-            TriggerLevel tl    = TL_50PC); 
+            ConversionMode  cm = CM_ONE_SHOT,
+            SweepSequence   ss = SS_01234567,
+            InputMode       im = IM_SINGLE_ENDED,
+            OutputFormat    of = OF_BOB,
+            PinFunction     pf = PF_EOC,
+            TriggerLevel    tl = TL_50PC); 
 
 private: 
 };
