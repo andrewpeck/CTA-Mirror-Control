@@ -1,6 +1,7 @@
 #include <iostream>
 #include <MirrorControlBoard.hpp>
 #include <TLC3548_ADC.hpp>
+#include <SpiInterface.hpp>
 
 class cbc
 {
@@ -41,11 +42,11 @@ public:
     // Print drive status information. 
     void status();
     // Measure voltage of the specified ADC channel. For multiple passes will print average data. 
-    void measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, unsigned ndelay, float volt_full, int hex_out);
+    void measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, float volt_full, int hex_out);
     // Measure voltage of the specified ADC channel. For multiple passes will print individual measurement data. 
-    void measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned ndelay, unsigned volt_full);
+    void measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned volt_full);
     // Measure voltage of the specified ADC channel.
-    void calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned ndelay, unsigned iadc, unsigned nmeas, unsigned nburn, unsigned ichan);
+    void calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned frequency, unsigned iadc, unsigned nmeas, unsigned nburn, unsigned ichan);
 
     // Print Program Usage 
     int usage();

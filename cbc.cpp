@@ -139,6 +139,17 @@ int main(int argc, const char** argv)
         unsigned igpio = atoi(*argv);
         cbc.testgpio(igpio);
     }
+    else if (command == "testspi")
+    {
+        if (argc==0)
+            cbc.usage();
+        uint32_t data = strtol(*argv, NULL, 16);
+        SpiInterface spi; 
+        spi.Configure(); 
+        printf("write: %04X", data); 
+        data = spi.WriteRead(data);
+        printf("read: %04X", data); 
+    }
     else if (command == "freqloop")
     {
         if (argc==0)
@@ -174,7 +185,7 @@ int main(int argc, const char** argv)
         argc--, argv++;
 
         // delay
-        unsigned frequency = 400;
+        unsigned frequency = 1000;
         if(argc)
         {
             frequency = atoi(*argv);
@@ -306,14 +317,7 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        unsigned ndelay = 100;
-        if(argc)
-        {
-            ndelay = atoi(*argv);
-            argc--, argv++;
-        }
-
-        float volt_full = 5.05;
+        float volt_full = 5.000;
         if(argc)
         {
             volt_full = atof(*argv);
@@ -327,7 +331,7 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        cbc.measure(iadc, zchan, nmeas, nburn, ndelay, volt_full, hex_out);
+        cbc.measure(iadc, zchan, nmeas, nburn, volt_full, hex_out);
     }
     else if (command == "measure_full")
     {
@@ -349,20 +353,13 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        unsigned ndelay = 100;
-        if(argc)
-        {
-            ndelay = atoi(*argv);
-            argc--, argv++;
-        }
-
         float volt_full = 5.05;
         if(argc)
         {
             volt_full = atof(*argv);
             argc--, argv++;
         }
-        cbc.measure_full(iadc, zchan, nmeas, ndelay, volt_full);
+        cbc.measure_full(iadc, zchan, nmeas, volt_full);
     }
     else if (command == "calibrate")
     {
@@ -391,18 +388,19 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        //unsigned dir = 0;
-        //if(ncycle <= 1)
-        //    dir = ncycle, ncycle = 1;
-
         // delay
-        unsigned ndelay = 10000;
+        unsigned frequency = 1000;
         if(argc)
         {
-            ndelay = atoi(*argv);
+            frequency = atoi(*argv);
             argc--, argv++;
         }
 
+        cbc.step(idrive, nstep, frequency);
+        //unsigned dir = 0;
+        //if(ncycle <= 1)
+        //    dir = ncycle, ncycle = 1;
+        
         // default ADC=7
         unsigned iadc = 7;
         // otherwise... take argument
@@ -437,7 +435,7 @@ int main(int argc, const char** argv)
             ichan = atoi(*argv);
             argc--, argv++;
         }
-        cbc.calibrate(idrive, nstep, ncycle, ndelay, iadc, nmeas, nburn, ichan);
+        cbc.calibrate(idrive, nstep, ncycle, frequency, iadc, nmeas, nburn, ichan);
     }
     else
         cbc.usage();
@@ -797,10 +795,11 @@ void cbc::status()
     printf("\n");
 }
 
-void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, unsigned ndelay, float volt_full, int hex_out)
+void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, float volt_full, int hex_out)
 {
     if ((iadc<1)||(iadc>8))
         usage();
+    // count from 0
     iadc--;
 
     if (zchan>NCHANMAX)
@@ -815,7 +814,6 @@ void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn,
     printf("ADC:        %i\n",          iadc+1);
     printf("Channels:   %i to %i\n",    zchan+1,nchan);
     printf("Nburn:      %i\n",          nburn);
-    printf("NDelay:     %i\n",          ndelay);
     printf("FullVolt    %f\n\n",        volt_full);
 
     uint32_t sum [NCHANMAX];
@@ -824,7 +822,12 @@ void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn,
     uint32_t min [NCHANMAX];
 
     for (unsigned ichan=zchan; ichan<nchan; ichan++)
-        mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn, ndelay);
+        mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn);
+
+    if (hex_out == 0)
+        printf("i  mean   rms    max    min     \n");
+    else
+        printf("i  mean     rms      max      min     \n");
 
     for(unsigned ichan=zchan; ichan<nchan; ichan++)
     {
@@ -833,20 +836,18 @@ void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn,
         uint64_t var = (sum2[ichan] - s*s/nmeas)/nmeas;
         uint32_t rms = julery_isqrt(uint32_t(var));
 
-        if(hex_out != 0)
-        {
-            printf("i  mean     rms      max      min     \n");
-            printf("%02i 0x%06X 0x%06X 0x%06X 0x%06X\n", ichan+1, mean, rms, max[ichan], min[ichan]);
-        }
-        else
+        if(hex_out == 0)
         {
             float adcmean = adc.voltData(mean,      volt_full);
             float adcrms  = adc.voltData(rms,       volt_full);
             float adcmax  = adc.voltData(max[ichan],volt_full);
             float adcmin  = adc.voltData(min[ichan],volt_full);
 
-            printf("i mean   rms    max    min     \n");
-            printf("%i %06.04f %06.04f %06.04f %06.04f\n",ichan+1,adcmean,adcrms,adcmax,adcmin);
+            printf("%02i %06.04f %06.04f %06.04f %06.04f\n",ichan+1,adcmean,adcrms,adcmax,adcmin);
+        }
+        else
+        {
+            printf("%02i 0x%06X 0x%06X 0x%06X 0x%06X\n", ichan+1, mean, rms, max[ichan], min[ichan]);
         }
     } // close for ichan
 
@@ -865,7 +866,7 @@ void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn,
     }
 }
 
-void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned ndelay, unsigned volt_full)
+void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned volt_full)
 {
     if((iadc<1)||(iadc>7))
         usage();
@@ -881,7 +882,7 @@ void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned n
 
     // Fill vector with adc measurments for all specified channels
     for(unsigned ichan=zchan; ichan<nchan; ichan++)
-        mcb.measureADC(iadc, ichan, nmeas, vecChanMeas[ichan], ndelay);
+        mcb.measureADC(iadc, ichan, nmeas, vecChanMeas[ichan]);
 
     // Loop over the number of measurements requested
     for(unsigned i = 0; i < nmeas; ++i)
@@ -896,7 +897,7 @@ void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned n
     }
 }
 
-void cbc::calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned ndelay, unsigned iadc, unsigned nmeas, unsigned nburn, unsigned ichan)
+void cbc::calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned frequency, unsigned iadc, unsigned nmeas, unsigned nburn, unsigned ichan)
 {
     // invalid drive
     if((idrive<1)||(idrive>6))
@@ -916,7 +917,6 @@ void cbc::calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned n
     else
         ichan--;
 
-    unsigned ndelay_adc = 100;
     float volt_full = 1.0; // 5.05;
 
     uint32_t* sum   = new uint32_t[nstep*ncycle];
@@ -944,9 +944,9 @@ void cbc::calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned n
             // Move motor one step
             mcb.stepOneDrive(idrive, dir);
             // Wait a moment
-            usleep(ndelay);
+            mcb.waitHalfPeriod(frequency);
             // Measure on ADC
-            mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn, ndelay_adc);
+            mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn);
         } // close (for istep)
     } // close (for icycle)
 
@@ -1046,37 +1046,37 @@ std::string cbc::usage_text =
 "\n    disableusb             {USB 1-7, or all"
 "\n                           Disable USB (USB)."
 "\n    "
-"\n    step                   {DR 1-6} {NSTEPS} [Frequency]"
+"\n    step                   {DR 1-6} {NSTEPS} [Frequency=1000]"
 "\n                           Step drive some number of steps (positive to"
-"\n                           extend, negative to retract) with frequency in Hz (default=400)"
+"\n                           extend, negative to retract) with frequency in Hz"
 "\n    "
-"\n    slew                   {DR 1-6} [DIR=(extend/retract)] [Frequency]"
+"\n    slew                   {DR 1-6} [DIR=(extend/retract)] [Frequency=1000]"
 "\n                           Slew drive (DR) in given direction (DIR, default extend) "
-"\n                           with frequency in Hz (default = 400)."
+"\n                           with frequency in Hz."
 "\n    "
-"\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [Frequency]"
+"\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [Frequency=1000]"
 "\n                           Step all drives some number of steps (positive to extend,"
 "\n                           negative to retract and zero to not move that drive.)"
 "\n    "
-"\n    slew_all               [DIR=(extend/retract)] [Frequency]"
+"\n    slew_all               [DIR=(extend/retract)] [Frequency=1000]"
 "\n                           Slew all (enabled) drives in given direction (DIR, default "
-"\n                           extend) with frequency of steps in Hz (default=400)."
+"\n                           extend) with frequency of steps in Hz."
 "\n    "
 "\n    status                 Print drive status information"
 "\n    "
-"\n    measure                {ADC 1-8} {CHAN 0-11} [MEAS=1 BURN=0 DELAY=100 SCALE=5.05]"
+"\n    measure                {ADC 1-8} {CHAN 0-11} [MEAS=1 BURN=0 SCALE=5.05]"
 "\n                           Measure voltage of the specified ADC channel. Channel can be"
 "\n                           given as zero to specify all channels on one ADC. Channels 9, 10"
 "\n                           and 11 correspond to internal reference voltages on the ADC."
 "\n                           Prints out statistics."
 "\n    "
-"\n    measure_full           {ADC 1-8} {CHAN 0-11} [MEAS=1 DELAY=100 SCALE=5.05]"
+"\n    measure_full           {ADC 1-8} {CHAN 0-11} [MEAS=1 SCALE=5.05]"
 "\n                           Measure voltage of the specified ADC channel. Channel can be"
 "\n                           given as zero to specify all channels on one ADC. Channels 9, 10"
 "\n                           and 11 correspond to internal reference voltages on the ADC."
 "\n                           Prints out raw data."
 "\n    "
-"\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 DELAY=10000 ADC=7 MEAS=1]"
+"\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 FREQUENCY=1000 ADC=7 MEAS=1]"
 "\n                           Step drive and read ADC after each step, printing its value to"
 "\n                           the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
 "\n                           of the travel, otherwise it specifies the number of half cycles"

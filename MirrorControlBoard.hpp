@@ -62,12 +62,12 @@ public:
     //------------------------------------------------------------------------------
 
     // Steps motor a single step in a direction specified by dir, with some delay controlling the io speed
-    void stepOneDrive(unsigned idrive, Dir dir, unsigned frequency = 400);
+    void stepOneDrive(unsigned idrive, Dir dir, unsigned frequency = 1000);
 
     // Simultaneously Steps all drives in a configurable direction..
     void stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir,
             Dir dr4_dir, Dir dr5_dir, Dir dr6_dir,
-            unsigned frequency = 400);
+            unsigned frequency = 1000);
 
     void setPhaseZeroOnAllDrives();
 
@@ -102,19 +102,19 @@ public:
     void initializeADC(unsigned iadc);
 
     // Measures ADC and returns result as value
-    uint32_t measureADC(unsigned iadc, unsigned ichan, unsigned ndelayloop = 100);
+    uint32_t measureADC(unsigned iadc, unsigned ichan);
     // Measures ADC for some number of loops and fills the results into a vector
-    void measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas, unsigned ndelayloop = 100);
+    void measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas);
     // Measures ADC over several \Channels and Fulls data into an array (data)
-    void measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop);
+    void measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan);
 
     // Measures by having the ADC sample a few times before reading out from the FIFO (don't know the purpose)
-    uint32_t measureADCWithBurn(unsigned iadc, unsigned ichan, unsigned ndelayloop = 100);
+    uint32_t measureADCWithBurn(unsigned iadc, unsigned ichan);
     // Loop over ADC Channels taking measurements and filling data array. Also has the ADC sample a few times before reading data
-    void measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan, unsigned ndelayloop);
+    void measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan);
 
     // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
-    void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn = 0, unsigned ndelayloop = 100);
+    void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn = 0);
 
     // Measure encoder position
     int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0);
