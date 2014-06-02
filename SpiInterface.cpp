@@ -13,7 +13,7 @@
 
 const char*     SpiInterface::device = "/dev/spidev1.0";
 
-SpiInterface::SpiInterface(): mode(0), bits(32), speed(1000000), delay(0) { }
+SpiInterface::SpiInterface(): mode(SPI_MODE_1), bits(16), speed(100000), delay(0) { }
 SpiInterface::~SpiInterface() { }
 
 void SpiInterface::pabort(const char *s)
@@ -27,12 +27,11 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data)
     uint32_t read=0;
     //printf("\nSent = 0x%04X ", data);
     int ret;
-    uint8_t byte1 = 0xFF & (data >> 24);
-    uint8_t byte2 = 0xFF & (data >> 16);
-    uint8_t byte3 = 0xFF & (data >> 8);
-    uint8_t byte4 = 0xFF & (data >> 0);
 
-    uint8_t tx[] = { byte1, byte2, byte3, byte4 };
+    uint8_t byte2 = (0xFF & (data >> 8));
+    uint8_t byte1 = (0xFF & (data >> 0));
+
+    uint8_t tx[] = {byte1, byte2 };
     const uint8_t txsize = ARRAY_SIZE(tx);
 
     uint8_t rx[txsize] = {0};
@@ -53,8 +52,10 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data)
 
     for (ret = 0; ret < txsize; ret++)
     {
-        read |= rx[ret] << 8*(txsize-ret-1);
+        //printf("\nret = %02X",(rx[ret]));
+        read |= (rx[ret]) << 8*((txsize-1)-ret);
     }
+
     //printf("\nRead = 0x%04X ", read);
     return read;
 }
@@ -62,8 +63,7 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data)
 uint32_t SpiInterface::WriteRead (uint32_t data)
 {
     int ret = 0;
-    int fd;
-
+    int fd; 
     //printf("\nOpening SPI device %s", device);
     fd = open(device, O_RDWR);
     if (fd < 0)
@@ -103,10 +103,9 @@ uint32_t SpiInterface::WriteRead (uint32_t data)
     //printf("bits per word: %d\n", bits);
     //printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
 
-    uint32_t send_data = data;  // implictly cast to uint32_t
-    transfer(fd,send_data);
 
+    uint32_t read = transfer(fd,data);
     close(fd);
 
-    return ret;
+    return (read); 
 }
