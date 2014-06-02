@@ -60,10 +60,11 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data)
     return read;
 }
 
-uint32_t SpiInterface::WriteRead (uint32_t data)
+void SpiInterface::Configure ()
 {
     int ret = 0;
     int fd; 
+
     //printf("\nOpening SPI device %s", device);
     fd = open(device, O_RDWR);
     if (fd < 0)
@@ -102,8 +103,11 @@ uint32_t SpiInterface::WriteRead (uint32_t data)
     //printf("spi mode: %d\n", mode);
     //printf("bits per word: %d\n", bits);
     //printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
-
-
+}
+uint32_t SpiInterface::WriteRead (uint32_t data)
+{
+    int fd; 
+    fd = open(device, O_RDWR);
     uint32_t read = transfer(fd,data);
     close(fd);
 

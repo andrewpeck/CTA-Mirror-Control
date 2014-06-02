@@ -18,6 +18,7 @@ public:
     // Write a 32 bit integer to MOSI.
     // 32 bit MISO value is returned.
     uint32_t WriteRead(uint32_t data);
+    void     Configure();
 
 private:
     uint32_t transfer(int fd, uint32_t data);
