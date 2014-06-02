@@ -13,7 +13,9 @@
 
 const char*     SpiInterface::device = "/dev/spidev1.0";
 
-SpiInterface::SpiInterface(): mode(SPI_MODE_1), bits(16), speed(100000), delay(0) { }
+SpiInterface::SpiInterface(): mode(SPI_MODE_1), bits(16), speed(1000000),
+    delay(0) { }
+
 SpiInterface::~SpiInterface() { }
 
 void SpiInterface::pabort(const char *s)
