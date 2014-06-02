@@ -47,6 +47,10 @@ void MirrorControlBoard::powerUpBase()
     // Power up ADCs
     powerUpADCs();
 
+    gpio.WriteLevel(layout.igpioADCSel1, 1);
+    gpio.WriteLevel(layout.igpioADCSel2, 1);
+    spi.WriteRead(0x0000);
+
     // Initialize on-board ADC
     initializeADC(0);
     initializeADC(1);
@@ -441,12 +445,13 @@ void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, u
 void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn, unsigned ndelayloop)
 {
     selectADC(iadc);
-    uint32_t code = ADC.codeSelect(ichan);
-    unsigned nloop = nburn + nmeas;
-    sum = 0;
-    sumsq = 0;
-    max = 0;
-    min = ~max;
+    uint32_t code   = ADC.codeSelect(ichan);
+    unsigned nloop  = nburn + nmeas;
+    sum             = 0;
+    sumsq           = 0;
+    max             = 0;
+    min             = ~max;
+
     // Loop over number of measurements
     for(unsigned iloop=0; iloop<nloop; iloop++)
     {
