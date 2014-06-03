@@ -144,18 +144,18 @@ int main(int argc, const char** argv)
         if (argc==0)
             cbc.usage();
         uint32_t data = strtol(*argv, NULL, 16);
-        SpiInterface spi; 
-        spi.Configure(); 
-        printf("write: %04X", data); 
+        SpiInterface spi;
+        spi.Configure();
+        printf("write: %04X", data);
         data = spi.WriteRead(data);
-        printf("read: %04X", data); 
+        printf("read: %04X", data);
     }
-    else if (command == "checkmotor")
+    else if (command == "testdrive")
     {
         if (argc==0)
             cbc.usage();
-        int idrive = atoi(*argv); 
-        cbc.checkmotor (idrive); 
+        int idrive = atoi(*argv);
+        cbc.testdrive (idrive);
 
     }
     else if (command == "freqloop")
@@ -563,17 +563,51 @@ void cbc::disableusb(int iusb)
     }
 }
 
-void cbc::checkmotor(int idrive)
+void cbc::testdrive(int idrive)
 {
-    enable(idrive); 
-    float initial_position = measure (1, idrive, 1000, 0, 5.00, 0); 
-    step (idrive, 96, 1000); 
-    usleep(500000); 
-    step (idrive, -96, 1000); 
-    float final_position = measure (1, idrive, 1000, 0, 5.00, 0); 
+    srand (time(NULL));
+    int nsamples = 1000;
+    //enable drive
+    enable(idrive);
+    for (int npasses=0; npasses < 10; npasses++)
+    {
+        int nsteps = rand() % 100;  //random number from 0 to 99
+        uint32_t datum = 0;
 
-    float diff = initial_position - final_position; 
-    printf ("Idrive %i: delta position = %f\n", idrive, diff); 
+        // take some number of samples from adc
+        for (int i=0; i<nsamples; i++)
+            datum += mcb.measureADC(0,idrive-1);
+        datum = datum / nsamples;
+        float initial_position = adc.voltData(datum,5.00);
+
+        usleep(100000);
+        // step motor
+        step (idrive, nsteps, 1000);
+
+
+        // take some number of samples from adc
+        datum = 0;
+        for (int i=0; i<nsamples; i++)
+            datum += mcb.measureADC(0,idrive-1);
+        datum = datum / nsamples;
+        float mid_position = adc.voltData(datum,5.00);
+
+        // step motor back
+        step (idrive, -nsteps, 1000);
+
+        // take some number of samples from adc
+        datum = 0;
+        for (int i=0; i<nsamples; i++)
+            datum += mcb.measureADC(0,idrive-1);
+        datum = datum / nsamples;
+        float final_position = adc.voltData(datum,5.00);
+
+        float diff = initial_position - final_position;
+        float nsteps_measured = 8.0*(mid_position-inital_position)/0.006267;
+        printf ("drive %02i: steps=%02i step_measured=%02.02f delta position=%.04f\n", idrive, nsteps, nsteps_measured, diff);
+    }
+    // disable drive once again
+    disable(idrive);
 }
 
 void cbc::testgpio(unsigned igpio)

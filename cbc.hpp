@@ -24,43 +24,43 @@ public:
     void disableusb     (int iusb);
 
     // some temp functions for testing gpios
-    void checkmotor     (int idrive); 
+    void testdrive      (int idrive);
     void testgpio       (unsigned igpio);
     void freqloop       (unsigned nloop);
     void frequ          (unsigned frequency);
     void freqn          (unsigned frequency);
 
-    //Step drive some number of steps (positive to extend, negative to retract). 
+    //Step drive some number of steps (positive to extend, negative to retract).
     void step(unsigned idrive, int nstep, unsigned frequency);
     //Step all drives some number of steps
     void step_all(int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6, unsigned frequency);
 
     // Slew drive (DR) in given direction (move as far as possible)
     void slew(unsigned idrive, MirrorControlBoard::Dir dir, unsigned frequency);
-    // Slew all (enabled) drives in given direction (DIR, default 
+    // Slew all (enabled) drives in given direction (DIR, default
     void slew_all(MirrorControlBoard::Dir dir, unsigned frequency);
 
-    // Print drive status information. 
+    // Print drive status information.
     void status();
 
-    // Measure voltage of the specified ADC channel. For multiple passes will print average data. 
+    // Measure voltage of the specified ADC channel. For multiple passes will print average data.
     // If a single Channel is selected, it will return the average value measured, else return 0
     float measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, float volt_full, int hex_out);
 
-    // Measure voltage of the specified ADC channel. For multiple passes will print individual measurement data. 
+    // Measure voltage of the specified ADC channel. For multiple passes will print individual measurement data.
     void measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned volt_full);
 
     // Measure voltage of the specified ADC channel.
     void calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned frequency, unsigned iadc, unsigned nmeas, unsigned nburn, unsigned ichan);
 
-    // Print Program Usage 
+    // Print Program Usage
     int usage();
 
 private:
     GPIOInterface gpio;
     Layout layout;
     MirrorControlBoard mcb;
-    TLC3548_ADC adc; 
+    TLC3548_ADC adc;
 
     static std::string usage_text;
 
