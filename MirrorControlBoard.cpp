@@ -312,190 +312,70 @@ void MirrorControlBoard::selectADC(unsigned iadc)
 
 uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 {
-    spi.Configure();
+    spi.Configure();        // Configure Spi bus
+    initializeADC(iadc);    // Initialize ADC (clears fifo)
+    selectADC(iadc);        // Assert Chip Select
 
-    initializeADC(iadc); 
-
-    // Assert Chip Select
-    selectADC(iadc);
-
-    // ADC Channel Select
-    uint32_t code = ADC.codeSelect(ichan);
-    spi.WriteRead(code);
-
-    // Read ADC
-    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
+    // Read Data
+    spi.WriteRead(ADC.codeSelect(ichan));
+    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO(ichan));
 
     return ADC.decodeUSB(datum);
-}
-
-void MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas)
-{
-    spi.Configure();
-    initializeADC(iadc); 
-    selectADC(iadc);
-    uint32_t code = ADC.codeSelect(ichan);
-    unsigned nloop = nmeas;
-    vMeas.resize(nmeas);
-
-
-    // Loop over number of measurements
-    for(unsigned iloop=0; iloop <= nloop; iloop++)
-    {
-        uint32_t datum;
-        // last loop
-        if (iloop == nloop)
-            datum = spi.WriteRead(ADC.codeReadFIFO());
-        // not the last loop
-        else
-            datum = spi.WriteRead(code);
-
-        if (iloop == 0)
-            continue;
-
-        // decode data and fill array
-        datum = ADC.decodeUSB(datum);
-        vMeas[iloop - 1] = datum;
-    }
-}
-
-void MirrorControlBoard::measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan)
-{
-    spi.Configure();
-    initializeADC(iadc); 
-
-
-    // adc chip select
-    selectADC(iadc);
-    uint32_t datum;
-
-    // loop over adc channels
-    for (unsigned ichan=0; ichan<nchan; ichan++)
-    {
-        // read data
-        datum = spi.WriteRead(ADC.codeSelect(zchan+ichan));
-
-        if(ichan>0)
-            data[ichan-1] = ADC.decodeUSB(datum);
-    }
-
-    // Read data from FIFO
-    datum = spi.WriteRead(ADC.codeReadFIFO());
-
-    // Decode data and fill array
-    if(nchan>0)
-        data[nchan-1] = ADC.decodeUSB(datum);
-}
-
-uint32_t MirrorControlBoard::measureADCWithBurn(unsigned iadc, unsigned ichan)
-{
-    spi.Configure();
-    initializeADC(iadc); 
-
-    // ADC Chip Select
-    selectADC(iadc);
-
-    // Select ADC Channel
-    uint32_t code = ADC.codeSelect(ichan);
-
-    // Read
-    spi.WriteRead(code);
-
-    // Read
-    spi.WriteRead(code);
-
-    // save last data
-    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
-
-    // return decoded data
-    return ADC.decodeUSB(datum);
-}
-
-void MirrorControlBoard::measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan)
-{
-    spi.Configure();
-    initializeADC(iadc); 
-    // ADC Chip Select
-    selectADC(iadc);
-    // Loop Over the Number of ADC channels
-    for(unsigned ichan=0; ichan<nchan; ichan++)
-    {
-        uint32_t code = ADC.codeSelect(zchan+ichan);
-        // Read ADC Channel
-        uint32_t datum = spi.WriteRead(code);
-
-
-        // Decode data and fill array
-        if(ichan>0)
-            data[ichan-1] = ADC.decodeUSB(datum);
-
-        // Read ADC Channel again (discarding results)
-        spi.WriteRead(code);
-    }
-
-    // Read last data
-    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
-
-    // Decode data and fill array
-    if(nchan>0)
-        data[nchan-1] = ADC.decodeUSB(datum);
 }
 
 void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn)
 {
-    spi.Configure();
-    initializeADC(iadc); 
-    selectADC(iadc);
-    uint32_t code   = ADC.codeSelect(ichan);
-    unsigned nloop  = nburn + nmeas;
+    spi.Configure();        // Configure Spi Bus
+    initializeADC(iadc);    // Initialize ADC (clears fifo)
+    selectADC(iadc);        // Assert chip Select
+
     sum             = 0;
-    sumsq           = 0;
-    max             = 0;
-    min             = ~max;
+    sumsq           = 0;    
+    max             = 0;   
+    min             = ~max; // ~max is a very large number
+    uint32_t datum  = 0;    
+
+    // Burn through some number of reads but don't do anything with output
+    for (unsigned iloop=0; iloop<nburn; iloop++)
+        spi.WriteRead(ADC.codeSelect(ichan));
 
     // Loop over number of measurements
     for(unsigned iloop=0; iloop<nloop; iloop++)
     {
-        // Read data
-        uint32_t datum = spi.WriteRead(code);
+        // Poll data at least once
+        if (iloop == 0)
+            spi.WriteRead(ADC.codeSelect(ichan));
 
-        if (iloop>nburn)
+        // If current loop is last loop, read from FIFO
+        if (iloop == nloop-1)
         {
-            // Decode data
-            datum = ADC.decodeUSB(datum);
-            // Typecast to 64 bit integer..
-            uint64_t datum64 = datum;
-
-            // Accumulate statistics
-            sum+=datum;
-            sumsq+=datum64*datum64;
-            if(datum>max)
-                max=datum;
-            if(datum<min)
-                min=datum;
+            datum = spi.WriteRead(ADC.codeReadFIFO());
         }
+
+        // If current loop is not last loop, 
+        else
+        {
+            // Poll adc and read data
+            spi.WriteRead(ADC.codeSelect(ichan));
+        }
+
+        // extract correct bits from datum
+        datum = ADC.decodeUSB(datum);
+
+        // Accumulate statistics
+        sum   += datum;
+        sumsq += datum*datum;
+        if(datum>max)
+            max=datum;
+        if(datum<min)
+            min=datum;
     }
-
-    // Read last FIFO
-    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
-    //decode data
-    datum = ADC.decodeUSB(datum);
-
-    //typecast and accumulate statistics
-    uint64_t datum64 = datum;
-    sum+=datum;
-    sumsq+=datum64*datum64;
-
-    if(datum>max)
-        max=datum;
-    if(datum<min)
-        min=datum;
 }
 
 
 int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev, const int* correction)
 {
-    int meas = int(measureADCWithBurn(7, ichan));
+    int meas = int(measureADC(7, ichan));
     int calib_range = calib_lo - calib_hi;
     meas -= calib_hi;
     meas *= ticks_per_rev;

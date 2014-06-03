@@ -103,15 +103,6 @@ public:
 
     // Measures ADC and returns result as value
     uint32_t measureADC(unsigned iadc, unsigned ichan);
-    // Measures ADC for some number of loops and fills the results into a vector
-    void measureADC(unsigned iadc, unsigned ichan, unsigned nmeas, std::vector<uint32_t>& vMeas);
-    // Measures ADC over several \Channels and Fulls data into an array (data)
-    void measureManyADC(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan);
-
-    // Measures by having the ADC sample a few times before reading out from the FIFO (don't know the purpose)
-    uint32_t measureADCWithBurn(unsigned iadc, unsigned ichan);
-    // Loop over ADC Channels taking measurements and filling data array. Also has the ADC sample a few times before reading data
-    void measureManyADCWithBurn(uint32_t* data, unsigned iadc, unsigned zchan, unsigned nchan);
 
     // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
     void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn = 0);
