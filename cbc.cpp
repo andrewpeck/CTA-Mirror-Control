@@ -604,7 +604,7 @@ void cbc::testdrive(int idrive)
         float final_position = adc.voltData(datum,5.00);
 
         float diff = initial_position - final_position;
-        float nsteps_measured = 8.0*(mid_position-inital_position)/0.006267;
+        float nsteps_measured = 8.0*(mid_position-initial_position)/0.006267;
         printf ("drive %02i: steps=%02i step_measured=%02.02f delta position=%.04f\n", idrive, nsteps, nsteps_measured, diff);
     }
     // disable drive once again
