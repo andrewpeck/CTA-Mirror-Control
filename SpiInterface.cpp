@@ -105,7 +105,9 @@ void SpiInterface::Configure ()
     //printf("spi mode: %d\n", mode);
     //printf("bits per word: %d\n", bits);
     //printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
+    close(fd);
 }
+
 uint32_t SpiInterface::WriteRead (uint32_t data)
 {
     int fd; 
