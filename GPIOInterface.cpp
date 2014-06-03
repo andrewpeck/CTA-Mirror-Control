@@ -118,6 +118,7 @@ void GPIOInterface::ConfigureAll()
             SetDirection(i, 1);
         }
     }
+    fclose(configfile); 
 }
 
 //------------------------------------------------------------------------------
