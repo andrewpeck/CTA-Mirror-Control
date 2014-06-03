@@ -318,7 +318,7 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 
     // Read Data
     spi.WriteRead(ADC.codeSelect(ichan));
-    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO(ichan));
+    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
 
     return ADC.decodeUSB(datum);
 }
@@ -340,14 +340,14 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
         spi.WriteRead(ADC.codeSelect(ichan));
 
     // Loop over number of measurements
-    for(unsigned iloop=0; iloop<nloop; iloop++)
+    for(unsigned iloop=0; iloop<nmeas; iloop++)
     {
         // Poll data at least once
         if (iloop == 0)
             spi.WriteRead(ADC.codeSelect(ichan));
 
         // If current loop is last loop, read from FIFO
-        if (iloop == nloop-1)
+        if (iloop == nmeas-1)
         {
             datum = spi.WriteRead(ADC.codeReadFIFO());
         }
