@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
 #include <cstring>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -14,9 +13,18 @@
 const char*     SpiInterface::device = "/dev/spidev1.0";
 
 SpiInterface::SpiInterface(): mode(SPI_MODE_1), bits(16), speed(1000000),
-    delay(0) { }
+    delay(0) {
+        int fd = open(device, O_RDWR);
 
-SpiInterface::~SpiInterface() { }
+        //printf("\nOpening SPI device %s", device);
+        if (fd < 0)
+            pabort("spidev driver error: can't open spi device");
+
+   }
+
+SpiInterface::~SpiInterface() { 
+    close(fd);
+}
 
 void SpiInterface::pabort(const char *s)
 {
@@ -65,12 +73,6 @@ uint32_t SpiInterface::transfer(int fd, uint32_t data)
 void SpiInterface::Configure ()
 {
     int ret = 0;
-    int fd; 
-
-    //printf("\nOpening SPI device %s", device);
-    fd = open(device, O_RDWR);
-    if (fd < 0)
-        pabort("spidev driver error: can't open spi device");
 
     // set spi mode
     //printf("\nSetting SPI Mode 0x%02X: ", mode);
@@ -105,15 +107,11 @@ void SpiInterface::Configure ()
     //printf("spi mode: %d\n", mode);
     //printf("bits per word: %d\n", bits);
     //printf("max speed: %d Hz (%d KHz)\n", speed, speed/1000);
-    close(fd);
 }
 
 uint32_t SpiInterface::WriteRead (uint32_t data)
 {
-    int fd; 
-    fd = open(device, O_RDWR);
     uint32_t read = transfer(fd,data);
-    close(fd);
 
     return (read); 
 }
