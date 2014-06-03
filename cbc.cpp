@@ -18,6 +18,7 @@
 
 int main(int argc, const char** argv)
 {
+    int stepping_frequency = 400;
     argv++, argc--;
 
     cbc cbc;
@@ -193,7 +194,7 @@ int main(int argc, const char** argv)
         argc--, argv++;
 
         // delay
-        unsigned frequency = 1000;
+        unsigned frequency = stepping_frequency;
         if(argc)
         {
             frequency = atoi(*argv);
@@ -228,7 +229,7 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        unsigned frequency = 400; // Hz
+        unsigned frequency = stepping_frequency; // Hz
         if(argc)
         {
             frequency = atoi(*argv);
@@ -260,7 +261,7 @@ int main(int argc, const char** argv)
         if(argc)
             nstep6 = atoi(*argv), argc--, argv++;
 
-        unsigned frequency = 400; // Hz
+        unsigned frequency = stepping_frequency; // Hz
         if(argc)
         {
             frequency = atoi(*argv);
@@ -288,7 +289,7 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        unsigned frequency = 400;
+        unsigned frequency = stepping_frequency;
         if(argc)
         {
             frequency = atoi(*argv);
@@ -397,7 +398,7 @@ int main(int argc, const char** argv)
         }
 
         // delay
-        unsigned frequency = 1000;
+        unsigned frequency = stepping_frequency;
         if(argc)
         {
             frequency = atoi(*argv);
@@ -408,7 +409,7 @@ int main(int argc, const char** argv)
         //unsigned dir = 0;
         //if(ncycle <= 1)
         //    dir = ncycle, ncycle = 1;
-        
+
         // default ADC=7
         unsigned iadc = 7;
         // otherwise... take argument
@@ -922,9 +923,9 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
     }
 
     if (nchan == NCHANMAX)
-        return 0; 
-    else 
-        return (adc.voltData(sum[zchan]/nmeas, volt_full)); 
+        return 0;
+    else
+        return (adc.voltData(sum[zchan]/nmeas, volt_full));
 }
 
 void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned volt_full)
@@ -947,7 +948,7 @@ void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned v
         for(unsigned ichan=zchan; ichan<nchan; ichan++)
         {
             // Print voltage
-            uint32_t datum = mcb.measureADC(iadc,ichan); 
+            uint32_t datum = mcb.measureADC(iadc,ichan);
             printf("%06.04f\n", adc.voltData(datum));
         }
     }
@@ -1030,7 +1031,7 @@ void cbc::calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned f
             float adcmin  = adc.voltData(min[idatum], volt_full);
 
             printf("i mean   rms    max    min     \n");
-            printf("%i %06.04f %06.04f %06.04f %06.04f\n",idatum,adcmean,adcrms,adcmax,adcmin);
+            printf("%02i %06.04f %06.04f %06.04f %06.04f\n",idatum,adcmean,adcrms,adcmax,adcmin);
         }
         else
         {
@@ -1102,19 +1103,19 @@ std::string cbc::usage_text =
 "\n    disableusb             {USB 1-7, or all"
 "\n                           Disable USB (USB)."
 "\n    "
-"\n    step                   {DR 1-6} {NSTEPS} [Frequency=1000]"
+"\n    step                   {DR 1-6} {NSTEPS} [Frequency=400]"
 "\n                           Step drive some number of steps (positive to"
 "\n                           extend, negative to retract) with frequency in Hz"
 "\n    "
-"\n    slew                   {DR 1-6} [DIR=(extend/retract)] [Frequency=1000]"
+"\n    slew                   {DR 1-6} [DIR=(extend/retract)] [Frequency=400]"
 "\n                           Slew drive (DR) in given direction (DIR, default extend) "
 "\n                           with frequency in Hz."
 "\n    "
-"\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [Frequency=1000]"
+"\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [Frequency=400]"
 "\n                           Step all drives some number of steps (positive to extend,"
 "\n                           negative to retract and zero to not move that drive.)"
 "\n    "
-"\n    slew_all               [DIR=(extend/retract)] [Frequency=1000]"
+"\n    slew_all               [DIR=(extend/retract)] [Frequency=400]"
 "\n                           Slew all (enabled) drives in given direction (DIR, default "
 "\n                           extend) with frequency of steps in Hz."
 "\n    "
@@ -1132,7 +1133,7 @@ std::string cbc::usage_text =
 "\n                           and 11 correspond to internal reference voltages on the ADC."
 "\n                           Prints out raw data."
 "\n    "
-"\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 FREQUENCY=1000 ADC=7 MEAS=1]"
+"\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 FREQUENCY=400 ADC=7 MEAS=1]"
 "\n                           Step drive and read ADC after each step, printing its value to"
 "\n                           the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
 "\n                           of the travel, otherwise it specifies the number of half cycles"
