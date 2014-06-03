@@ -24,6 +24,7 @@ public:
     void disableusb     (int iusb);
 
     // some temp functions for testing gpios
+    void checkmotor     (int idrive); 
     void testgpio       (unsigned igpio);
     void freqloop       (unsigned nloop);
     void frequ          (unsigned frequency);
@@ -41,10 +42,14 @@ public:
 
     // Print drive status information. 
     void status();
+
     // Measure voltage of the specified ADC channel. For multiple passes will print average data. 
-    void measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, float volt_full, int hex_out);
+    // If a single Channel is selected, it will return the average value measured, else return 0
+    float measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, float volt_full, int hex_out);
+
     // Measure voltage of the specified ADC channel. For multiple passes will print individual measurement data. 
     void measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned volt_full);
+
     // Measure voltage of the specified ADC channel.
     void calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned frequency, unsigned iadc, unsigned nmeas, unsigned nburn, unsigned ichan);
 

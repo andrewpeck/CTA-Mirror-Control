@@ -139,7 +139,7 @@ int main(int argc, const char** argv)
         unsigned igpio = atoi(*argv);
         cbc.testgpio(igpio);
     }
-    else if (command == "testspi")
+    else if (command == "writespi")
     {
         if (argc==0)
             cbc.usage();
@@ -149,6 +149,14 @@ int main(int argc, const char** argv)
         printf("write: %04X", data); 
         data = spi.WriteRead(data);
         printf("read: %04X", data); 
+    }
+    else if (command == "checkmotor")
+    {
+        if (argc==0)
+            cbc.usage();
+        int idrive = atoi(*argv); 
+        cbc.checkmotor (idrive); 
+
     }
     else if (command == "freqloop")
     {
@@ -545,6 +553,7 @@ void cbc::disableusb(int iusb)
 
     if(iusb==0)
         mcb.powerDownAllUSB();
+
     else
     {
         //count from zero
@@ -552,6 +561,19 @@ void cbc::disableusb(int iusb)
 
         mcb.powerDownUSB(iusb);
     }
+}
+
+void cbc::checkmotor(int idrive)
+{
+    enable(idrive); 
+    float initial_position = measure (1, idrive, 1000, 0, 5.00, 0); 
+    step (idrive, 96, 1000); 
+    usleep(500000); 
+    step (idrive, -96, 1000); 
+    float final_position = measure (1, idrive, 1000, 0, 5.00, 0); 
+
+    float diff = initial_position - final_position; 
+    printf ("Idrive %i: delta position = %f\n", idrive, diff); 
 }
 
 void cbc::testgpio(unsigned igpio)
@@ -795,7 +817,7 @@ void cbc::status()
     printf("\n");
 }
 
-void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, float volt_full, int hex_out)
+float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn, float volt_full, int hex_out)
 {
     if ((iadc<1)||(iadc>8))
         usage();
@@ -864,6 +886,11 @@ void cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn,
         printf("POS %07.04f ", double(v[0] + v[2] - v[1] - v[3])/(v[0] + v[1] + v[2] + v[3]));
         printf("%07.04f\n",    double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]));
     }
+
+    if (nchan == NCHANMAX)
+        return 0; 
+    else 
+        return (adc.voltData(sum[zchan]/nmeas, volt_full)); 
 }
 
 void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned volt_full)
@@ -875,14 +902,9 @@ void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned v
     if(zchan>NCHANMAX)
         usage();
     unsigned nchan = zchan;
-    if(zchan==0)nchan=NCHANMAX;
+    if(zchan==0)
+        nchan=NCHANMAX;
     else zchan--;
-
-    std::vector< std::vector<uint32_t> > vecChanMeas(NCHANMAX);
-
-    // Fill vector with adc measurments for all specified channels
-    for(unsigned ichan=zchan; ichan<nchan; ichan++)
-        mcb.measureADC(iadc, ichan, nmeas, vecChanMeas[ichan]);
 
     // Loop over the number of measurements requested
     for(unsigned i = 0; i < nmeas; ++i)
@@ -891,9 +913,9 @@ void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned v
         for(unsigned ichan=zchan; ichan<nchan; ichan++)
         {
             // Print voltage
-            printf("%06.04f ", adc.voltData(vecChanMeas[ichan][i]));
+            uint32_t datum = mcb.measureADC(iadc,ichan); 
+            printf("%06.04f\n", adc.voltData(datum));
         }
-        printf("\n");
     }
 }
 
