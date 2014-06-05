@@ -1,6 +1,6 @@
 # SJF
 
-LIBOBJECTS =  GPIOInterface.o MirrorControlBoard.o SpiInterface.o Layout.o mcspiInterface.o TLC3548_ADC.o
+LIBOBJECTS =  GPIOInterface.o MirrorControlBoard.o SpiInterface.o Layout.o mcspiInterface.o TLC3548_ADC.o minIni.o configurator.o
 #	  OmniORBHelper.o VSAssert.o VSDataConverter.o VSOptions.o 
 ALLOBJECTS = cbc.o demo.o $(LIBOBJECTS)
 

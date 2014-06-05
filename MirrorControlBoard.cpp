@@ -31,9 +31,6 @@ void MirrorControlBoard::powerUpBase()
 
     // Power up the A3977 chips
     powerUpDriveControllers();
-    enableDriveSR();
-    disableDriveHiCurrent();
-    setUStep(MirrorControlBoard::USTEP_8);
 
     // turn off all drives
     disableAllDrives();

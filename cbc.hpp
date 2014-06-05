@@ -55,6 +55,7 @@ public:
 
     // Print Program Usage
     int usage();
+    int getInt(std::string var); 
 
 private:
     GPIOInterface gpio;
@@ -66,4 +67,5 @@ private:
 
     // fast integer square root
     unsigned julery_isqrt(unsigned long val);
+
 };

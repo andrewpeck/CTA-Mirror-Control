@@ -14,16 +14,19 @@
 #include <cbc.hpp>
 #include <stdio.h>
 #include <pthread.h>
+#include <configurator.hpp>
 #define NCHANMAX 11
 
 int main(int argc, const char** argv)
 {
-    int stepping_frequency = 4000;
+
     argv++, argc--;
 
     cbc cbc;
     MirrorControlBoard mcb;
+    configurator config; 
 
+    int stepping_frequency = config.frequency(); 
 
     if(argc == 0)
         cbc.usage();
@@ -468,6 +471,8 @@ int main(int argc, const char** argv)
 
 int cbc::initialize()
 {
+    configurator config; 
+
     // configure gpio directions
     printf("Configuring GPIOs...\n");
     gpio.ConfigureAll();
@@ -475,10 +480,37 @@ int cbc::initialize()
     printf("Powering up and configuring base...\n");
     mcb.powerUpBase();
 
-    //disable all usbs except 1
-    printf("Turn off USBs...\n");
-    for (int i=2; i<=7; i++) {
-        disableusb(i);
+
+    if (config.drivesr())
+        mcb.enableDriveSR();
+    else 
+        mcb.disableDriveSR(); 
+
+    if (config.hicurrent())
+        mcb.enableDriveHiCurrent();
+    else
+        mcb.disableDriveHiCurrent();
+
+
+    unsigned microsteps = config.microsteps(); 
+    set_microstep(microsteps); 
+
+    printf("Configure USBs...\n");
+    for (int i=1; i<=7; i++) 
+    {
+        if (config.usbenabled(i))
+            enableusb(i);
+        else
+            disableusb(i);
+    }
+
+    printf("Configure Motor Drivers...\n");
+    for (int i=1; i<=6; i++) 
+    {
+        if (config.driveenabled(i))
+            enable(i);
+        else
+            disable(i);
     }
 
     return EXIT_SUCCESS;
@@ -1236,3 +1268,4 @@ std::string cbc::usage_text =
 "\n                           of expansion and contraction to perform."
 "\ncbc version 2.1.7"
 "\n";
+
