@@ -312,12 +312,18 @@ void MirrorControlBoard::selectADC(unsigned iadc)
 
 uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 {
-    spi.Configure();        // Configure Spi bus
-    initializeADC(iadc);    // Initialize ADC (clears fifo)
-    selectADC(iadc);        // Assert Chip Select
+    spi.Configure();
 
-    // Read Data
-    spi.WriteRead(ADC.codeSelect(ichan));
+    initializeADC(iadc); 
+
+    // Assert Chip Select
+    selectADC(iadc);
+
+    // ADC Channel Select
+    uint32_t code = ADC.codeSelect(ichan);
+    spi.WriteRead(code);
+
+    // Read ADC
     uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
 
     return ADC.decodeUSB(datum);
@@ -325,66 +331,67 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 
 void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn)
 {
-    spi.Configure();        // Configure Spi Bus
-    initializeADC(iadc);    // Initialize ADC (clears fifo)
-    selectADC(iadc);        // Assert chip Select
-
+    spi.Configure();
+    initializeADC(iadc); 
+    selectADC(iadc);
+    uint32_t code   = ADC.codeSelect(ichan);
+    unsigned nloop  = nburn + nmeas;
     sum             = 0;
-    sumsq           = 0;    
-    max             = 0;   
-    min             = ~max; // ~max is a very large number
-    uint32_t datum  = 0;    
-
-    // Burn through some number of reads but don't do anything with output
-    for (unsigned iloop=0; iloop<nburn; iloop++)
-        spi.WriteRead(ADC.codeSelect(ichan));
+    sumsq           = 0;
+    max             = 0;
+    min             = ~max;
 
     // Loop over number of measurements
-    for(unsigned iloop=0; iloop<nmeas; iloop++)
+    for(unsigned iloop=0; iloop<nloop; iloop++)
     {
-        // Poll data at least once
-        if (iloop == 0)
-            spi.WriteRead(ADC.codeSelect(ichan));
+        // Read data
+        uint32_t datum = spi.WriteRead(code);
 
-        // If current loop is last loop, read from FIFO
-        if (iloop == nmeas-1)
+        if (iloop>nburn)
         {
-            datum = spi.WriteRead(ADC.codeReadFIFO());
+            // Decode data
+            datum = ADC.decodeUSB(datum);
+            // Typecast to 64 bit integer..
+            uint64_t datum64 = datum;
+
+            // Accumulate statistics
+            sum+=datum;
+            sumsq+=datum64*datum64;
+            if(datum>max)
+                max=datum;
+            if(datum<min)
+                min=datum;
         }
-
-        // If current loop is not last loop, 
-        else
-        {
-            // Poll adc and read data
-            spi.WriteRead(ADC.codeSelect(ichan));
-        }
-
-        // extract correct bits from datum
-        datum = ADC.decodeUSB(datum);
-
-        // Accumulate statistics
-        sum   += datum;
-        sumsq += datum*datum;
-        if(datum>max)
-            max=datum;
-        if(datum<min)
-            min=datum;
     }
+
+    // Read last FIFO
+    uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
+    //decode data
+    datum = ADC.decodeUSB(datum);
+
+    //typecast and accumulate statistics
+    uint64_t datum64 = datum;
+    sum+=datum;
+    sumsq+=datum64*datum64;
+
+    if(datum>max)
+        max=datum;
+    if(datum<min)
+        min=datum;
 }
 
 
-//unused
-//int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev, const int* correction)
-//{
-//    int meas = int (measureADC(7, ichan));
-//    int calib_range = calib_lo - calib_hi;
-//    meas -= calib_hi;
-//    meas *= ticks_per_rev;
-//    meas /= calib_range;
-//    if (correction && meas>=0 && meas<int(ticks_per_rev))
-//        meas+=correction[meas];
-//    return meas;
-//}
+int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev, const int* correction)
+{
+    int meas = int(measureADC(7, ichan));
+    int calib_range = calib_lo - calib_hi;
+    meas -= calib_hi;
+    meas *= ticks_per_rev;
+    meas /= calib_range;
+    if (correction && meas>=0 && meas<int(ticks_per_rev))
+        meas+=correction[meas];
+    return meas;
+}
 
 //------------------------------------------------------------------------------
 // General Purpose Utilities

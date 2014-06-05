@@ -87,32 +87,28 @@ public:
     // Check Stepper Motor Enabled
     bool isDriveEnabled(unsigned idrive);
 
-    // enable hi current mode
     void enableDriveHiCurrent(bool enable = true);
-    // disable hi current mode
     void disableDriveHiCurrent();
-    // check if hi current is enabled or disabled
     bool isDriveHiCurrentEnabled();
 
     //------------------------------------------------------------------------------
     // ADC Function Prototypes
     //------------------------------------------------------------------------------
 
-    // Asserts Correct ADC Chip Select Line and deasserts the other one
+    // Asserts Correct ADC Chip Select Line
     void selectADC(unsigned iadc);
 
     // Writes initialization codes to ADC
     void initializeADC(unsigned iadc);
 
-    // Takes a single ADC measurement and returns result as value (raw integer value! you need to convert to a voltage yourself)
+    // Measures ADC and returns result as value
     uint32_t measureADC(unsigned iadc, unsigned ichan);
 
     // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
     void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn = 0);
 
     // Measure encoder position
-    // unused
-    //int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0);
+    int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0);
 
     // --------------------------------------------------------------------------
     // Utility functions
