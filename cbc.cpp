@@ -307,11 +307,13 @@ int main(int argc, const char** argv)
         unsigned iadc = atoi(*argv);
         argc--, argv++;
 
+        // channel
         if(argc==0)
             cbc.usage();
         unsigned zchan = atoi(*argv);
         argc--, argv++;
 
+        // number of measurements
         unsigned nmeas = 1;
         if(argc)
         {
@@ -319,6 +321,7 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
+        // number to burn
         unsigned nburn = 0;
         if(argc)
         {
@@ -326,6 +329,10 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
+        // delay (burn an argument for legacy purposes). 
+        argc--, argv++;
+        
+        // voltage reference
         float volt_full = 5.000;
         if(argc)
         {
@@ -333,6 +340,7 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
+        // hex out yes or no ? 
         int hex_out = 0;
         if(argc)
         {
@@ -344,17 +352,19 @@ int main(int argc, const char** argv)
     }
     else if (command == "measure_full")
     {
+        // adc number 
         if(argc==0)
             cbc.usage();
         unsigned iadc = atoi(*argv);
         argc--, argv++;
 
-
+        // adc channel
         if(argc==0)
             cbc.usage();
         unsigned zchan = atoi(*argv);
         argc--, argv++;
 
+        // number of measurements
         unsigned nmeas = 1;
         if(argc)
         {
@@ -362,7 +372,11 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        float volt_full = 5.05;
+        // delay (burn a value for legacy reasons)
+        argc--, argv++;
+
+        // voltage reference
+        float volt_full = 5.00;
         if(argc)
         {
             volt_full = atof(*argv);
@@ -868,10 +882,22 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
     else
         zchan--;
 
-    printf("ADC:        %i\n",          iadc+1);
-    printf("Channels:   %i to %i\n",    zchan+1,nchan);
-    printf("Nburn:      %i\n",          nburn);
-    printf("FullVolt    %f\n\n",        volt_full);
+    //------------------------------------------------------------------------------
+    // good code: 
+    // printf("ADC:        %i\n",          iadc+1);
+    // printf("Channels:   %i to %i\n",    zchan+1,nchan);
+    // printf("Nburn:      %i\n",          nburn);
+    // printf("FullVolt    %f\n\n",        volt_full);
+    //------------------------------------------------------------------------------
+    // bad code
+    std::cout 
+        << "ADC:      " << iadc+1       << '\n'
+		<< "Channels: " << zchan+1      << " to " << nchan << '\n'
+		<< "NMeas:    " << nmeas        << '\n'
+		<< "NBurn:    " << nburn        << '\n'
+		<< "NDelay:   " << "0"          << '\n'
+		<< "FullVolt: " << volt_full    << '\n';
+    //------------------------------------------------------------------------------
 
     uint32_t sum [NCHANMAX];
     uint64_t sum2[NCHANMAX];
@@ -881,10 +907,17 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
     for (unsigned ichan=zchan; ichan<nchan; ichan++)
         mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn);
 
-    if (hex_out == 0)
-        printf("i  mean   rms    max    min     \n");
-    else
-        printf("i  mean     rms      max      min     \n");
+    //------------------------------------------------------------------------------
+    // good code: 
+    //if (hex_out == 0) 
+    //{
+    //    printf("i  mean   rms    max    min     \n");
+    //}
+    //else 
+    //{
+    //    good code: // printf("i  mean     rms      max      min     \n");
+    //}
+    //------------------------------------------------------------------------------
 
     for(unsigned ichan=zchan; ichan<nchan; ichan++)
     {
@@ -900,11 +933,37 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
             float adcmax  = adc.voltData(max[ichan],volt_full);
             float adcmin  = adc.voltData(min[ichan],volt_full);
 
-            printf("%02i %06.04f %06.04f %06.04f %06.04f\n",ichan+1,adcmean,adcrms,adcmax,adcmin);
+            
+            //------------------------------------------------------------------------------
+            //bad code
+            std::cout 
+                << std::setw(2) << ichan+1 << ' '
+                << std::fixed   
+                << std::setw(6) << std::setprecision(4) << adcmean      << ' '
+                << std::setw(6) << std::setprecision(4) << adcrms       << ' '
+                << std::setw(6) << std::setprecision(4) << adcmax       << ' '
+                << std::setw(6) << std::setprecision(4) << adcmin       << '\n';
+            //------------------------------------------------------------------------------
+            // good code: 
+            // printf("%02i %06.04f %06.04f %06.04f %06.04f\n",ichan+1,adcmean,adcrms,adcmax,adcmin);
+            //------------------------------------------------------------------------------
         }
         else
         {
-            printf("%02i 0x%06X 0x%06X 0x%06X 0x%06X\n", ichan+1, mean, rms, max[ichan], min[ichan]);
+            //------------------------------------------------------------------------------
+            //bad code
+            std::cout 
+                << std::setw(2) << ichan+1 << ' '
+                << std::hex << std::fixed 
+                << std::setw(6) << mean << ' '
+                << std::setw(6) << rms << ' '
+                << std::setw(6) << max[ichan] << ' '
+                << std::setw(6) << min[ichan] 
+                << std::dec << '\n';
+            //------------------------------------------------------------------------------
+            // good code 
+            // printf("%02i 0x%06X 0x%06X 0x%06X 0x%06X\n", ichan+1, mean, rms, max[ichan], min[ichan]);
+            //------------------------------------------------------------------------------
         }
     } // close for ichan
 
@@ -916,10 +975,27 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
         v[2] = sum[2]/nmeas;
         v[3] = sum[3]/nmeas;
 
-        printf("POS %07.04f ", double(v[0] + v[1] - v[2] - v[3])/(v[0] + v[1] + v[2] + v[3]));
-        printf("%07.04f\n",    double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]));
-        printf("POS %07.04f ", double(v[0] + v[2] - v[1] - v[3])/(v[0] + v[1] + v[2] + v[3]));
-        printf("%07.04f\n",    double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]));
+        //------------------------------------------------------------------------------
+        //bad code
+        std::cout 
+            << "POS " << std::setw(7) << std::setprecision(4)
+            << double(v[0] + v[1] - v[2] - v[3])/(v[0] + v[1] + v[2] + v[3]) << " ";
+        std::cout 
+            << std::setw(7) << std::setprecision(4) 
+            << double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]) << "\n";
+        std::cout 
+            << "POS " << std::setw(7) << std::setprecision(4) 
+            << double(v[0] + v[2] - v[1] - v[3])/(v[0] + v[1] + v[2] + v[3]) << " ";
+        std::cout 
+            << std::setw(7) << std::setprecision(4) 
+            << double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]) << "\n";
+        //------------------------------------------------------------------------------
+        // good code 
+        //printf("POS %07.04f ", double(v[0] + v[1] - v[2] - v[3])/(v[0] + v[1] + v[2] + v[3]));
+        //printf("%07.04f\n",    double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]));
+        //printf("POS %07.04f ", double(v[0] + v[2] - v[1] - v[3])/(v[0] + v[1] + v[2] + v[3]));
+        //printf("%07.04f\n",    double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]));
+        //------------------------------------------------------------------------------
     }
 
     if (nchan == NCHANMAX)
@@ -949,8 +1025,9 @@ void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned v
         {
             // Print voltage
             uint32_t datum = mcb.measureADC(iadc,ichan);
-            printf("%06.04f\n", adc.voltData(datum));
+            printf("%06.04f ", adc.voltData(datum));
         }
+        printf("\n"); 
     }
 }
 
@@ -1030,8 +1107,20 @@ void cbc::calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned f
             float adcmax  = adc.voltData(max[idatum], volt_full);
             float adcmin  = adc.voltData(min[idatum], volt_full);
 
-            printf("i mean   rms    max    min     \n");
-            printf("%02i %06.04f %06.04f %06.04f %06.04f\n",idatum,adcmean,adcrms,adcmax,adcmin);
+            //------------------------------------------------------------------------------
+            // good code
+            //printf("i mean   rms    max    min     \n");
+            //printf("%02i %06.04f %06.04f %06.04f %06.04f\n",idatum,adcmean,adcrms,adcmax,adcmin);
+            //------------------------------------------------------------------------------
+            // bad code
+            std::cout 
+            << mean << ' '
+			<< std::fixed 
+            << std::setw(6) << std::setprecision(4) << adcmean << ' ' 
+            << std::setw(6) << std::setprecision(4) << adcrms  << ' '
+			<< std::setw(6) << std::setprecision(4) << adcmax  << ' '
+			<< std::setw(6) << std::setprecision(4) << adcmin  << '\n';
+            //------------------------------------------------------------------------------
         }
         else
         {
@@ -1070,9 +1159,10 @@ int cbc::usage()
 std::string cbc::usage_text =
 "CBC Usage:"
 "\n    command                {required arguments} [optional arguments]\n"
-"\n    initialize             Initialize the hardware. Should be done once after boot-up."
-"\n                           Configures GPIOs, turns on all hardware except USBs."
-"\n    "
+"\n    initialize             Initialize the hardware. Should be done once"
+"                             after boot-up. Configures GPIOs, turns on all"
+"                             hardware except USBs." 
+"\n"
 "\n    power down             Go into power saving mode. Power down encoders, USB and A3977."
 "\n    power up               Power up all on-board and off-board electronics."
 "\n    "
@@ -1121,21 +1211,25 @@ std::string cbc::usage_text =
 "\n    "
 "\n    status                 Print drive status information"
 "\n    "
-"\n    measure                {ADC 1-8} {CHAN 0-11} [MEAS=1 BURN=0 SCALE=5.05]"
+"\n    measure                {ADC 1-8} {CHAN 0-11} [MEAS=1 BURN=0 DELAY=0 SCALE=5.00]"
 "\n                           Measure voltage of the specified ADC channel. Channel can be"
 "\n                           given as zero to specify all channels on one ADC. Channels 9, 10"
 "\n                           and 11 correspond to internal reference voltages on the ADC."
 "\n                           Prints out statistics."
-"\n    "
-"\n    measure_full           {ADC 1-8} {CHAN 0-11} [MEAS=1 SCALE=5.05]"
+"\n                           Note that delay does nothing but you have to put"
+"\n                           it anyway if you want to chance the scale."
+"\n"
+"\n    measure_full           {ADC 1-8} {CHAN 0-11} [MEAS=1 DELAY=0 SCALE=5.00]"
 "\n                           Measure voltage of the specified ADC channel. Channel can be"
 "\n                           given as zero to specify all channels on one ADC. Channels 9, 10"
 "\n                           and 11 correspond to internal reference voltages on the ADC."
 "\n                           Prints out raw data."
-"\n    "
+"\n                           Note that delay does nothing but you have to put" 
+"\n                           it anyway if you want to chance the scale."
+"\n"
 "\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 FREQUENCY=400 ADC=7 MEAS=1]"
 "\n                           Step drive and read ADC after each step, printing its value to"
 "\n                           the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
 "\n                           of the travel, otherwise it specifies the number of half cycles"
 "\n                           of expansion and contraction to perform."
-"\n    ";
+"\n";
