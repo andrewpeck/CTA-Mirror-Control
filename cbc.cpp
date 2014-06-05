@@ -330,10 +330,12 @@ int main(int argc, const char** argv)
         }
 
         // delay (burn an argument for legacy purposes). 
-        argc--, argv++;
+        if(argc) {
+            argc--, argv++;
+        }
         
         // voltage reference
-        float volt_full = 5.000;
+        float volt_full = 5.00;
         if(argc)
         {
             volt_full = atof(*argv);
