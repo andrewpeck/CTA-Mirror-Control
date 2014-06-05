@@ -23,7 +23,6 @@ public:
 private:
     uint32_t transfer(int fd, uint32_t data);
     static void pabort(const char *s);
-    int fd; 
 
     static const char   *device;
     const uint8_t       mode;
