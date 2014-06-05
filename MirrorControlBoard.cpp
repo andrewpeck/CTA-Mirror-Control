@@ -373,17 +373,18 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
 }
 
 
-int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev, const int* correction)
-{
-    int meas = int(measureADC(7, ichan));
-    int calib_range = calib_lo - calib_hi;
-    meas -= calib_hi;
-    meas *= ticks_per_rev;
-    meas /= calib_range;
-    if (correction && meas>=0 && meas<int(ticks_per_rev))
-        meas+=correction[meas];
-    return meas;
-}
+//unused
+//int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev, const int* correction)
+//{
+//    int meas = int (measureADC(7, ichan));
+//    int calib_range = calib_lo - calib_hi;
+//    meas -= calib_hi;
+//    meas *= ticks_per_rev;
+//    meas /= calib_range;
+//    if (correction && meas>=0 && meas<int(ticks_per_rev))
+//        meas+=correction[meas];
+//    return meas;
+//}
 
 //------------------------------------------------------------------------------
 // General Purpose Utilities
