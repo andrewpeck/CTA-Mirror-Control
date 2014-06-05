@@ -1159,7 +1159,7 @@ int cbc::usage()
 }
 
 std::string cbc::usage_text =
-"CBC Usage:"
+"CBC version 2.1.6 Usage:"
 "\n    command                {required arguments} [optional arguments]\n"
 "\n    initialize             Initialize the hardware. Should be done once"
 "                             after boot-up. Configures GPIOs, turns on all"
