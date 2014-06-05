@@ -18,7 +18,7 @@
 
 int main(int argc, const char** argv)
 {
-    int stepping_frequency = 400;
+    int stepping_frequency = 4000;
     argv++, argc--;
 
     cbc cbc;
@@ -1195,19 +1195,19 @@ std::string cbc::usage_text =
 "\n    disableusb             {USB 1-7, or all"
 "\n                           Disable USB (USB)."
 "\n    "
-"\n    step                   {DR 1-6} {NSTEPS} [Frequency=400]"
+"\n    step                   {DR 1-6} {NSTEPS} [Frequency=4000]"
 "\n                           Step drive some number of steps (positive to"
 "\n                           extend, negative to retract) with frequency in Hz"
 "\n    "
-"\n    slew                   {DR 1-6} [DIR=(extend/retract)] [Frequency=400]"
+"\n    slew                   {DR 1-6} [DIR=(extend/retract)] [Frequency=4000]"
 "\n                           Slew drive (DR) in given direction (DIR, default extend) "
 "\n                           with frequency in Hz."
 "\n    "
-"\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [Frequency=400]"
+"\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [Frequency=4000]"
 "\n                           Step all drives some number of steps (positive to extend,"
 "\n                           negative to retract and zero to not move that drive.)"
 "\n    "
-"\n    slew_all               [DIR=(extend/retract)] [Frequency=400]"
+"\n    slew_all               [DIR=(extend/retract)] [Frequency=4000]"
 "\n                           Slew all (enabled) drives in given direction (DIR, default "
 "\n                           extend) with frequency of steps in Hz."
 "\n    "
@@ -1229,7 +1229,7 @@ std::string cbc::usage_text =
 "\n                           Note that delay does nothing but you have to put" 
 "\n                           it anyway if you want to chance the scale."
 "\n"
-"\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 FREQUENCY=400 ADC=7 MEAS=1]"
+"\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 FREQUENCY=4000 ADC=7 MEAS=1]"
 "\n                           Step drive and read ADC after each step, printing its value to"
 "\n                           the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
 "\n                           of the travel, otherwise it specifies the number of half cycles"
