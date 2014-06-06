@@ -102,7 +102,7 @@ void GPIOInterface::Configure(const unsigned ipin, bool dir)
 void GPIOInterface::ConfigureAll()
 {
     FILE * configfile;
-    configfile = fopen ("gpioconf","w");
+    configfile = fopen (".gpioconf","w");
 
     for (int i=0; i<192; i++)
     {
