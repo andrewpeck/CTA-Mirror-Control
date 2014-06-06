@@ -42,7 +42,7 @@ bool configurator::usbenabled(int iusb)
     bool enabled = 0; 
 
     if (iusb==1)
-        enabled = getBool("init", "enable_usb_1"); 
+        enabled = true; 
     else if (iusb==2) 
         enabled = getBool("init", "enable_usb_2"); 
     else if (iusb==3) 
