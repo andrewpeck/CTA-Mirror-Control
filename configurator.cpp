@@ -33,8 +33,11 @@ bool configurator::hicurrent()
 
 bool configurator::drivesr()
 {
-    bool enabled = getBool("init", "drivesr"); 
-    return (enabled); 
+    wordexp_t p;
+    wordexp(config_file, &p, 0);
+    minIni ini(p.we_wordv[0]);
+
+    return (ini.getbool("init","drivesr",1)); 
 }
 
 bool configurator::usbenabled(int iusb)
