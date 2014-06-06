@@ -1191,7 +1191,7 @@ int cbc::usage()
 }
 
 std::string cbc::usage_text =
-"CBC v2.2.1 Usage:"
+"CBC v2.2.2 Usage:"
 "\n    command                {required arguments} [optional arguments]\n"
 "\n    initialize             Initialize the hardware. Should be done once"
 "                             after boot-up. Configures GPIOs, turns on all"
@@ -1266,6 +1266,6 @@ std::string cbc::usage_text =
 "\n                           the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
 "\n                           of the travel, otherwise it specifies the number of half cycles"
 "\n                           of expansion and contraction to perform."
-"\nCBC v2.2.1"
+"\nCBC v2.2.2"
 "\n";
 
