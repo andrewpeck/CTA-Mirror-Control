@@ -115,7 +115,6 @@ public:
     // --------------------------------------------------------------------------
 
     // Sleeps for a half-cycle of the frequency given in the argument...
-    // calibrated over the range from 0-1000 Hz.. should work elsewhere
     void waitHalfPeriod(unsigned frequency);
 
 private:

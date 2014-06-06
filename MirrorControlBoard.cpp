@@ -396,15 +396,6 @@ int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsign
 
 void MirrorControlBoard::waitHalfPeriod(unsigned frequency)
 {
-    // nanosleep isn't exacly perfect... this is an empirically derived factor
-    // to let frequency inputs actually be what you get out (more-or-less)
-    if (frequency>60)
-        frequency = ((frequency - 40)*(10))/6;
-
-    int period = (1000000000/(frequency));
-    struct timespec time, time2;
-    time.tv_sec=0;
-    time.tv_nsec= (period=period/2);
-    nanosleep(&time,&time2);
-    //for(volatile unsigned iloop=0; iloop<nloop; iloop++);
+     frequency = (10*100000000/24)/frequency;
+     for(volatile unsigned iloop=0;iloop<frequency;iloop++);
 }
