@@ -19,7 +19,6 @@
 
 int main(int argc, const char** argv)
 {
-
     argv++, argc--;
 
     cbc cbc;
@@ -132,7 +131,7 @@ int main(int argc, const char** argv)
     // Some option handlers for backwards compatibility
     else if (command == "enable_all")       { cbc.enable(0); }
     else if (command == "disable_all")      { cbc.disable(0); }
-    else if (command == "enableUSB_all")    { cbc.disableusb(0); }
+    else if (command == "enableUSB_all")    { cbc.enableusb(0); }
     else if (command == "disableUSB_all")   { cbc.disableusb(0); }
     // end of legacy functions..
     //------------------------------------------------------------------------------
@@ -716,6 +715,11 @@ void cbc::freqloop(unsigned nloop)
 
 void cbc::step(unsigned idrive, int nstep, unsigned frequency)
 {
+    pthread_t this_thread = pthread_self(); 
+    struct sched_param params; 
+    params.sched_priority = sched_get_priority_max(SCHED_FIFO); 
+    pthread_setschedparam(this_thread, SCHED_FIFO, &params);
+
     // whine if invalid actuator number
     if ((idrive<1)||(idrive>6))
         usage();
@@ -1191,7 +1195,7 @@ int cbc::usage()
 }
 
 std::string cbc::usage_text =
-"CBC v2.2.2 Usage:"
+"CBC v2.2.3 Usage:"
 "\n    command                {required arguments} [optional arguments]\n"
 "\n    initialize             Initialize the hardware. Should be done once"
 "                             after boot-up. Configures GPIOs, turns on all"
@@ -1266,6 +1270,6 @@ std::string cbc::usage_text =
 "\n                           the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
 "\n                           of the travel, otherwise it specifies the number of half cycles"
 "\n                           of expansion and contraction to perform."
-"\nCBC v2.2.2"
+"\nCBC v2.2.3"
 "\n";
 
