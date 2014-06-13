@@ -75,7 +75,7 @@ void MirrorControlBoard::powerDownBase()
 
 void MirrorControlBoard::powerDownAllUSB()
 {
-    for(unsigned iusb=0; iusb<m_nusb; iusb++)
+    for(unsigned iusb=1; iusb<m_nusb; iusb++)
         powerDownUSB(iusb);
 }
 
