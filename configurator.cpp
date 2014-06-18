@@ -2,7 +2,7 @@
 #include "wordexp.h"
 #include "configurator.hpp"
 
-const char* configurator::config_file = "config.cfg";
+const char* configurator::config_file = "/etc/cbc.conf";
 
 configurator::configurator() {};
 configurator::~configurator(){}; 
