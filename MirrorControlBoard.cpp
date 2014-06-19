@@ -144,7 +144,7 @@ void MirrorControlBoard::powerDownADCs()
 
 bool MirrorControlBoard::isADCsPoweredUp()
 {
-    return gpio.ReadLevel(layout.igpioPowerADC)?false:true;
+    return gpio.ReadLevel(layout.igpioPowerADC)?true:false;
 }
 
 void MirrorControlBoard::enableDriveSR(bool enable)

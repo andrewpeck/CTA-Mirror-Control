@@ -53,6 +53,10 @@ int main(int argc, const char** argv)
         mcb.powerDownEncoders();
     else if (command == "power_up_encoders")
         mcb.powerUpEncoders();
+    else if (command == "power_down_sensors")
+        mcb.powerDownADCs();
+    else if (command == "power_up_sensors")
+        mcb.powerUpADCs();
     else if (command == "power_down_a3977")
         mcb.powerDownDriveControllers();
     else if (command == "power_up_a3977")
@@ -880,6 +884,13 @@ void cbc::status()
     else
         printf("Disabled");
 
+    // Sensor Power Status
+    printf("\nADC2 Sensors Power:             ");
+    if (mcb.isADCsPoweredUp())
+        printf("Enabled");
+    else
+        printf("Disabled");
+
     // Print Drive Status
     printf("\n");
     for(unsigned idrive=0; idrive<6; idrive++)
@@ -1195,7 +1206,7 @@ int cbc::usage()
 }
 
 std::string cbc::usage_text =
-"CBC v2.2.4 Usage:"
+"CBC v2.3.0 Usage:"
 "\n    command                {required arguments} [optional arguments]\n"
 "\n    initialize             Initialize the hardware. Should be done once"
 "                             after boot-up. Configures GPIOs, turns on all"
@@ -1270,6 +1281,6 @@ std::string cbc::usage_text =
 "\n                           the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
 "\n                           of the travel, otherwise it specifies the number of half cycles"
 "\n                           of expansion and contraction to perform."
-"\nCBC v2.2.4"
+"\nCBC v2.3.0"
 "\n";
 
