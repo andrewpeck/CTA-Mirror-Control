@@ -7,9 +7,13 @@
 #define MIRRORCONTROLBOARD_HPP
 
 #include <Layout.hpp>
+#include <vector>
+
+// local includes
 #include <SpiInterface.hpp>
 #include <TLC3548_ADC.hpp>
 #include <GPIOInterface.hpp>
+#include <mcspiInterface.hpp>
 
 class MirrorControlBoard
 {
@@ -114,7 +118,7 @@ void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum
 private:
     GPIOInterface gpio;
     Layout layout;
-    SpiInterface spi;
+    mcspiInterface spi;
     TLC3548_ADC ADC;
 
     int calibrationConstant;
