@@ -17,6 +17,8 @@ public:
     void Configure(); 
 
 private:
+    void Initialize(); 
+
     static const int channel[];
 
     // --------------------------------------------------------------------------
@@ -62,25 +64,45 @@ private:
     off_t physMCSPI_read         ( const unsigned ispi ) ;
     off_t physMCSPI_write        ( const unsigned ispi ) ;
 
+    // Clock control 
+    // Bit 18 = EN_MCSPI1
+    // Bit 19 = EN_MCSPI2
+    // Bit 20 = EN_MCSPI3
+    // Bit 21 = EN_MCSPI4
+    // 0x1 = enable, 0x0 = disable
+    
+    static const off_t physBaseCLKCTRL     = 0x48004A00; 
+    // Module interface clock control
+    static const off_t physCM_ICLKEN1_CORE = 0x48004A10; 
+    // Module functional clock control
+    static const off_t physCM_FCLKEN1_CORE = 0x48004A00; 
+
+    static const off_t physMCSPIPadConf    = 0x48004A00; 
+
     // --------------------------------------------------------------------------
     // Functions to return pointers to mapped SSP registers
     // --------------------------------------------------------------------------
 
     off_t offset2adrMCSPI(unsigned ispi, off_t offset);
-    volatile uint32_t* phys2VirtMCSPI32(off_t adr_physical, const unsigned ispi);
-    volatile uint32_t* phys2Virt32(off_t phys, volatile void* map_base_virt, off_t map_base_phys);
-    volatile uint32_t* ptrMCSPI_sysconfig(const unsigned ispi);
-    volatile uint32_t* ptrMCSPI_wakeupenable(const unsigned ispi);
-    volatile uint32_t* ptrMCSPI_modulctrl(const unsigned ispi);
-    volatile uint32_t* ptrMCSPI_chconf(const unsigned ispi);
-    volatile uint32_t* ptrMCSPI_chstat(const unsigned ispi);
-    volatile uint32_t* ptrMCSPI_chctrl(const unsigned ispi);
-    volatile uint32_t* ptrMCSPI_tx(const unsigned ispi);
-    volatile uint32_t* ptrMCSPI_rx(const unsigned ispi);
-    volatile uint32_t* ptrMCSPI_irqstatus(const unsigned ispi);
+    volatile uint32_t* phys2VirtMCSPI32      ( off_t adr_physical, const unsigned ispi);
+    volatile uint32_t* phys2Virt32           ( off_t phys, volatile void* map_base_virt, off_t map_base_phys);
+    volatile uint32_t* ptrMCSPI_sysconfig    ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_sysstatus    ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_wakeupenable ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_modulctrl    ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_chconf       ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_chstat       ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_chctrl       ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_tx           ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_rx           ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_irqstatus    ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_irqenable    ( const unsigned ispi);
+    volatile uint32_t* ptrMCSPI_ICLKEN       (); 
+    volatile uint32_t* ptrMCSPI_FCLKEN       (); 
+    volatile uint32_t* ptrMCSPIPadConf       (); 
 
     // --------------------------------------------------------------------------
-    // Functions to Return Addresses for GPIO pins
+    // 
     // --------------------------------------------------------------------------
 
     // Create a virtual addressing space for a given physical address
@@ -94,6 +116,12 @@ private:
     volatile void*  m_mcspi2_base;
     volatile void*  m_mcspi3_base;
     volatile void*  m_mcspi4_base;
+    volatile void*  m_iclk; 
+    volatile void*  m_fclk; 
+    volatile void*  m_padconf; 
+
+    // utilities 
+    bool txFifoFull (const unsigned ispi); 
 
     Layout layout; 
 };
