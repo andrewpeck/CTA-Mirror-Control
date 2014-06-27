@@ -21,7 +21,7 @@ public:
     void     Configure();
 
 private:
-    uint32_t transfer(int fd, uint32_t data);
+    uint32_t transfer(uint32_t data);
     static void pabort(const char *s);
 
     static const char   *device;
@@ -29,6 +29,8 @@ private:
     const uint8_t       bits;
     const uint32_t      speed;
     const uint16_t      delay;
+
+    int fd;
 };
 
 #endif
