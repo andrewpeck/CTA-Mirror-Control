@@ -48,7 +48,7 @@ mcspiInterface::mcspiInterface()
     //      virtual adr    physical adr
     makeMap(m_iclk,         0x48004A00);
     makeMap(m_fclk,         0x48004A10);
-    makeMap(m_padconf,      0x480021C8);
+    makeMap(m_padconf,      physBasePadConf);
     makeMap(m_mcspi1_base,  physBaseMCSPI1);
     makeMap(m_mcspi2_base,  physBaseMCSPI2);
     makeMap(m_mcspi3_base,  physBaseMCSPI3);
@@ -103,17 +103,6 @@ void mcspiInterface::Configure()
 {
     //printf("\nReset finished..");
 
-    // reset status bits
-    // MCSPI_IRQSTATUS
-    // enable interrupts
-    // MCSPI_IRQENABLE
-    
-    // 3) Write MCSPI_MODULCTRL
-    //    Write MCSPI_SYSCONFIG
-    
-    //enable channel 1
-    //printf("\nEnable Channel 1"); 
-    //*ptrMCSPI_chctrl(0) |= 0x1; 
     
     // get current config
     uint32_t config = *ptrMCSPI_chconf(ISPI); 
@@ -126,9 +115,11 @@ void mcspiInterface::Configure()
     int phase    = 1; 
     int polarity = 0; 
 
+    //7. Set the SPI1.MCSPI_CHxCONF[0] PHA bit to 0 for data latched on odd-numbered edges of the SPI
     config &= ~(0x1 << 0); 
     config |=  (phase << 0);        //mcspi_chxconf[0]
 
+    //6. Set the SPI1.MCSPI_CHxCONF[1] POL bit to 1
     config &= ~(0x1 << 1); 
     config |=  (polarity << 1);     //mcspi_chxconf[1]
     
@@ -154,6 +145,10 @@ void mcspiInterface::Configure()
     config &= ~(0xF<<2);          //mcspi_chxconf[5..2]
     config |= clock_divider<<2;   //mcspi_chxconf[5..2]
 
+    //5. Set the SPI1.MCSPI_CHxCONF[6] EPOL bit to 1 for spi1_cs0 activated low
+    //during active state.  clock.
+    config |= 0x1 << 6; 
+
     //spim_csx polarity
     //0x0 => spim_csx high during active state
     //0x1 => spim_csx low  during active state
@@ -166,6 +161,7 @@ void mcspiInterface::Configure()
     config &= ~(0x1F << 7); 
     config |=  (spi_word_length << 7); //mcspi_chxconf[11..7]
 
+    //3. Set the SPI1.MCSPI_CHxCONF[13:12] TRM field to 0x0 for transmit and receive mode.
     //Transmit/receive modes RW 0x0
     //    0x0: Transmit and receive mode
     //    0x1: Receive-only mode
@@ -175,15 +171,20 @@ void mcspiInterface::Configure()
     config &= ~(0x7 << 12); 
     config |=  (transfer_mode << 12); //mcspi_chxconf[13..12]
     
-    // Set MCSPI_CHXCONF[18] to 0 for spi1_somi pin in receive mode
+    //1. Set the SPI1.MCSPI_CHxCONF[18] IS bit to 0 for the spi1_somi pin in receive mode.
     config &= ~(0x1 << 18); 
 
+    //2. Set the SPI1.MCSPI_CHxCONF[17] DPE1 bit to 0 and the SPI1.MCSPI_CHxCONF[16] DPE0 bit to 1
+    //for the spi1.simo pin in transmit mode.
     config &= ~(0x1 << 17); 
     config |=  (0x1 << 16); 
 
-    //Set the SPI1.MCSPI_MODULCTRL[2] MS bit to 0 to provide the clock.
+    //Clock Initialization and spi1_cs0 Enable
+    //In master mode, the SPI must provide the clock and enable the channel:
+    //8. Set the SPI1.MCSPI_MODULCTRL[2] MS bit to 0 to provide the clock.
     *ptrMCSPI_modulctrl(ISPI) &= ~(0x1 << 2) ; 
 
+    // Manage CS with force
     *ptrMCSPI_modulctrl(ISPI) |= 0x1; 
 
     //int tx_fifo_enable = 0x1; 
@@ -196,39 +197,21 @@ void mcspiInterface::Configure()
     //printf("\nFinal Config  = 0x%08X", config); 
     //printf("\n"); 
 
-    //disable channel 1
-    *ptrMCSPI_chctrl(ISPI) &= ~0x1; 
+    //9. Set the INPUTENABLE bit of the corresponding CONTROL_PADCONF_x register to achieve the
+    //synchronous clock by using loopback through the output and input buffers of the pad.
+    //CONTROL_PADCONF_MCSPI1_CLK[15:0]
+    //0x4800 21C8
+    //Section 13.4.4
+    //Bit 8 == Input Enable
+    *ptrMCSPIPadConf() |= 0x1 << 8; 
+
+
+    // assert !CS 
+    *ptrMCSPI_chconf(0) |= 0x1 << 20; 
 }
 
 uint32_t mcspiInterface::WriteRead(uint32_t data)
 {
-
-    ////9. Set the INPUTENABLE bit of the corresponding CONTROL_PADCONF_x register to achieve the
-    ////synchronous clock by using loopback through the output and input buffers of the pad.
-    //page2455
-
-    //
-
-    ////Write Operation
-    ////1. Write 1 to the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit to reset the status.
-    //*ptrMCSPI_irqstatus(ISPI) |= 0x00000001; 
-    //while (true)
-    //{
-    //    //2. Write the command/address or data value in the SPI1.MCSPI_TX0 register to transmit the value.
-    //    //3. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1, write 1 to it and return to Step 2
-    //    else
-    //        break; 
-    //}
-
-    ////(polling method).
-    ////20.6.2.6.2.1.3 Read Operation
-    ////1. Read the SPI1.MCSPI_IRQSTATUS[2] RX0_FULL bit and if it is set to 1, go to Step 2.
-    ////2. If the SPI1.MCSPI_IRQSTATUS[2] RX0_FULL bit is set to 1, write 1 to it and return to Step 1 (polling
-    ////method).
-    ////NOTE:
-    ////see page 3020
-
-
 
     //20.6.2.6.3 Programming in Interrupt Mode
     //This section follows the flow of Figure 20-26.
@@ -248,34 +231,11 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
     *ptrMCSPI_irqstatus(ISPI) |=  0x7; 
 
     //3. Follow the steps described in Section 20.6.2.6.2.1.1, Mode Selection.
-        //The SPI1.MCSPI_CHxCONF register (with x = 0) allows configuration of the operating mode:
-        //1. Set the SPI1.MCSPI_CHxCONF[18] IS bit to 0 for the spi1_somi pin in receive mode.
-        //2. Set the SPI1.MCSPI_CHxCONF[17] DPE1 bit to 0 and the SPI1.MCSPI_CHxCONF[16] DPE0 bit to 1
-        //for the spi1.simo pin in transmit mode.
-        //3. Set the SPI1.MCSPI_CHxCONF[13:12] TRM field to 0x0 for transmit and receive mode.
-        //4. Write 0x8 in the SPI1.MCSPI_CHxCONF[11:7] WL field for 9-bit word length.
-        //5. Set the SPI1.MCSPI_CHxCONF[6] EPOL bit to 1 for spi1_cs0 activated low during active state.
-        //6. Set the SPI1.MCSPI_CHxCONF[1] POL bit to 0 for spi1_clk held high during active state.
-        //7. Set the SPI1.MCSPI_CHxCONF[0] PHA bit to 0 for data latched on odd-numbered edges of the SPI
-        //clock.
-        //
-        //Clock Initialization and spi1_cs0 Enable
-        //In master mode, the SPI must provide the clock and enable the channel:
-        //8. Set the SPI1.MCSPI_MODULCTRL[2] MS bit to 0 to provide the clock.
 
-        //10. Set the SPI1.MCSPI_CHxCTRL[0] EN bit to 1 (where x = 0) to enable channel 0.
     Configure(); 
 
-
-        //9. Set the INPUTENABLE bit of the corresponding CONTROL_PADCONF_x register to achieve the
-        //synchronous clock by using loopback through the output and input buffers of the pad.
-        //CONTROL_PADCONF_MCSPI1_CLK[15:0]
-        //0x4800 21C8
-        //Section 13.4.4
-        //Bit 8 == Input Enable
-    //*ptrMCSPIPadConf() |= 0x1 << 8; 
-
     // Start Channel
+    //10. Set the SPI1.MCSPI_CHxCTRL[0] EN bit to 1 (where x = 0) to enable channel 0.
     *ptrMCSPI_chctrl(ISPI) |= 0x1; 
 
 
@@ -284,8 +244,10 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
     //This interrupt routine follows the flow of Table 20-16 and Figure 20-28.
     //1. Read the SPI1.MCSPI_IRQSTATUS[3:0] field.
     //2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1:
+    printf("\nirqstatus: %08X", *ptrMCSPI_irqstatus(ISPI)); 
     if ((*ptrMCSPI_irqstatus(ISPI) & 0x1) == 1)
     {
+        printf("\n I am here"); 
         //(a) Write the command/address or data value in SPI1.MCSPI_TXx (where x = 0).
         *ptrMCSPI_tx(ISPI) = data; 
         //(b) WRITE_COUNT + = 1
@@ -297,6 +259,7 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
     //3. If the SPI1.MCSPI_IRQSTATUS[2] RX0_FULL bit is set to 1:
     if (((*ptrMCSPI_irqstatus(ISPI) >> 2) & 0x1) == 1)
     {
+        printf("\n I am there"); 
         //(a) Read SPI1.MCSPI_RXx (where x = 0)
         read = *ptrMCSPI_rx(ISPI); 
         //(b) READ_COUNT += 1
@@ -304,10 +267,15 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
         //(c) Write SPI1.MCSPI_IRQSTATUS[2] = 0x1
         *ptrMCSPI_irqstatus(ISPI) |= 0x1 << 2; 
     }
-    return read; 
 
-    // Stop Channel
-    //*ptrMCSPI_chctrl(ISPI) &= ~0x1; 
+    // deassert !CS 
+    *ptrMCSPI_chconf(0) &= ~(0x1 << 20); 
+
+
+    //Stop Channel
+    *ptrMCSPI_chctrl(ISPI) &= ~0x1; 
+
+    return read; 
 
 }
 
@@ -520,12 +488,12 @@ volatile uint32_t* mcspiInterface::ptrMCSPI_ICLKEN()
 
 volatile uint32_t* mcspiInterface::ptrMCSPI_FCLKEN()
 {
-    return phys2Virt32(physCM_FCLKEN1_CORE,m_fclk,physCM_ICLKEN1_CORE);
+    return phys2Virt32(physCM_FCLKEN1_CORE,m_fclk,physCM_FCLKEN1_CORE);
 }
 
 volatile uint32_t* mcspiInterface::ptrMCSPIPadConf()
 {
-    return phys2Virt32(physMCSPIPadConf,m_padconf,physMCSPIPadConf);
+    return phys2Virt32(physMCSPIPadConf,m_padconf,physBasePadConf);
 }
 
 volatile void* mcspiInterface::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length)

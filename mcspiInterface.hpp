@@ -77,6 +77,7 @@ private:
     // Module functional clock control
     static const off_t physCM_FCLKEN1_CORE = 0x48004A00; 
 
+    static const off_t physBasePadConf     = 0x48002030; 
     static const off_t physMCSPIPadConf    = 0x48004A00; 
 
     // --------------------------------------------------------------------------
