@@ -1,7 +1,7 @@
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 // Opens CPU Physical Memory at /dev/mem
 // Maps physical memory into virtual address space (unix command mmap)
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -23,31 +23,23 @@
 #define ISPI 0
 
 
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 // Public Members
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 
 // constructor
 mcspiInterface::mcspiInterface()
-    //m_mmap_fd(-1),
-    //m_iclk(), 
-    //m_fclk(), 
-    //m_padconf(), 
-    //m_mcspi1_base(),
-    //m_mcspi2_base(),
-    //m_mcspi3_base(),
-    //m_mcspi4_base()
 {
-
+    // open /dev/mem and check for failure
     m_mmap_fd = open("/dev/mem", O_RDWR | O_SYNC);
     if(m_mmap_fd<0) {
         perror("open(\"/dev/mem\")");
         exit(EXIT_FAILURE);
     }
 
-    //      virtual adr    physical adr
-    makeMap(m_iclk,         0x48004A00);
-    makeMap(m_fclk,         0x48004A10);
+    //      virtual adr     physical adr
+    makeMap(m_iclk,         physCM_FCLKEN1_CORE);
+    makeMap(m_fclk,         physCM_ICLKEN1_CORE);
     makeMap(m_padconf,      physBasePadConf);
     makeMap(m_mcspi1_base,  physBaseMCSPI1);
     makeMap(m_mcspi2_base,  physBaseMCSPI2);
@@ -67,6 +59,8 @@ mcspiInterface::~mcspiInterface()
     MUNMAP(m_mcspi4_base);
 }
 
+
+/* Initializes MCSPI Controller: Enables clocks, and performs soft-reset of the MCSPI system */ 
 void mcspiInterface::Initialize()
 {
     // Clock Enable
@@ -99,6 +93,7 @@ void mcspiInterface::Initialize()
     }
 }
 
+/* Writes to all MCSPI configuration registers */
 void mcspiInterface::Configure()
 {
     //printf("\nReset finished..");
@@ -210,9 +205,9 @@ void mcspiInterface::Configure()
     *ptrMCSPI_chconf(0) |= 0x1 << 20; 
 }
 
+/* Writes a 32bit integer  */
 uint32_t mcspiInterface::WriteRead(uint32_t data)
 {
-
     //20.6.2.6.3 Programming in Interrupt Mode
     //This section follows the flow of Figure 20-26.
     //1. Initialize software variables: WRITE_COUNT = 0 and READ_COUNT = 0.
@@ -276,7 +271,6 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
     *ptrMCSPI_chctrl(ISPI) &= ~0x1; 
 
     return read; 
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
