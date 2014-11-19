@@ -221,7 +221,6 @@ bool MirrorControlBoard::isDriveHiCurrentEnabled()
 
 void MirrorControlBoard::initializeADC(unsigned iadc)
 {
-    spi.Configure();
     selectADC(iadc);                                        // Assert Chip Select for ADC in question
     spi.WriteRead(ADC.codeInitialize());
     spi.WriteRead(ADC.codeConfig());
@@ -235,7 +234,6 @@ void MirrorControlBoard::selectADC(unsigned iadc)
 
 uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 {
-    spi.Configure();
 
     initializeADC(iadc);
 

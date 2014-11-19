@@ -14,12 +14,12 @@
 const char*     SpiInterface::device = "/dev/spidev1.0";
 
 SpiInterface::SpiInterface(): mode(SPI_MODE_1), bits(16), speed(8000000),
-    delay(0) 
-{ 
+    delay(0)
+{
 }
 
-SpiInterface::~SpiInterface() 
-{ 
+SpiInterface::~SpiInterface()
+{
     close(fd);
 }
 
@@ -32,8 +32,8 @@ void SpiInterface::pabort(const char *s)
 uint32_t SpiInterface::transfer(uint32_t data)
 {
 
-    uint32_t tx []= {data}; 
-    uint32_t rx []= {0}; 
+    uint32_t tx []= {data};
+    uint32_t rx []= {0};
 
     struct spi_ioc_transfer tr;
     memset( (void *) & tr, 0, sizeof(struct spi_ioc_transfer));
@@ -47,9 +47,9 @@ uint32_t SpiInterface::transfer(uint32_t data)
 
     ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
 
-    uint32_t read = rx[0]; 
-    
-    return read; 
+    uint32_t read = rx[0];
+
+    return read;
 }
 
 void SpiInterface::Configure ()
@@ -100,5 +100,5 @@ void SpiInterface::Configure ()
 uint32_t SpiInterface::WriteRead (uint32_t data)
 {
     uint32_t read = transfer(data);
-    return (read); 
+    return (read);
 }

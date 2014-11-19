@@ -12,12 +12,17 @@ public:
     mcspiInterface();
     ~mcspiInterface();
 
-    // Functions to return pointers to mapped GPIO registers
     uint32_t WriteRead(uint32_t data);
-    void Configure(); 
+
 
 private:
-    void Initialize(); 
+    void EnableChannel  (); 
+    void DisableChannel (); 
+    void EnableClocks   (); 
+    void DisableClocks  (); 
+    void SetMasterMode  (); 
+    void Reset(); 
+    void Configure(); 
 
     static const int channel[];
 
