@@ -10,7 +10,6 @@
 #include <SpiInterface.hpp>
 #include <TLC3548_ADC.hpp>
 #include <GPIOInterface.hpp>
-#include <vector>
 
 class MirrorControlBoard
 {
@@ -34,6 +33,8 @@ public:
     void powerDownBase();
     void powerUpBase();
 
+    void adcSleep(int iadc); 
+
     // Set the USB power enable_bar bit
     void powerDownUSB(unsigned iusb);
     void powerDownAllUSB();
@@ -53,9 +54,9 @@ public:
     void powerUpEncoders();
     bool isEncodersPoweredUp();
 
-    void powerUpADCs();
-    void powerDownADCs();
-    bool isADCsPoweredUp();
+    void powerUpSensors();
+    void powerDownSensors();
+    bool isSensorsPoweredUp();
 
     //------------------------------------------------------------------------------
     // Motor Driver Function Prototypes
@@ -105,7 +106,7 @@ public:
     uint32_t measureADC(unsigned iadc, unsigned ichan);
 
     // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
-    void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn = 0);
+void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& mean, uint32_t& stddev); 
 
     // Measure encoder position
     int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0);

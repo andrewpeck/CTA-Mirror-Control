@@ -8,6 +8,8 @@
 #include <GPIOInterface.hpp>
 #include <unistd.h>
 #include <time.h>
+#include <math.h>
+#include <cstdlib>
 
 MirrorControlBoard::MirrorControlBoard() { }
 MirrorControlBoard::~MirrorControlBoard() { }
@@ -41,8 +43,8 @@ void MirrorControlBoard::powerUpBase()
     // Power up encoders
     powerUpEncoders();
 
-    // Power up ADCs
-    powerUpADCs();
+    // Power up Sensors
+    powerUpSensors();
 
     gpio.WriteLevel(layout.igpioADCSel1, 1);
     gpio.WriteLevel(layout.igpioADCSel2, 1);
@@ -54,15 +56,24 @@ void MirrorControlBoard::powerUpBase()
     initializeADC(1);
 }
 
-void MirrorControlBoard::powerDownBase()
-{
+void MirrorControlBoard::adcSleep (int iadc) {
     // Set on-board ADC into sleep mode
-    selectADC(7);
+    selectADC(iadc);
     spi.Configure();
     spi.WriteRead(ADC.codeSWPowerDown());
 
-    // Power down ADCs
-    powerDownADCs();
+    selectADC(iadc);
+    spi.Configure();
+    spi.WriteRead(ADC.codeSWPowerDown());
+}
+
+void MirrorControlBoard::powerDownBase()
+{
+    adcSleep(0); 
+    adcSleep(1); 
+
+    // Power down Sensors
+    powerDownSensors();
 
     // Power down encoders
     powerDownEncoders();
@@ -132,17 +143,17 @@ bool MirrorControlBoard::isEncodersPoweredUp()
     return gpio.ReadLevel(layout.igpioEncoderEnable)?true:false;
 }
 
-void MirrorControlBoard::powerUpADCs()
+void MirrorControlBoard::powerUpSensors()
 {
     gpio.WriteLevel(layout.igpioPowerADC,1);
 }
 
-void MirrorControlBoard::powerDownADCs()
+void MirrorControlBoard::powerDownSensors()
 {
     gpio.WriteLevel(layout.igpioPowerADC,0);
 }
 
-bool MirrorControlBoard::isADCsPoweredUp()
+bool MirrorControlBoard::isSensorsPoweredUp()
 {
     return gpio.ReadLevel(layout.igpioPowerADC)?true:false;
 }
@@ -326,57 +337,43 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
     return ADC.decodeUSB(datum);
 }
 
-void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn)
+void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& mean, uint32_t& stddev)
 {
     spi.Configure();
     initializeADC(iadc); 
     selectADC(iadc);
     uint32_t code   = ADC.codeSelect(ichan);
-    unsigned nloop  = nburn + nmeas;
-    sum             = 0;
-    sumsq           = 0;
-    max             = 0;
-    min             = ~max;
+    uint32_t sum             = 0;
+    uint32_t sumsq           = 0;
+
+    uint16_t *measurement = (uint16_t *) malloc(nmeas * sizeof(uint16_t));
 
     // Loop over number of measurements
-    for(unsigned iloop=0; iloop<nloop; iloop++)
-    {
+    for(unsigned iloop=0; iloop<nmeas; iloop++) {
         // Read data
         uint32_t datum = spi.WriteRead(code);
-
-        if (iloop>nburn)
-        {
-            // Decode data
-            datum = ADC.decodeUSB(datum);
-            // Typecast to 64 bit integer..
-            uint64_t datum64 = datum;
-
-            // Accumulate statistics
-            sum+=datum;
-            sumsq+=datum64*datum64;
-            if(datum>max)
-                max=datum;
-            if(datum<min)
-                min=datum;
-        }
+        // Decode data
+        measurement[iloop] = ADC.decodeUSB(datum);
+        sum+=datum;
     }
 
     // Read last FIFO
     uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
     //decode data
-    datum = ADC.decodeUSB(datum);
-
-    //typecast and accumulate statistics
-    uint64_t datum64 = datum;
+    measurement[nmeas-1] = ADC.decodeUSB(datum);
     sum+=datum;
-    sumsq+=datum64*datum64;
 
-    if(datum>max)
-        max=datum;
-    if(datum<min)
-        min=datum;
+    mean = sum / nmeas; 
+
+    for(unsigned iloop=0; iloop<nmeas; iloop++) {
+        sumsq += (measurement[iloop] - mean); 
+    }
+
+    uint64_t variance = sumsq*sumsq/(nmeas-1); 
+    stddev = sqrt(variance); 
+
+    free(measurement); 
 }
-
 
 int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev, const int* correction)
 {
@@ -396,6 +393,11 @@ int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsign
 
 void MirrorControlBoard::waitHalfPeriod(unsigned frequency)
 {
-     frequency = (10*100000000/24)/frequency;
+     /* This is a MACHINE DEPENDANT calibration constant */
+     int calibrationConstant = (10*100000000/24); 
+     frequency = (calibrationConstant)/frequency;  
+
+     /* adjust for the number of microsteps */ 
+     frequency = frequency * getUStep(); 
      for(volatile unsigned iloop=0;iloop<frequency;iloop++);
 }
