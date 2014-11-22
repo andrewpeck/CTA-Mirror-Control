@@ -369,27 +369,27 @@ bool CBC::Encoder::isEnabled() {
 //=ADC Control/Readout=======================================================
 //===========================================================================
 
-adcData CBC::ADC::readEncoder ( int encoder) {
+CBC::ADC::adcData CBC::ADC::readEncoder ( int encoder) {
     return(readEncoder(encoder,defaultSamples));
 }
 
-adcData CBC::ADC::readEncoder ( int encoder, int nsamples) {
+CBC::ADC::adcData CBC::ADC::readEncoder ( int encoder, int nsamples) {
     return(measure(0,encoder,nsamples));
 }
 
-adcData CBC::ADC::onboardTemp () {
+CBC::ADC::adcData CBC::ADC::onboardTemp () {
     return(onboardTemp(defaultSamples));
 }
 
-adcData CBC::ADC::onboardTemp (int nsamples) {
+CBC::ADC::adcData CBC::ADC::onboardTemp (int nsamples) {
     return(measure(0,6,nsamples));
 }
 
-adcData CBC::ADC::externalTemp () {
+CBC::ADC::adcData CBC::ADC::externalTemp () {
     return(externalTemp(defaultSamples)); 
 }
 
-adcData CBC::ADC::externalTemp (int nsamples) {
+CBC::ADC::adcData CBC::ADC::externalTemp (int nsamples) {
     return(measure(0,7,nsamples));
 }
 
@@ -401,7 +401,7 @@ void CBC::ADC::setReadDelay(int delay) {
     readDelay = delay; 
 }
 
-adcData CBC::ADC::measure(int adc, int channel, int nsamples) {
+CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples) {
     uint32_t mean;
     uint32_t stddev;
 

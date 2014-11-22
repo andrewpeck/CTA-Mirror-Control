@@ -4,10 +4,6 @@
 #include <MirrorControlBoard.hpp>
 #include <TLC3548_ADC.hpp>
 
-typedef struct adcData {
-    float voltage; 
-    float stddev; 
-} adcData; 
 
 class CBC
 {
@@ -165,6 +161,10 @@ public:
     struct ADC {
     public: 
 
+        struct adcData {
+            float voltage; 
+            float stddev; 
+        }; 
 
         adcData readEncoder (int encoder);
         adcData readEncoder (int encoder, int nsamples);

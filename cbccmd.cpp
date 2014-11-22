@@ -291,7 +291,7 @@ int main(int argc, const char** argv)
     }
     else if (command == "readTemperature")
     {
-        adcData data; 
+        CBC::ADC::adcData data; 
 
         data = cbc.adc.onboardTemp(); 
         printf("Onboard Voltage: %5.4f", data.voltage); 
@@ -312,7 +312,9 @@ int main(int argc, const char** argv)
         int chan = atoi(*argv);
         argc--, argv++;
 
-        adcData data = cbc.adc.readEncoder(chan); 
+        CBC::ADC::adcData data; 
+        data = cbc.adc.readEncoder(chan); 
+
         printf("Voltage: %5.4f", data.voltage); 
         printf("Stddev:  %5.4f", data.stddev); 
     }
