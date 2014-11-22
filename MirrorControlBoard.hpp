@@ -25,35 +25,19 @@ public:
     // Power Control Function Prototypes
     //------------------------------------------------------------------------------
 
-    // Powers down everything
-    void powerDownAll();
-    void powerUpAll();
-
-    // Powers down everything except USB
-    void powerDownBase();
-    void powerUpBase();
-
     void adcSleep(int iadc);
 
-    // Set the USB power enable_bar bit
+    /* USB power enable_bar bit */
     void powerDownUSB(unsigned iusb);
-    void powerDownAllUSB();
-
-    // Clear the USB power enable_bar bit
     void powerUpUSB(unsigned iusb);
-    void powerUpAllUSB();
-
-    // Check the USB power enable_bar bit
     bool isUSBPoweredUp(unsigned iusb);
 
-    void powerDownDriveControllers();
-    void powerUpDriveControllers();
-    bool isDriveControllersPoweredUp();
-
+    /* Encoder Enable Bit */
     void powerDownEncoders();
     void powerUpEncoders();
     bool isEncodersPoweredUp();
 
+    /* Sensor Enable Bit */
     void powerUpSensors();
     void powerDownSensors();
     bool isSensorsPoweredUp();
@@ -61,8 +45,16 @@ public:
     //------------------------------------------------------------------------------
     // Motor Driver Function Prototypes
     //------------------------------------------------------------------------------
+    
+    /* Motor Driver Sleep bit */
+    void powerDownDriveControllers();
+    void powerUpDriveControllers();
+    bool isDriveControllersPoweredUp();
 
-    // Steps motor a single step in a direction specified by dir, with some delay controlling the io speed
+    /* 
+     * Steps motor a single step in a direction specified by dir, with some
+     * delay controlling the IO speed 
+     */
     void stepOneDrive(unsigned idrive, Dir dir, unsigned frequency = 1000);
 
     // Simultaneously Steps all drives in a configurable direction..
@@ -81,13 +73,10 @@ public:
 
     // Enable or Disable Stepper Motors
     void enableDrive(unsigned idrive, bool enable = true);
-    void enableAllDrives(bool enable = true);
     void disableDrive(unsigned idrive);
-    void disableAllDrives();
-
-    // Check Stepper Motor Enabled
     bool isDriveEnabled(unsigned idrive);
 
+    /* Driver High Current Mode */
     void enableDriveHiCurrent(bool enable = true);
     void disableDriveHiCurrent();
     bool isDriveHiCurrentEnabled();
@@ -106,10 +95,7 @@ public:
     uint32_t measureADC(unsigned iadc, unsigned ichan);
 
     // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
-void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& mean, uint32_t& stddev);
-
-    // Measure encoder position
-    int measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev = 400*8, const int* correction = 0);
+    void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& mean, uint32_t& stddev);
 
     // --------------------------------------------------------------------------
     // Utility functions

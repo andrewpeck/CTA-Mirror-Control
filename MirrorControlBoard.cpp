@@ -14,48 +14,6 @@
 MirrorControlBoard::MirrorControlBoard() { }
 MirrorControlBoard::~MirrorControlBoard() { }
 
-void MirrorControlBoard::powerDownAll()
-{
-    powerDownAllUSB();
-    powerDownBase();
-}
-
-void MirrorControlBoard::powerUpAll()
-{
-    powerUpBase();
-    powerUpAllUSB();
-}
-
-void MirrorControlBoard::powerUpBase()
-{
-    // turn on level shifters
-    gpio.WriteLevel(layout.igpioEN_IO, 1);
-
-    // Power up the A3977 chips
-    powerUpDriveControllers();
-
-    // turn off all drives
-    disableAllDrives();
-
-    // reset drives
-    setPhaseZeroOnAllDrives();
-
-    // Power up encoders
-    powerUpEncoders();
-
-    // Power up Sensors
-    powerUpSensors();
-
-    gpio.WriteLevel(layout.igpioADCSel1, 1);
-    gpio.WriteLevel(layout.igpioADCSel2, 1);
-    spi.Configure();
-    spi.WriteRead(0x0000);
-
-    // Initialize on-board ADC
-    initializeADC(0);
-    initializeADC(1);
-}
-
 void MirrorControlBoard::adcSleep (int iadc) {
     // Set on-board ADC into sleep mode
     selectADC(iadc);
@@ -65,37 +23,6 @@ void MirrorControlBoard::adcSleep (int iadc) {
     selectADC(iadc);
     spi.Configure();
     spi.WriteRead(ADC.codeSWPowerDown());
-}
-
-void MirrorControlBoard::powerDownBase()
-{
-    adcSleep(0);
-    adcSleep(1);
-
-    // Power down Sensors
-    powerDownSensors();
-
-    // Power down encoders
-    powerDownEncoders();
-
-    // Disable all drives, clear high current bit and power down A3977
-    disableAllDrives();
-    disableDriveHiCurrent();
-    powerDownDriveControllers();
-}
-
-void MirrorControlBoard::powerDownAllUSB()
-{
-    for(unsigned iusb=1; iusb<m_nusb; iusb++)
-        powerDownUSB(iusb);
-}
-
-void MirrorControlBoard::powerUpAllUSB()
-{
-    for(unsigned iusb=0; iusb<m_nusb; iusb++)
-    {
-        powerUpUSB(iusb);
-    }
 }
 
 void MirrorControlBoard::powerDownUSB(unsigned iusb)
@@ -258,25 +185,9 @@ void MirrorControlBoard::enableDrive(unsigned idrive, bool enable)
     gpio.WriteLevel(layout.igpioEnable(idrive), enable?0:1);
 }
 
-void MirrorControlBoard::enableAllDrives(bool enable)
-{
-    bool ienable = enable?0:1;
-    gpio.WriteLevel(layout.igpioEnable1, ienable);
-    gpio.WriteLevel(layout.igpioEnable2, ienable);
-    gpio.WriteLevel(layout.igpioEnable3, ienable);
-    gpio.WriteLevel(layout.igpioEnable4, ienable);
-    gpio.WriteLevel(layout.igpioEnable5, ienable);
-    gpio.WriteLevel(layout.igpioEnable6, ienable);
-}
-
 void MirrorControlBoard::disableDrive(unsigned idrive)
 {
     enableDrive(idrive, false);
-}
-
-void MirrorControlBoard::disableAllDrives()
-{
-    enableAllDrives(false);
 }
 
 bool MirrorControlBoard::isDriveEnabled(unsigned idrive)
@@ -373,18 +284,6 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
     stddev = sqrt(variance);
 
     free(measurement);
-}
-
-int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev, const int* correction)
-{
-    int meas = int(measureADC(7, ichan));
-    int calib_range = calib_lo - calib_hi;
-    meas -= calib_hi;
-    meas *= ticks_per_rev;
-    meas /= calib_range;
-    if (correction && meas>=0 && meas<int(ticks_per_rev))
-        meas+=correction[meas];
-    return meas;
 }
 
 //------------------------------------------------------------------------------
