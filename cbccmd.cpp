@@ -116,7 +116,7 @@ int main(int argc, const char** argv)
 
         cbc.usb.disable(iusb);
     }
-    
+
     else if (command == "step")
     {
         if(argc<2)
@@ -305,7 +305,7 @@ int main(int argc, const char** argv)
     {
         if(argc<1)
             usage();
-        
+
         // channel
         if(argc==0)
             usage();
@@ -321,4 +321,85 @@ int main(int argc, const char** argv)
 }
 
 void usage () {
+    std::string usage_text =
+        "CBC v2.3.0 Usage:"
+        "\n    command                {required arguments} [optional arguments]\n"
+        "\n    initialize             Initialize the hardware. Should be done once"
+        "                             after boot-up. Configures GPIOs, turns on all"
+        "                             hardware except USBs." 
+        "\n"
+        "\n    power down             Go into power saving mode. Power down encoders, USB and A3977."
+        "\n    power up               Power up all on-board and off-board electronics."
+        "\n    "
+        "\n    power_down_encoders    Power down encoders."
+        "\n    power_up_encoders      Power up encoders."
+        "\n    "
+        "\n    power_down_a3977       Power down A3977 motor controllers."
+        "\n    power_up_a3977         Power up A3977 motor controllers."
+        "\n    "
+        "\n    reset                  Resets phase to zero on all drives."
+        "\n    "
+        "\n    enable_sr              Enable Synchronous Rectification (SR) mode."
+        "\n    disable_sr             Disable Synchronous Rectification (SR) mode."
+        "\n    "
+        "\n    set_microstep          {MS 1,2,4,8}"
+        "\n                           Set number of micro steps to 1, 2, 4 or 8."
+        "\n    "
+        "\n    enable_hi_current      Enable high current mode on all drives."
+        "\n    disable_hi_current     Disable high current mode on all drives."
+        "\n    "
+        "\n    enable                 {DR 1-6, or all)"
+        "\n                           Enable motor driver."
+        "\n    disable                {DR 1-6, or all}"
+        "\n                           Disable motor driver"
+        "\n    "
+        "\n    enableusb              {USB 1-7, or all}"
+        "\n                           Enable USB (USB)."
+        "\n    disableusb             {USB 1-7, or all"
+        "\n                           Disable USB (USB)."
+        "\n    "
+        "\n    step                   {DR 1-6} {NSTEPS} [Frequency=4000]"
+        "\n                           Step drive some number of steps (positive to"
+        "\n                           extend, negative to retract) with frequency in Hz"
+        "\n    "
+        "\n    slew                   {DR 1-6} [DIR=(extend/retract)] [Frequency=4000]"
+        "\n                           Slew drive (DR) in given direction (DIR, default extend) "
+        "\n                           with frequency in Hz."
+        "\n    "
+        "\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [Frequency=4000]"
+        "\n                           Step all drives some number of steps (positive to extend,"
+        "\n                           negative to retract and zero to not move that drive.)"
+        "\n    "
+        "\n    slew_all               [DIR=(extend/retract)] [Frequency=4000]"
+        "\n                           Slew all (enabled) drives in given direction (DIR, default "
+        "\n                           extend) with frequency of steps in Hz."
+        "\n    "
+        "\n    status                 Print drive status information"
+        "\n    "
+        "\n    measure                {ADC 1-8} {CHAN 0-11} [MEAS=1 BURN=0 DELAY=0 SCALE=5.00]"
+        "\n                           Measure voltage of the specified ADC channel. Channel can be"
+        "\n                           given as zero to specify all channels on one ADC. Channels 9, 10"
+        "\n                           and 11 correspond to internal reference voltages on the ADC."
+        "\n                           Prints out statistics."
+        "\n                           Note that delay does nothing but you have to put"
+        "\n                           it anyway if you want to chance the scale."
+        "\n"
+        "\n    measure_full           {ADC 1-8} {CHAN 0-11} [MEAS=1 DELAY=0 SCALE=5.00]"
+        "\n                           Measure voltage of the specified ADC channel. Channel can be"
+        "\n                           given as zero to specify all channels on one ADC. Channels 9, 10"
+        "\n                           and 11 correspond to internal reference voltages on the ADC."
+        "\n                           Prints out raw data."
+        "\n                           Note that delay does nothing but you have to put" 
+        "\n                           it anyway if you want to chance the scale."
+        "\n"
+        "\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 FREQUENCY=4000 ADC=7 MEAS=1]"
+        "\n                           Step drive and read ADC after each step, printing its value to"
+        "\n                           the terminal. If NCYCLE is 0 or 1 then it specifies the direction"
+        "\n                           of the travel, otherwise it specifies the number of half cycles"
+        "\n                           of expansion and contraction to perform."
+        "\nCBC v2.3.0"
+        "\n";
+    std::cout << usage_text;
 }
+
+
