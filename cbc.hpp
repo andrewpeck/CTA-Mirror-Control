@@ -9,11 +9,11 @@ class CBC
 {
 public:
 
-    //USB usb; 
-    //Driver driver; 
-    //Encoder encoder; 
-    //ADC adc; 
-    //Sensor sensor; 
+    //USB usb;
+    //Driver driver;
+    //Encoder encoder;
+    //ADC adc;
+    //Sensor sensor;
 
     CBC(
             int  microsteps        = 8,
@@ -23,14 +23,14 @@ public:
             int  adcReadDelay      = 0,
             int  defaultADCSamples = 100,
             int  usbEnable         = 0,
-            int  driveEnable       = 0 
-       ); 
+            int  driveEnable       = 0
+       );
 
-    ~CBC(); 
+    ~CBC();
 
 
-    void powerDown(); 
-    void powerUp(); 
+    void powerDown();
+    void powerUp();
 
 
     //===========================================================================
@@ -41,77 +41,77 @@ public:
         /* Enable/Disable/Check USB Ports #1-6
          * For Safety, this deliberately does not work with Ethernet USB1 */
         void enable     (int usb);
-        void enableAll  (); 
+        void enableAll  ();
         void disable    (int usb);
         void disableAll ();
 
         bool isEnabled  (int usb);
 
-        /* Alias the first USB port as ethernet */ 
-        void resetEthernet(); 
-        void enableEthernet(); 
-    private: 
-        void disableEthernet(); 
+        /* Alias the first USB port as ethernet */
+        void resetEthernet();
+        void enableEthernet();
+    private:
+        void disableEthernet();
         MirrorControlBoard mcb;
-    }; 
+    };
 
     //===========================================================================
     //=Motor Driver Control======================================================
     //===========================================================================
 
-    struct Driver { 
-    public: 
+    struct Driver {
+    public:
         /* Set number of micro steps to 1, 2, 4 or 8. */
         void setMicrosteps (int microsteps);
-        int  getMicrosteps (); 
+        int  getMicrosteps ();
 
         /* Enable/Disable/Check Motor Driver Enable*/
         void enable     (int idrive);
-        void enableAll  (); 
+        void enableAll  ();
         void disable    (int idrive);
-        void disableAll (); 
-        bool isEnabled  (int drive); 
+        void disableAll ();
+        bool isEnabled  (int drive);
 
         /* Toggles Motor Driver Sleep Pin */
-        void sleep(); 
-        void wakeup(); 
-        bool isAwake(); 
+        void sleep();
+        void wakeup();
+        bool isAwake();
 
         /* Motor Driver High Current Mode */
-        bool isHighCurrentEnabled(); 
-        void enableHighCurrent(); 
-        void disableHighCurrent(); 
+        bool isHighCurrentEnabled();
+        void enableHighCurrent();
+        void disableHighCurrent();
 
-        /* A3977 Synchronous Rectification Mode. 
-         * Reduces power dissipation and elimitates 
+        /* A3977 Synchronous Rectification Mode.
+         * Reduces power dissipation and elimitates
          * the need for external Shottky diodes. */
-        void enableSR(); 
-        void disableSR(); 
-        bool isSREnabled(); 
+        void enableSR();
+        void disableSR();
+        bool isSREnabled();
 
-        int  getSteppingFrequency(); 
-        void setSteppingFrequency(int frequency); 
+        int  getSteppingFrequency();
+        void setSteppingFrequency(int frequency);
 
-        /* The RESET input (active low) sets the translator to a predefined 
-         * home state (see figures for home state conditions) and turns off 
-         * all of the DMOS outputs. The HOME output goes low and all 
-         * STEP inputs are ignored until the RESET input goes high. 
+        /* The RESET input (active low) sets the translator to a predefined
+         * home state (see figures for home state conditions) and turns off
+         * all of the DMOS outputs. The HOME output goes low and all
+         * STEP inputs are ignored until the RESET input goes high.
          *
          * resetDriver() toggles this pin LOW then HIGH */
-        void reset(); 
+        void reset();
 
-        /* Step drive some number of steps (positive to extend, negative to retract). 
+        /* Step drive some number of steps (positive to extend, negative to retract).
          *
          * NOTA BENE:
-         *      "Frequency" is a CPU-dependent, load dependent variable. It 
-         *      can only be roughly calibrated for a particular processor, 
-         *      under particular circumstances.  A change in hardware necessitates 
-         *      a change in the calibration constant.  
-         * 
+         *      "Frequency" is a CPU-dependent, load dependent variable. It
+         *      can only be roughly calibrated for a particular processor,
+         *      under particular circumstances.  A change in hardware necessitates
+         *      a change in the calibration constant.
+         *
          * nsteps is in MACRO-steps
          * frequency is in MACRO-steps per second
-         * 
-         * OPTIONAL by default, frequency will take the value of steppingFrequency 
+         *
+         * OPTIONAL by default, frequency will take the value of steppingFrequency
          * unless otherwise specified.  */
 
         void step (int drive, int nsteps);
@@ -122,7 +122,7 @@ public:
         /* Slew drive (DR) in given direction (move as far as possible)
          * 0 = extend
          * 1 = retract
-         * 2 = none 
+         * 2 = none
          * */
         void slew(int idrive, MirrorControlBoard::Dir dir);
         void slew(int idrive, MirrorControlBoard::Dir dir, int frequency);
@@ -131,13 +131,13 @@ public:
         void slewAll(MirrorControlBoard::Dir dir);
         void slewAll(MirrorControlBoard::Dir dir, int frequency);
 
-    private: 
-        int  steppingFrequency; 
-        static const int  maximumSteppingFrequency = 0x1 << 16; 
-        static const int  minimumSteppingFrequency = 0; 
+    private:
+        int  steppingFrequency;
+        static const int  maximumSteppingFrequency = 0x1 << 16;
+        static const int  minimumSteppingFrequency = 0;
 
         MirrorControlBoard mcb;
-    }; 
+    };
 
     //===========================================================================
     //=Encoder Control===========================================================
@@ -145,26 +145,26 @@ public:
 
     struct Encoder {
         /* Controls Encoder Enable GPIO */
-        void enable(); 
-        void disable(); 
-        bool isEnabled(); 
+        void enable();
+        void disable();
+        bool isEnabled();
 
     private:
         MirrorControlBoard mcb;
 
-    }; 
+    };
 
     //===========================================================================
     //=ADC Control/Readout=======================================================
     //===========================================================================
 
     struct ADC {
-    public: 
+    public:
 
         struct adcData {
-            float voltage; 
-            float stddev; 
-        }; 
+            float voltage;
+            float stddev;
+        };
 
         adcData readEncoder (int encoder);
         adcData readEncoder (int encoder, int nsamples);
@@ -174,41 +174,41 @@ public:
         adcData externalTemp ();
         adcData externalTemp (int nsamples);
 
-        int  getReadDelay(); 
-        void setReadDelay(int delay); 
+        int  getReadDelay();
+        void setReadDelay(int delay);
 
-        void setDefaultSamples(int nsamples); 
+        void setDefaultSamples(int nsamples);
 
-    private: 
-        int readDelay; 
-        int defaultSamples; 
+    private:
+        int readDelay;
+        int defaultSamples;
         static const float volt_full = 5.0;
 
-        adcData measure(int adc, int channel, int nsamples); 
+        adcData measure(int adc, int channel, int nsamples);
 
         TLC3548_ADC tlcadc;
         MirrorControlBoard mcb;
-    }; 
-    
+    };
+
     //===========================================================================
     //=External Sensors Control==================================================
     //==========================================================================
 
     struct Sensor {
-        void enable(); 
-        void disable(); 
-        bool isEnabled(); 
+        void enable();
+        void disable();
+        bool isEnabled();
 
-    private: 
+    private:
         MirrorControlBoard mcb;
-    }; 
+    };
 
 
-    struct USB usb; 
-    struct Driver driver; 
-    struct Encoder encoder; 
-    struct ADC adc; 
-    struct Sensor sensor; 
+    struct USB usb;
+    struct Driver driver;
+    struct Encoder encoder;
+    struct ADC adc;
+    struct Sensor sensor;
 
 private:
     GPIOInterface gpio;

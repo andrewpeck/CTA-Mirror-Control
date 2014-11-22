@@ -69,8 +69,8 @@ void MirrorControlBoard::adcSleep (int iadc) {
 
 void MirrorControlBoard::powerDownBase()
 {
-    adcSleep(0); 
-    adcSleep(1); 
+    adcSleep(0);
+    adcSleep(1);
 
     // Power down Sensors
     powerDownSensors();
@@ -322,7 +322,7 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 {
     spi.Configure();
 
-    initializeADC(iadc); 
+    initializeADC(iadc);
 
     // Assert Chip Select
     selectADC(iadc);
@@ -340,7 +340,7 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& mean, uint32_t& stddev)
 {
     spi.Configure();
-    initializeADC(iadc); 
+    initializeADC(iadc);
     selectADC(iadc);
     uint32_t code   = ADC.codeSelect(ichan);
     uint32_t sum             = 0;
@@ -363,16 +363,16 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
     measurement[nmeas-1] = ADC.decodeUSB(datum);
     sum+=datum;
 
-    mean = sum / nmeas; 
+    mean = sum / nmeas;
 
     for(unsigned iloop=0; iloop<nmeas; iloop++) {
-        sumsq += (measurement[iloop] - mean); 
+        sumsq += (measurement[iloop] - mean);
     }
 
-    uint64_t variance = sumsq*sumsq/(nmeas-1); 
-    stddev = sqrt(variance); 
+    uint64_t variance = sumsq*sumsq/(nmeas-1);
+    stddev = sqrt(variance);
 
-    free(measurement); 
+    free(measurement);
 }
 
 int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsigned calib_hi, unsigned ticks_per_rev, const int* correction)
@@ -394,10 +394,10 @@ int MirrorControlBoard::measureEncoder(unsigned ichan, unsigned calib_lo, unsign
 void MirrorControlBoard::waitHalfPeriod(unsigned frequency)
 {
      /* This is a MACHINE DEPENDANT calibration constant */
-     int calibrationConstant = (10*100000000/24); 
-     frequency = (calibrationConstant)/frequency;  
+     int calibrationConstant = (10*100000000/24);
+     frequency = (calibrationConstant)/frequency;
 
-     /* adjust for the number of microsteps */ 
-     frequency = frequency * getUStep(); 
+     /* adjust for the number of microsteps */
+     frequency = frequency * getUStep();
      for(volatile unsigned iloop=0;iloop<frequency;iloop++);
 }
