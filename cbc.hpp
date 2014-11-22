@@ -8,13 +8,6 @@
 class CBC
 {
 public:
-
-    //USB usb;
-    //Driver driver;
-    //Encoder encoder;
-    //ADC adc;
-    //Sensor sensor;
-
     CBC(
             int  microsteps        = 8,
             int  steppingFrequency = 4000,
@@ -28,10 +21,10 @@ public:
 
     ~CBC();
 
-
+    /* Power down sensors, encoders, motor drivers, adcs */
     void powerDown();
+    /* Power up sensors, encoders, motor drivers, adcs */
     void powerUp();
-
 
     //===========================================================================
     //=USB Control===============================================================
@@ -44,7 +37,6 @@ public:
         void enableAll  ();
         void disable    (int usb);
         void disableAll ();
-
         bool isEnabled  (int usb);
 
         /* Alias the first USB port as ethernet */
@@ -61,11 +53,14 @@ public:
 
     struct Driver {
     public:
-        /* Set number of micro steps to 1, 2, 4 or 8. */
+        /*
+         * Set number of micro steps to 1, 2, 4 or 8.
+         * Attempts to write other values will simply be in vain
+         */
         void setMicrosteps (int microsteps);
         int  getMicrosteps ();
 
-        /* Enable/Disable/Check Motor Driver Enable*/
+        /* Enable/Disable/Check Motor Drive Channel Enables */
         void enable     (int idrive);
         void enableAll  ();
         void disable    (int idrive);
@@ -82,13 +77,21 @@ public:
         void enableHighCurrent();
         void disableHighCurrent();
 
-        /* A3977 Synchronous Rectification Mode.
+        /*
+         * A3977 Synchronous Rectification Mode.
          * Reduces power dissipation and elimitates
-         * the need for external Shottky diodes. */
+         * the need for external Shottky diodes.
+         */
         void enableSR();
         void disableSR();
         bool isSREnabled();
 
+        /*
+         * Set default frequency for stepping.
+         * This can be overwritten when calling stepping functions,
+         * but setting a default will let you use a global frequency
+         * and avoid having to specify each time you perform stepping
+         */
         int  getSteppingFrequency();
         void setSteppingFrequency(int frequency);
 
@@ -112,8 +115,8 @@ public:
          * frequency is in MACRO-steps per second
          *
          * OPTIONAL by default, frequency will take the value of steppingFrequency
-         * unless otherwise specified.  */
-
+         * unless otherwise specified.
+         */
         void step (int drive, int nsteps);
         void step (int drive, int nsteps, int frequency);
         void stepAll (int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6);
@@ -123,9 +126,9 @@ public:
          * 0 = extend
          * 1 = retract
          * 2 = none
-         * */
-        void slew(int idrive, MirrorControlBoard::Dir dir);
-        void slew(int idrive, MirrorControlBoard::Dir dir, int frequency);
+         */
+        void slew(int idrive, int dir);
+        void slew(int idrive, int dir, int frequency);
 
         /* Slew all (enabled) drives in given direction */
         void slewAll(MirrorControlBoard::Dir dir);
@@ -133,6 +136,11 @@ public:
 
     private:
         int  steppingFrequency;
+
+        /*
+         * Some safety check to set a maximum and minimum
+         * allowable stepping frequency
+         */
         static const int  maximumSteppingFrequency = 0x1 << 16;
         static const int  minimumSteppingFrequency = 0;
 
@@ -161,6 +169,7 @@ public:
     struct ADC {
     public:
 
+        /* Structure to hold ADC data */
         struct adcData {
             float voltage;
             float stddev;
@@ -171,19 +180,25 @@ public:
 
         adcData onboardTemp  ();
         adcData onboardTemp  (int nsamples);
+
         adcData externalTemp ();
         adcData externalTemp (int nsamples);
 
+        /* A delay inserted between successive ADC reads */
         int  getReadDelay();
         void setReadDelay(int delay);
 
+        /* Default number of samples to take in an measurement*/
         void setDefaultSamples(int nsamples);
 
     private:
         int readDelay;
         int defaultSamples;
+
+        /* ADC voltage reference */
         static const float volt_full = 5.0;
 
+        /* Reads data from any ADC/channel */
         adcData measure(int adc, int channel, int nsamples);
 
         TLC3548_ADC tlcadc;
@@ -194,6 +209,7 @@ public:
     //=External Sensors Control==================================================
     //==========================================================================
 
+    /* Turns power on/off to the External sensor connections (unused?) */
     struct Sensor {
         void enable();
         void disable();
@@ -202,7 +218,6 @@ public:
     private:
         MirrorControlBoard mcb;
     };
-
 
     struct USB usb;
     struct Driver driver;

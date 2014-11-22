@@ -6,7 +6,7 @@
 #include <cstring>
 #include <stdio.h>
 
-void usage(); 
+void usage();
 
 int main(int argc, const char** argv)
 {
@@ -43,7 +43,7 @@ int main(int argc, const char** argv)
     else if (command == "power_up_sensors")
         cbc.sensor.enable();
     else if (command == "power_down_a3977")
-        cbc.driver.sleep(); 
+        cbc.driver.sleep();
     else if (command == "power_up_a3977")
         cbc.driver.wakeup();
     else if (command == "reset")
@@ -291,15 +291,15 @@ int main(int argc, const char** argv)
     }
     else if (command == "readTemperature")
     {
-        CBC::ADC::adcData data; 
+        CBC::ADC::adcData data;
 
-        data = cbc.adc.onboardTemp(); 
-        printf("Onboard Voltage: %5.4f", data.voltage); 
-        printf("Onboard Stddev:  %5.4f", data.stddev); 
+        data = cbc.adc.onboardTemp();
+        printf("Onboard Voltage: %5.4f", data.voltage);
+        printf("Onboard Stddev:  %5.4f", data.stddev);
 
-        data = cbc.adc.externalTemp(); 
-        printf("External Voltage: %5.4f", data.voltage); 
-        printf("External Stddev:  %5.4f", data.stddev); 
+        data = cbc.adc.externalTemp();
+        printf("External Voltage: %5.4f", data.voltage);
+        printf("External Stddev:  %5.4f", data.stddev);
     }
     else if (command == "readEncoder")
     {
@@ -312,11 +312,11 @@ int main(int argc, const char** argv)
         int chan = atoi(*argv);
         argc--, argv++;
 
-        CBC::ADC::adcData data; 
-        data = cbc.adc.readEncoder(chan); 
+        CBC::ADC::adcData data;
+        data = cbc.adc.readEncoder(chan);
 
-        printf("Voltage: %5.4f", data.voltage); 
-        printf("Stddev:  %5.4f", data.stddev); 
+        printf("Voltage: %5.4f", data.voltage);
+        printf("Stddev:  %5.4f", data.stddev);
     }
     else
         usage();
@@ -328,7 +328,7 @@ void usage () {
         "\n    command                {required arguments} [optional arguments]\n"
         "\n    initialize             Initialize the hardware. Should be done once"
         "                             after boot-up. Configures GPIOs, turns on all"
-        "                             hardware except USBs." 
+        "                             hardware except USBs."
         "\n"
         "\n    power down             Go into power saving mode. Power down encoders, USB and A3977."
         "\n    power up               Power up all on-board and off-board electronics."
@@ -391,7 +391,7 @@ void usage () {
         "\n                           given as zero to specify all channels on one ADC. Channels 9, 10"
         "\n                           and 11 correspond to internal reference voltages on the ADC."
         "\n                           Prints out raw data."
-        "\n                           Note that delay does nothing but you have to put" 
+        "\n                           Note that delay does nothing but you have to put"
         "\n                           it anyway if you want to chance the scale."
         "\n"
         "\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 FREQUENCY=4000 ADC=7 MEAS=1]"
