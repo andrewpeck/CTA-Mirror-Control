@@ -14,12 +14,18 @@
 class MirrorControlBoard
 {
 public:
-    MirrorControlBoard();
+    MirrorControlBoard(
+            int calibrationConstant_ = (1000000000/24)
+            );
+
     ~MirrorControlBoard();
 
     enum UStep { USTEP_1, USTEP_2, USTEP_4, USTEP_8 };
     enum Dir { DIR_EXTEND, DIR_RETRACT, DIR_NONE };
     enum GPIODir { DIR_OUTPUT, DIR_INPUT};
+
+    void enableIO();
+    void disableIO();
 
     //------------------------------------------------------------------------------
     // Power Control Function Prototypes
@@ -45,15 +51,15 @@ public:
     //------------------------------------------------------------------------------
     // Motor Driver Function Prototypes
     //------------------------------------------------------------------------------
-    
+
     /* Motor Driver Sleep bit */
     void powerDownDriveControllers();
     void powerUpDriveControllers();
     bool isDriveControllersPoweredUp();
 
-    /* 
+    /*
      * Steps motor a single step in a direction specified by dir, with some
-     * delay controlling the IO speed 
+     * delay controlling the IO speed
      */
     void stepOneDrive(unsigned idrive, Dir dir, unsigned frequency = 1000);
 
@@ -95,7 +101,9 @@ public:
     uint32_t measureADC(unsigned iadc, unsigned ichan);
 
     // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
-    void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& mean, uint32_t& stddev);
+void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max);
+
+
 
     // --------------------------------------------------------------------------
     // Utility functions
@@ -104,11 +112,17 @@ public:
     // Sleeps for a half-cycle of the frequency given in the argument...
     void waitHalfPeriod(unsigned frequency);
 
+    void setCalibrationConstant(int constant);
+    int  getCalibrationConstant();
+
 private:
     GPIOInterface gpio;
     Layout layout;
     SpiInterface spi;
     TLC3548_ADC ADC;
+
+    int calibrationConstant;
+
     static const unsigned m_nusb=7;
     unsigned          m_ssp_clk_div;
 };

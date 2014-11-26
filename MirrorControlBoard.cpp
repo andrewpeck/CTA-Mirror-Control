@@ -11,8 +11,18 @@
 #include <math.h>
 #include <cstdlib>
 
-MirrorControlBoard::MirrorControlBoard() { }
+MirrorControlBoard::MirrorControlBoard(int calibrationConstant_) {
+    calibrationConstant = calibrationConstant_;
+}
 MirrorControlBoard::~MirrorControlBoard() { }
+
+void MirrorControlBoard::enableIO () {
+    gpio.WriteLevel(layout.igpioEN_IO, 1);
+}
+
+void MirrorControlBoard::disableIO () {
+    gpio.WriteLevel(layout.igpioEN_IO, 0);
+}
 
 void MirrorControlBoard::adcSleep (int iadc) {
     // Set on-board ADC into sleep mode
@@ -248,42 +258,56 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
     return ADC.decodeUSB(datum);
 }
 
-void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& mean, uint32_t& stddev)
+void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max)
 {
     spi.Configure();
     initializeADC(iadc);
     selectADC(iadc);
     uint32_t code   = ADC.codeSelect(ichan);
-    uint32_t sum             = 0;
-    uint32_t sumsq           = 0;
-
-    uint16_t *measurement = (uint16_t *) malloc(nmeas * sizeof(uint16_t));
+    unsigned nburn = 0;
+    unsigned nloop  = nburn + nmeas;
+    sum             = 0;
+    sumsq           = 0;
+    max             = 0;
+    min             = ~max;
 
     // Loop over number of measurements
-    for(unsigned iloop=0; iloop<nmeas; iloop++) {
+    for(unsigned iloop=0; iloop<nloop; iloop++)
+    {
         // Read data
         uint32_t datum = spi.WriteRead(code);
-        // Decode data
-        measurement[iloop] = ADC.decodeUSB(datum);
-        sum+=datum;
+
+        if (iloop>=nburn)
+        {
+            // Decode data
+            datum = ADC.decodeUSB(datum);
+            // Typecast to 64 bit integer..
+            uint64_t datum64 = datum;
+
+            // Accumulate statistics
+            sum+=datum;
+            sumsq+=datum64*datum64;
+            if(datum>max)
+                max=datum;
+            if(datum<min)
+                min=datum;
+        }
     }
 
     // Read last FIFO
     uint32_t datum = spi.WriteRead(ADC.codeReadFIFO());
     //decode data
-    measurement[nmeas-1] = ADC.decodeUSB(datum);
+    datum = ADC.decodeUSB(datum);
+
+    //typecast and accumulate statistics
+    uint64_t datum64 = datum;
     sum+=datum;
+    sumsq+=datum64*datum64;
 
-    mean = sum / nmeas;
-
-    for(unsigned iloop=0; iloop<nmeas; iloop++) {
-        sumsq += (measurement[iloop] - mean);
-    }
-
-    uint64_t variance = sumsq*sumsq/(nmeas-1);
-    stddev = sqrt(variance);
-
-    free(measurement);
+    if(datum>max)
+        max=datum;
+    if(datum<min)
+        min=datum;
 }
 
 //------------------------------------------------------------------------------
@@ -293,10 +317,17 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
 void MirrorControlBoard::waitHalfPeriod(unsigned frequency)
 {
      /* This is a MACHINE DEPENDANT calibration constant */
-     int calibrationConstant = (10*100000000/24);
      frequency = (calibrationConstant)/frequency;
 
      /* adjust for the number of microsteps */
      frequency = frequency * getUStep();
      for(volatile unsigned iloop=0;iloop<frequency;iloop++);
+}
+
+void MirrorControlBoard::setCalibrationConstant(int constant) {
+    calibrationConstant = constant;
+}
+
+int MirrorControlBoard::getCalibrationConstant() {
+    return (calibrationConstant);
 }

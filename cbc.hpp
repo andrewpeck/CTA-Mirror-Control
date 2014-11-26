@@ -5,9 +5,44 @@
 #include <TLC3548_ADC.hpp>
 
 
+/*!
+ * The CBC class is responsible for the control of all mirror control board functions.
+ *
+ * It is divided into structures corresponding to different hardware units. All
+ * control and readout of a hardware unit is done through its accompanying
+ * structure.
+ *
+ * Initialization of the board is performed in the constructor of the class.
+ */
 class CBC
 {
 public:
+
+/*!
+ *
+ * Constructor performs initialization of the CBC board, and accepts several
+ * configuration parameters as variables. In lieu of any parameters, the
+ * program will assume sane defaults. All variables can be adjusted after
+ * initialization.
+ *
+ * @param microsteps          Number of microsteps [1,2,4 or 8]
+ * @param steppingFrequency   Stepping frequency [in Hertz]
+ * @param highCurrentMode     Stepper motor High Current Mode [true/false]
+ * @param driveSR             Drive synchronous rectification mode [true/false]
+ * @param adcReadDelay        Delay inserted between subsequent ADC reads [any integer]
+ * @param defaultADCSamples   Set a global default number of ADC samples. Can be overrode for individual measurements.
+ * @param usbEnable           Integer bitmask to enable USB channels according to the simple scheme:
+ *                            <UL>
+ *                            <LI> 000000 Disable All
+ *                            <LI> 000001 Enable USB 1
+ *                            <LI> 000010 Enable USB 2
+ *                            <LI> 000100 Enable USB 3
+ *                            <LI> 001000 Enable USB 4
+ *                            <LI> 010000 Enable USB 5
+ *                            <LI> 100000 Enable USB 6
+ *                            </UL>
+ * @param driveEnable         Integer bitmask to enable encoder drives, working ala usbEnable
+ */
     CBC(
             int  microsteps        = 8,
             int  steppingFrequency = 4000,
@@ -21,89 +56,170 @@ public:
 
     ~CBC();
 
-    /* Power down sensors, encoders, motor drivers, adcs */
+    /*! Power down CBC
+     *
+     * Puts the CBC board into a power-down state, decreasing power consumption. Specifically:
+     *      <UL>
+     *      <LI> Turn off auxillary sensor power
+     *      <LI> Turn off encoders power
+     *      <LI> Put motor drivers into a sleep state
+     *      <LI> Put ADCs into a sleep state
+     *      <LI> Turn off all USB connections (excluding ethernet)
+     *      </UL>
+     */
     void powerDown();
-    /* Power up sensors, encoders, motor drivers, adcs */
+
+    /*! Power up CBC
+     *
+     * Performs the reverse sequence of CBC powerDown. This is called automatically
+     * when the CBC class is constructed.
+     */
     void powerUp();
 
-    //===========================================================================
-    //=USB Control===============================================================
-    //===========================================================================
-
+    //////////////////////////////////////////////////////////////////////////////
+    ///USB Control
+    //////////////////////////////////////////////////////////////////////////////
     struct USB {
-        /* Enable/Disable/Check USB Ports #1-6
-         * For Safety, this deliberately does not work with Ethernet USB1 */
+
+        ///@{
+        /*! @name USB Control
+         * Functions to control the CBC USB Ports.
+         */
+
+        /** @brief Enable USB 1-6 */
         void enable     (int usb);
+        /** @brief Enable all USBs */
         void enableAll  ();
+        /** @brief Disable USB 1-6 */
         void disable    (int usb);
+        /** @brief Disable all USBs */
         void disableAll ();
+        /** @brief Return enabled/disabled status of USB 1-6 */
         bool isEnabled  (int usb);
 
-        /* Alias the first USB port as ethernet */
+        ///@}
+
+        ///@{
+        /*! @name Ethernet Control
+         * Functions to control the USB ethernet dongle. */
+
+        /*! @brief Resets the USB Ethernet Dongle by toggling it off, waiting 1 second, then toggling it back on. */
         void resetEthernet();
+        /*! @brief Enable the USB Ethernet Dongle */
         void enableEthernet();
+        ///@}
+
     private:
+
+        /*!
+         * Disable the USB Ethernet Dongle
+         */
         void disableEthernet();
+
         MirrorControlBoard mcb;
     };
 
-    //===========================================================================
-    //=Motor Driver Control======================================================
-    //===========================================================================
+    //////////////////////////////////////////////////////////////////////////////
+    ///Motor Driver Control
+    /////////////////////////////////////////////////////////////////////////////
 
     struct Driver {
     public:
-        /*
-         * Set number of micro steps to 1, 2, 4 or 8.
-         * Attempts to write other values will simply be in vain
+        ///@{
+        /*! @name Microstep Setting Control
          */
+        /*! @brief Set number of micro steps to 1, 2, 4 or 8. */
         void setMicrosteps (int microsteps);
+        /*! @brief Returns the current setting for the number of microsteps.  */
         int  getMicrosteps ();
+        ///@}
 
-        /* Enable/Disable/Check Motor Drive Channel Enables */
-        void enable     (int idrive);
+        ///@{
+        /*! @name Motor Driver Control */
+
+        /** @brief Enable Motor Driver
+         *  @param drive Motor Driver 1-6
+         */
+        void enable     (int drive);
+
+        /** @brief Enable All Motor Drivers */
         void enableAll  ();
-        void disable    (int idrive);
+
+        /** @brief Disable Motor Driver
+         *  @param drive Motor Driver 1-6
+         */
+        void disable    (int drive);
+        /** @brief Disable All Motor Drivers
+         */
+
         void disableAll ();
+        /** @brief Check enabled or disabled status of a motor driver
+         *  @param drive Motor Driver 1-6
+         */
         bool isEnabled  (int drive);
+        ///@}
 
-        /* Toggles Motor Driver Sleep Pin */
-        void sleep();
-        void wakeup();
-        bool isAwake();
-
-        /* Motor Driver High Current Mode */
-        bool isHighCurrentEnabled();
-        void enableHighCurrent();
-        void disableHighCurrent();
-
-        /*
-         * A3977 Synchronous Rectification Mode.
-         * Reduces power dissipation and elimitates
-         * the need for external Shottky diodes.
-         */
-        void enableSR();
-        void disableSR();
-        bool isSREnabled();
-
-        /*
-         * Set default frequency for stepping.
-         * This can be overwritten when calling stepping functions,
-         * but setting a default will let you use a global frequency
-         * and avoid having to specify each time you perform stepping
-         */
-        int  getSteppingFrequency();
-        void setSteppingFrequency(int frequency);
-
-        /* The RESET input (active low) sets the translator to a predefined
-         * home state (see figures for home state conditions) and turns off
-         * all of the DMOS outputs. The HOME output goes low and all
-         * STEP inputs are ignored until the RESET input goes high.
+        ///@{
+        /*! @name Sleep Control
          *
-         * resetDriver() toggles this pin LOW then HIGH */
+         * An active-low control input used to minimize power consumption when
+         * not in use. This disables much of the internal circuitry including
+         * the output DMOS, regulator, and charge pump. A logic high allows
+         * normal operation and startup of the device in the home position.
+         * When coming out of sleep mode, wait 1 ms before issuing a STEP
+         * command to allow the charge pump (gate drive) to stabilize.
+         */
+        /*! @brief Put motor drivers to sleep */
+        void sleep();
+        /*! @brief Wake motor drivers up from sleep */
+        void wakeup();
+        /*! @brief Check whether motor drivers are sleeping */
+        bool isAwake();
+        ///@}
+
+        /*! Reset motor driver
+         *
+         * The reset() will briefly toggle OFF then ON the motor drivers RESET
+         * input.
+         *
+         * The RESET input (active low) sets the translator to a predefined
+         * home state (see figures for home state conditions) and turns off all
+         * of the DMOS outputs. The HOME output goes low and all STEP inputs
+         * are ignored until the RESET input goes high.
+         *
+         */
         void reset();
 
-        /* Step drive some number of steps (positive to extend, negative to retract).
+        ///@{
+        /*! @name High Current Mode
+         *
+         * Control the motor driver "High Current Mode"
+         */
+        /*! @brief Enable High Current Mode */
+        void enableHighCurrent();
+        /*! @brief Disable High Current Mode */
+        void disableHighCurrent();
+        /*! @brief Returns status of high current mode*/
+        bool isHighCurrentEnabled();
+        ///@}
+
+        ///@{
+        /*! @name Synchronous Rectification Mode
+         *
+         * Controls the A3977 Synchronous Rectification Mode, which is designed
+         * to reduces power dissipation and elimitate the need for external
+         * Shottky diodes.
+         */
+        /*! @brief Enable synchronous rectification mode */
+        void enableSR();
+        /*! @brief Disable synchronous rectification mode */
+        void disableSR();
+        /*! @brief Returns status of synchronous rectification mode */
+        bool isSREnabled();
+        ///@}
+
+        ///@{
+        /*! @name Step Drive
          *
          * NOTA BENE:
          *      "Frequency" is a CPU-dependent, load dependent variable. It
@@ -111,108 +227,268 @@ public:
          *      under particular circumstances.  A change in hardware necessitates
          *      a change in the calibration constant.
          *
-         * nsteps is in MACRO-steps
-         * frequency is in MACRO-steps per second
+         */
+
+        /*! @brief Step drive using global frequency
+         * @param drive  Motor drive 1-6
+         * @param nsteps Number of MACRO-steps
          *
-         * OPTIONAL by default, frequency will take the value of steppingFrequency
-         * unless otherwise specified.
+         * Function returns the calculated calibration constant used to
+         * translate between for-loop cycles and physical Hz
          */
-        void step (int drive, int nsteps);
-        void step (int drive, int nsteps, int frequency);
-        void stepAll (int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6);
-        void stepAll (int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6, int frequency);
+        int step (int drive, int nsteps);
 
-        /* Slew drive (DR) in given direction (move as far as possible)
-         * 0 = extend
-         * 1 = retract
-         * 2 = none
+        /*! @brief Step drive with configurable frequency
+         *
+         * @param drive  Motor drive 1-6
+         * @param nsteps Number of MACRO-steps
+         * @param frequency OPTIONAL argument to specify a stepping frequency, otherwise the global default will be assumed.
+         *
+         * Function returns the calculated calibration constant used to
+         * translate between for-loop cycles and physical Hz
          */
-        void slew(int idrive, int dir);
-        void slew(int idrive, int dir, int frequency);
+        int step (int drive, int nsteps, int frequency);
+        ///@}
 
-        /* Slew all (enabled) drives in given direction */
-        void slewAll(MirrorControlBoard::Dir dir);
-        void slewAll(MirrorControlBoard::Dir dir, int frequency);
+
+        ///@{
+        /*! @name Global stepping frequency
+         *
+         * This value can be overwritten when calling stepping functions, but
+         * setting a default will let you use a global frequency and avoid
+         * having to specify each time you perform stepping.
+         */
+        /*! @brief Returns global stepping frequency */
+        int  getSteppingFrequency();
+        /*! @brief Sets global stepping frequency
+         *  @param frequency Stepping frequency, in macrosteps/second
+         */
+        void setSteppingFrequency(int frequency);
+        //@}
 
     private:
+
+        ///@{
+        /*! @name Calibrate Stepping Frequency
+         * This routine performs a calibration of the stepping frequency to
+         * allow for an expression of the frequency in physical Hz.
+         *
+         * The stepping function is performed some number of iterations, and
+         * the system determines the amount of time it took to complete
+         * stepping.
+         *
+         * The discrepancy between expected time and measured time is used to
+         * modify the timing coefficient.
+         *
+         * NOTE: This calibration is done automatically upon EVERY call of step(...)
+         */
+        int calibrateSteppingFrequency(int nsteps = 100);
+        ///@}
+
+        //@{
+        /*!
+         * Performs a step without calling the calibrate routine, to avoid
+         * troublesome cyclic functional dependencies.
+         */
+        void step(int drive, int nsteps, int frequency, bool dummy);
+        //@}
+
+        /*!
+         * Global default stepping frequency
+         */
         int  steppingFrequency;
 
-        /*
-         * Some safety check to set a maximum and minimum
-         * allowable stepping frequency
+        //@{
+        /*!
+         * Some parameters to set a a maximum and minimum
+         * allowable stepping frequency, that will forcefully limit stepping to
+         * within its allowed range of values.
          */
         static const int  maximumSteppingFrequency = 0x1 << 16;
         static const int  minimumSteppingFrequency = 0;
+        //@}
 
         MirrorControlBoard mcb;
     };
 
-    //===========================================================================
-    //=Encoder Control===========================================================
-    //===========================================================================
+    //////////////////////////////////////////////////////////////////////////////
+    ///Encoder Power Control
+    //////////////////////////////////////////////////////////////////////////////
 
     struct Encoder {
-        /* Controls Encoder Enable GPIO */
+        ///@{
+        /*! @name Encoder Power Control
+         */
+        /*! @brief Enable power to encoders. */
         void enable();
+        /*! @brief Disable power to encoders. */
         void disable();
+        /*! @brief Returns power enabled status of encoders. */
         bool isEnabled();
+        ///@}
 
     private:
         MirrorControlBoard mcb;
 
     };
 
-    //===========================================================================
-    //=ADC Control/Readout=======================================================
-    //===========================================================================
+    //////////////////////////////////////////////////////////////////////////////
+    ///ADC Control/Readout
+    //////////////////////////////////////////////////////////////////////////////
 
     struct ADC {
     public:
 
-        /* Structure to hold ADC data */
+        /*! * Structure to hold statistical data from ADC measurements */
         struct adcData {
+            /*! Averaged voltage reading */
             float voltage;
+            /*! Standard deviation of voltage measurement */
             float stddev;
+            /*! Minimum value from distribution of voltage readings */
+            float voltageMin;
+            /*! Maximum value from distribution of voltage readings */
+            float voltageMax;
+            /*! Defined as stddev / sqrt(N) */
+            float voltageError;
         };
 
+        ///@{
+        /*! @name ADC Measurement
+         *
+         * Returns an adcData struct containing statistical information
+         * measured from any combination of ADC 0 or 1, on channels 0-10.
+         *
+         * The mapping of occupied ADC channels is:
+         *      <UL>
+         *      <LI> Encoders: ADC0, Channels 0-5
+         *      <LI> Onboard temperature sensor: ADC0, Channel 6
+         *      <LI> External temperature sensor: ADC0, Channel 7
+         *      <LI> Auxially sensors: ADC1, Channel 5-6
+         *      <LI> LOW-, MID-, and HIGH- point voltage references: Channels 9-11
+         *      </UL>
+         *
+         */
+
+        /*! @brief Measure from ADC channel using the global default number of samples.
+         *  @param adc Select ADC 0 or 1
+         *  @param channel Select ADC channel 0-11
+         */
+        adcData measure(int adc, int channel);
+        /*! @brief Measure from ADC channel with a specified number of samples
+         *  @param nsamples Number of samples to take.
+         *  @param adc Select ADC 0 or 1
+         *  @param channel Measure from ADC channel 0-11
+         */
+        adcData measure(int adc, int channel, int nsamples);
+        ///@}
+
+        ///@{
+        /*! @name Measure encoder voltage
+         */
+
+        /*! @brief Read encoder with global default number of ADC samples.
+         *  @param encoder Select from encoders 1-6
+         */
         adcData readEncoder (int encoder);
+        /*! @brief Read encoder with specified number of ADC samples.
+         *  @param encoder Select from encoders 1-6
+         *  @param nsamples Number of ADC Samples to average
+         */
         adcData readEncoder (int encoder, int nsamples);
+        ///@}
 
-        adcData onboardTemp  ();
-        adcData onboardTemp  (int nsamples);
+        ///@{
+        /*! @name Temperature Sensor Readout
+         */
 
-        adcData externalTemp ();
-        adcData externalTemp (int nsamples);
+         /*! @brief Read Onboard temperature sensor voltage with default number of samples. */
+        adcData readOnboardTemp  ();
+         /*! @brief Read Onboard temperature sensor voltage with configurable number of samples.
+          *  @param nsamples Number of ADC Samples to average*/
+        adcData readOnboardTemp  (int nsamples);
 
-        /* A delay inserted between successive ADC reads */
+         /*! @brief Read External temperature sensor voltage with default number of samples. */
+        adcData readExternalTemp ();
+         /*! @brief Read External temperature sensor voltage with configurable number of samples.
+          *  @param nsamples Number of ADC Samples to average*/
+        adcData readExternalTemp (int nsamples);
+        ///@}
+
+        ///@{
+         /*! @name ADC Reference Voltage Readout
+          */
+
+        /*! @brief Returns low point voltage reference, nominally 0V, using a default number of ADC samples */
+        adcData readRefLow  ();
+        /*! @brief Returns low point voltage reference, nominally 0V, using a configurable number of ADC samples
+         *  @param nsamples Number of ADC Samples to average */
+        adcData readRefLow  (int nsamples);
+
+         /*! @brief Returns midpoint voltage reference, nominally (RefLow + RefHigh)/2, using a default number of ADC samples. */
+        adcData readRefMid  ();
+         /*! @brief Returns midpoint voltage reference, nominally (RefLow + RefHigh)/2, using a configurable number of ADC samples.
+          *  @param nsamples Number of ADC Samples to average */
+        adcData readRefMid  (int nsamples);
+
+        /*! @brief Returns High point voltage reference, nominally 5V, using a default number of ADC samples. */
+        adcData readRefHigh ();
+        /*! @brief Returns High point voltage reference, nominally 5V, using a configurable number of ADC samples
+         *  @param nsamples Number of ADC Samples to average */
+        adcData readRefHigh (int nsamples);
+
+        ///@}
+
+        ///@{
+        /*! @name ADC Read Delay
+         *
+         *  Controls a delay which is inserted between successive ADC reads, to slow down
+         *  measurement.
+         */
+        /*! @brief Returns current ADC read delay. */
         int  getReadDelay();
+        /*! @brief Sets ADC read delay (in for-loop-cycles). */
         void setReadDelay(int delay);
+        ///@}
 
-        /* Default number of samples to take in an measurement*/
+        ///@{
+        /*! @name Default ADC Samples
+         *
+         * Control the default number of ADC samples to average in a measurement.
+         */
+        /*! @brief Set default number of samples.
+         *  @param nsamples Number of ADC Samples to average. */
         void setDefaultSamples(int nsamples);
+        /*! @brief Returns the current default number of samples. */
+        int  getDefaultSamples();
+        ///@}
+
 
     private:
         int readDelay;
         int defaultSamples;
 
-        /* ADC voltage reference */
+        /*! ADC voltage reference */
         static const float volt_full = 5.0;
-
-        /* Reads data from any ADC/channel */
-        adcData measure(int adc, int channel, int nsamples);
 
         TLC3548_ADC tlcadc;
         MirrorControlBoard mcb;
     };
 
-    //===========================================================================
-    //=External Sensors Control==================================================
-    //==========================================================================
+    //////////////////////////////////////////////////////////////////////////////
+    ///Auxillary Sensors Control
+    //////////////////////////////////////////////////////////////////////////////
 
-    /* Turns power on/off to the External sensor connections (unused?) */
-    struct Sensor {
+    /*! Controls power on/off to the auxillary sensor connections
+     *
+     *  These connectors are two three-pin headers which provide GND, +5V, and a connection
+     *  to the ADC (specifically, channels 5 and 6 on the second ADC). */
+    struct auxSensor {
+        /*! Enable power to auxillary sensors */
         void enable();
+        /*! Disable power to auxillary sensors */
         void disable();
+        /*! Returns status of power to auxillary sensors */
         bool isEnabled();
 
     private:
@@ -223,7 +499,7 @@ public:
     struct Driver driver;
     struct Encoder encoder;
     struct ADC adc;
-    struct Sensor sensor;
+    struct auxSensor auxSensor;
 
 private:
     GPIOInterface gpio;

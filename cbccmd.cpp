@@ -39,9 +39,9 @@ int main(int argc, const char** argv)
     else if (command == "power_up_encoders")
         cbc.encoder.enable();
     else if (command == "power_down_sensors")
-        cbc.sensor.disable();
+        cbc.auxSensor.disable();
     else if (command == "power_up_sensors")
-        cbc.sensor.enable();
+        cbc.auxSensor.enable();
     else if (command == "power_down_a3977")
         cbc.driver.sleep();
     else if (command == "power_up_a3977")
@@ -132,83 +132,6 @@ int main(int argc, const char** argv)
 
         cbc.driver.step(idrive, nstep);
     }
-
-    else if (command == "slew")
-    {
-        // whine if no arugment given
-        if(argc==0)
-            usage();
-
-        // drive number
-        unsigned idrive = atoi(*argv);
-        argc--, argv++;
-
-        // Default direction = extend
-        MirrorControlBoard::Dir dir = MirrorControlBoard::DIR_EXTEND;
-
-        // Check the string length to see if somebody typed extend or retract....
-        if(argc)
-        {
-            std::string dirstr(*argv);
-
-            if((dirstr.size()<=6) &&(dirstr.compare(0,dirstr.size(), std::string("extend"),0,dirstr.size())==0))
-                dir = MirrorControlBoard::DIR_EXTEND;
-            else if((dirstr.size()<=7) &&(dirstr.compare(0,dirstr.size(), std::string("retract"),0,dirstr.size())==0))
-                dir = MirrorControlBoard::DIR_RETRACT;
-            else
-                usage();
-            argc--, argv++;
-        }
-
-        cbc.driver.slew(idrive, dir);
-    }
-    else if (command == "step_all")
-    {
-        int nstep1 = 0;
-        int nstep2 = 0;
-        int nstep3 = 0;
-        int nstep4 = 0;
-        int nstep5 = 0;
-        int nstep6 = 0;
-
-        // take in (optional) number of steps as arugment
-        if(argc)
-            nstep1 = atoi(*argv), argc--, argv++;
-        if(argc)
-            nstep2 = atoi(*argv), argc--, argv++;
-        if(argc)
-            nstep3 = atoi(*argv), argc--, argv++;
-        if(argc)
-            nstep4 = atoi(*argv), argc--, argv++;
-        if(argc)
-            nstep5 = atoi(*argv), argc--, argv++;
-        if(argc)
-            nstep6 = atoi(*argv), argc--, argv++;
-
-        cbc.driver.stepAll(nstep1, nstep2, nstep3, nstep4, nstep5, nstep6);
-    }
-    else if (command == "slew_all")
-    {
-        MirrorControlBoard::Dir dir = MirrorControlBoard::DIR_EXTEND;
-        if(argc)
-        {
-            std::string dirstr(*argv);
-
-            if((dirstr.size()<=6)
-                    &&(dirstr.compare(0,dirstr.size(),
-                            std::string("extend"),0,dirstr.size())==0))
-                dir = MirrorControlBoard::DIR_EXTEND;
-            else if((dirstr.size()<=7)
-                    &&(dirstr.compare(0,dirstr.size(),
-                            std::string("retract"),0,dirstr.size())==0))
-                dir = MirrorControlBoard::DIR_RETRACT;
-            else
-                usage();
-            argc--, argv++;
-        }
-
-        cbc.driver.slewAll(dir);
-    }
     else if (command == "status")
     {
         printf("Mirror Control Board status: \n");
@@ -261,7 +184,7 @@ int main(int argc, const char** argv)
 
         // Sensor Power Status
         printf("\nSensor Enabled:             ");
-        if (cbc.sensor.isEnabled())
+        if (cbc.auxSensor.isEnabled())
             printf("Enabled");
         else
             printf("Disabled");
@@ -293,11 +216,11 @@ int main(int argc, const char** argv)
     {
         CBC::ADC::adcData data;
 
-        data = cbc.adc.onboardTemp();
+        data = cbc.adc.readOnboardTemp();
         printf("Onboard Voltage: %5.4f", data.voltage);
         printf("Onboard Stddev:  %5.4f", data.stddev);
 
-        data = cbc.adc.externalTemp();
+        data = cbc.adc.readExternalTemp();
         printf("External Voltage: %5.4f", data.voltage);
         printf("External Stddev:  %5.4f", data.stddev);
     }

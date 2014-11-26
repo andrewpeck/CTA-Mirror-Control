@@ -10,6 +10,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <cbc.hpp>
+#include <math.h>
 
 
 // DESTROYER
@@ -49,12 +50,12 @@ CBC::CBC ( int  microsteps, int  steppingFrequency, bool highCurrentMode, bool d
     /* Turn on Ethernet Dongle */
     usb.enableEthernet();
 
-    for (int i=0; i<6; i++)
+    for (int i=1; i<7; i++)
     {
         if ((usbEnable >> i) & 0x1)
-            usb.enable(i+1);
+            usb.enable(i);
         else
-            usb.disable(i+1);
+            usb.disable(i);
     }
 
     for (int i=0; i<6; i++)
@@ -68,26 +69,28 @@ CBC::CBC ( int  microsteps, int  steppingFrequency, bool highCurrentMode, bool d
 
 void CBC::powerUp() {
     // turn on level shifters
-    gpio.WriteLevel(layout.igpioEN_IO, 1);
-    cbc.driver.wakeup();
-    cbc.driver.reset();
-    cbc.encoder.enable();
-    cbc.sensor.enable();
+    mcb.enableIO();
+
+    driver.wakeup();
+    driver.reset();
+    encoder.enable();
+    auxSensor.enable();
 
     //gpio.WriteLevel(layout.igpioADCSel1, 1);
     //gpio.WriteLevel(layout.igpioADCSel2, 1);
     //spi.Configure();
     //spi.WriteRead(0x0000);
 
-    mcb.initializeADC();
+    mcb.initializeADC(0);
+    mcb.initializeADC(1);
 }
 
 void CBC::powerDown() {
-    cbc.adc.sleep();
-    cbc.driver.disableAll();
-    cbc.driver.sleep();
-    cbc.encoder.disable();
-    cbc.sensor.disable();
+    driver.disableAll();
+    driver.sleep();
+    encoder.disable();
+    auxSensor.disable();
+    usb.disableAll();
 }
 
 //===========================================================================
@@ -101,11 +104,23 @@ void CBC::USB::enable(int iusb)
     mcb.powerUpUSB(iusb);
 }
 
+void CBC::USB::enableAll()
+{
+    for (int i=1; i<7; i++)
+        enable(i);
+}
+
 void CBC::USB::disable(int iusb)
 {
     if((iusb<1)||(iusb>6))
         return;
     mcb.powerDownUSB(iusb);
+}
+
+void CBC::USB::disableAll()
+{
+    for (int i=1; i<7; i++)
+        enable(i);
 }
 
 bool CBC::USB::isEnabled (int iusb) {
@@ -127,7 +142,7 @@ void CBC::USB::resetEthernet() {
 }
 
 //===========================================================================
-//=driver Driver Control======================================================
+//=Motor Driver Control======================================================
 //===========================================================================
 
 void CBC::Driver::setMicrosteps(int usint)
@@ -157,28 +172,34 @@ int CBC::Driver::getMicrosteps() {
     return (mcb.getUStep());
 }
 
-void CBC::Driver::enable(int idrive)
+void CBC::Driver::enable(int drive)
 {
     // whine if drive is out of bounds
-    if ((idrive<0)||(idrive>5))
+    if ((drive<1)||(drive>6))
         return;
 
     //enable drive
-    mcb.enableDrive(idrive);
+    mcb.enableDrive(drive-1); //MCB counts from zero
 }
 
-void CBC::Driver::disable(int idrive)
+void CBC::Driver::disable(int drive)
 {
     // whine if drive is out of bounds
-    if ((idrive<0)||(idrive>5))
+    if ((drive<1)||(drive>6))
         return;
 
     //disable drive
-    mcb.disableDrive(idrive);
+    mcb.disableDrive(drive-1); //MCB counts from zero
 }
 
-bool CBC::Driver::isEnabled(int idrive) {
-    return (mcb.isDriveEnabled(idrive));
+void CBC::Driver::disableAll()
+{
+    for (int i=1; i<7; i++)
+        disable(i-1);
+}
+
+bool CBC::Driver::isEnabled(int drive) {
+    return (mcb.isDriveEnabled(drive));
 }
 
 void CBC::Driver::sleep() {
@@ -219,8 +240,28 @@ void CBC::Driver::disableSR() {
     mcb.disableDriveSR();
 }
 
-int CBC::Driver::getSteppingFrequency () {
-    return(steppingFrequency);
+int CBC::Driver::calibrateSteppingFrequency (int nsteps) {
+    timespec ts;
+
+    //begin time
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    long starttime = ts.tv_nsec;
+
+    step(1, nsteps, steppingFrequency, true);
+
+    //finish time
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    long endtime = ts.tv_nsec;
+
+    int measured_time = endtime - starttime;
+    int expected_time = (1000000000 * nsteps ) / steppingFrequency; //nanoseconds
+
+    float correction = (1.0 * measured_time) / expected_time;
+
+    int constant_new = static_cast <int> (mcb.getCalibrationConstant() * correction);
+    mcb.setCalibrationConstant(constant_new);
+
+    return(constant_new);
 }
 
 void CBC::Driver::setSteppingFrequency (int frequency) {
@@ -236,10 +277,19 @@ void CBC::Driver::reset() {
     mcb.setPhaseZeroOnAllDrives();
 }
 
-void CBC::Driver::step(int idrive, int nsteps) {
-    step(idrive, nsteps, steppingFrequency);
+int CBC::Driver::step(int drive, int nsteps)
+{
+    return(step(drive, nsteps, steppingFrequency));
 }
-void CBC::Driver::step(int idrive, int nsteps, int frequency)
+
+int CBC::Driver::step(int drive, int nsteps, int frequency)
+{
+    int calibrationFrequency = calibrateSteppingFrequency();
+    step(drive, nsteps, frequency, false);
+    return (calibrationFrequency);
+}
+
+void CBC::Driver::step(int drive, int nsteps, int frequency, bool dummy)
 {
     /* Give this thread higher priority to improve timing stability */
     pthread_t this_thread = pthread_self();
@@ -248,126 +298,24 @@ void CBC::Driver::step(int idrive, int nsteps, int frequency)
     pthread_setschedparam(this_thread, SCHED_FIFO, &params);
 
     /* whine if invalid actuator number is used */
-    if ((idrive<0)||(idrive>5))
+    if ((drive<1)||(drive>6))
         return;
+    drive = drive - 1;
 
     // if nstep > 0, extend. If nstep < 0, retract
     MirrorControlBoard::Dir dir = MirrorControlBoard::DIR_EXTEND;
     if (nsteps<0)
         dir = MirrorControlBoard::DIR_RETRACT, nsteps=-nsteps;
 
+    if (dummy==true)
+        dir = MirrorControlBoard::DIR_NONE;
+
     int microsteps = nsteps * getMicrosteps();
 
     // loop over number of micro Steps
     for (unsigned istep=0; istep<unsigned(microsteps); istep++)
     {
-        mcb.stepOneDrive(idrive, dir, frequency);
-        mcb.waitHalfPeriod(frequency);
-    }
-}
-
-void CBC::Driver::stepAll(int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6)
-{
-    stepAll(nstep1, nstep2, nstep3, nstep4, nstep5, nstep6, steppingFrequency);
-}
-void CBC::Driver::stepAll(int nstep1, int nstep2, int nstep3, int nstep4, int nstep5, int nstep6, int frequency)
-{
-    // loop while theres still some stepping to do..
-    int microsteps = getMicrosteps();
-
-    int microsteps1 = nstep1 * microsteps;
-    int microsteps2 = nstep2 * microsteps;
-    int microsteps3 = nstep3 * microsteps;
-    int microsteps4 = nstep4 * microsteps;
-    int microsteps5 = nstep5 * microsteps;
-    int microsteps6 = nstep6 * microsteps;
-
-    while(microsteps1!=0 || microsteps2!=0 || microsteps3!=0 || microsteps4!=0 || microsteps5!=0 || microsteps6!=0)
-    {
-        //default dir is none
-        MirrorControlBoard::Dir dir1 = MirrorControlBoard::DIR_NONE;
-        MirrorControlBoard::Dir dir2 = MirrorControlBoard::DIR_NONE;
-        MirrorControlBoard::Dir dir3 = MirrorControlBoard::DIR_NONE;
-        MirrorControlBoard::Dir dir4 = MirrorControlBoard::DIR_NONE;
-        MirrorControlBoard::Dir dir5 = MirrorControlBoard::DIR_NONE;
-        MirrorControlBoard::Dir dir6 = MirrorControlBoard::DIR_NONE;
-
-        // driver 1 direction
-        if (nstep1 > 0)
-            dir1 = MirrorControlBoard::DIR_EXTEND, microsteps1--;
-        else if (microsteps1 < 0)
-            dir1 = MirrorControlBoard::DIR_RETRACT, microsteps1++;
-
-        // driver 2 direction
-        if (microsteps2 > 0)
-            dir2 = MirrorControlBoard::DIR_EXTEND, microsteps2--;
-        else if (microsteps2 < 0)
-            dir2 = MirrorControlBoard::DIR_RETRACT, microsteps2++;
-
-        // driver 3 direction
-        if (microsteps3 > 0)
-            dir3 = MirrorControlBoard::DIR_EXTEND, microsteps3--;
-        else if (microsteps3 < 0)
-            dir3 = MirrorControlBoard::DIR_RETRACT, microsteps3++;
-
-        // driver 4 direction
-        if (microsteps4 > 0)
-            dir4 = MirrorControlBoard::DIR_EXTEND, microsteps4--;
-        else if (microsteps4 < 0)
-            dir4 = MirrorControlBoard::DIR_RETRACT, microsteps4++;
-
-        // driver 5 direction
-        if (microsteps5 > 0)
-            dir5 = MirrorControlBoard::DIR_EXTEND, microsteps5--;
-        else if (microsteps5 < 0)
-            dir5 = MirrorControlBoard::DIR_RETRACT, microsteps5++;
-
-        // driver 6 direction
-        if (microsteps6 > 0)
-            dir6 = MirrorControlBoard::DIR_EXTEND, microsteps6--;
-        else if (microsteps6 < 0)
-            dir6 = MirrorControlBoard::DIR_RETRACT, microsteps6++;
-
-        // step all drives once in specified directions
-        mcb.stepAllDrives(dir1, dir2, dir3, dir4, dir5, dir6, frequency);
-        // some delay
-        mcb.waitHalfPeriod(frequency);
-    }
-}
-
-void CBC::Driver::slew(int idrive, int dir)
-{
-    slew (idrive, dir, steppingFrequency);
-}
-void CBC::Driver::slew(int idrive, int dir, int frequency)
-{
-    // do nothing
-    if ((idrive<0)||(idrive>5))
-        return;
-    if (dir > 2 | dir <0)
-        return;
-
-    // Loop forever while stepping the driver
-    while(1)
-    {
-        mcb.stepOneDrive(idrive, dir, frequency);
-        mcb.waitHalfPeriod(frequency);
-    }
-}
-
-void CBC::Driver::slewAll(int dir)
-{
-    slewAll(dir, steppingFrequency);
-}
-
-void CBC::Driver::slewAll(int dir, int frequency)
-{
-    if (dir > 2 | dir <0)
-        return;
-
-    while(1)
-    {
-        mcb.stepAllDrives(dir, dir, dir, dir, dir, dir);
+        mcb.stepOneDrive(drive, dir, frequency);
         mcb.waitHalfPeriod(frequency);
     }
 }
@@ -400,19 +348,19 @@ CBC::ADC::adcData CBC::ADC::readEncoder ( int encoder, int nsamples) {
     return(measure(0,encoder,nsamples));
 }
 
-CBC::ADC::adcData CBC::ADC::onboardTemp () {
-    return(onboardTemp(defaultSamples));
+CBC::ADC::adcData CBC::ADC::readOnboardTemp () {
+    return(readOnboardTemp(defaultSamples));
 }
 
-CBC::ADC::adcData CBC::ADC::onboardTemp (int nsamples) {
+CBC::ADC::adcData CBC::ADC::readOnboardTemp (int nsamples) {
     return(measure(0,6,nsamples));
 }
 
-CBC::ADC::adcData CBC::ADC::externalTemp () {
-    return(externalTemp(defaultSamples));
+CBC::ADC::adcData CBC::ADC::readExternalTemp () {
+    return(readExternalTemp(defaultSamples));
 }
 
-CBC::ADC::adcData CBC::ADC::externalTemp (int nsamples) {
+CBC::ADC::adcData CBC::ADC::readExternalTemp (int nsamples) {
     return(measure(0,7,nsamples));
 }
 
@@ -425,14 +373,23 @@ void CBC::ADC::setReadDelay(int delay) {
 }
 
 CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples) {
-    uint32_t mean;
-    uint32_t stddev;
+    uint32_t sum;
+    uint64_t sumsq;
+    uint32_t min;
+    uint32_t max;
 
-    mcb.measureADCStat(adc, channel, nsamples, mean, stddev);
+    mcb.measureADCStat(adc, channel, nsamples, sum, sumsq, min, max);
+
+    uint32_t mean   = sum/nsamples;
+    uint32_t var    = (sumsq - sum*sum / nsamples) / nsamples;
+    uint32_t stddev = sqrt(var);
 
     adcData data;
-    data.voltage = tlcadc.voltData(mean,   volt_full);
-    data.stddev  = tlcadc.voltData(stddev, volt_full);
+    data.voltage      = tlcadc.voltData(mean,                  volt_full);
+    data.stddev       = tlcadc.voltData(stddev,                volt_full);
+    data.voltageMin   = tlcadc.voltData(min,                   volt_full);
+    data.voltageMax   = tlcadc.voltData(max,                   volt_full);
+    data.voltageError = tlcadc.voltData(stddev/sqrt(nsamples), volt_full);
 
     return (data);
 }
@@ -445,14 +402,14 @@ void CBC::ADC::setDefaultSamples(int nsamples) {
 //=Sensor Control============================================================
 //===========================================================================
 
-void CBC::Sensor::enable() {
+void CBC::auxSensor::enable() {
     mcb.powerUpSensors();
 }
 
-void CBC::Sensor::disable() {
+void CBC::auxSensor::disable() {
     mcb.powerDownSensors();
 }
 
-bool CBC::Sensor::isEnabled() {
+bool CBC::auxSensor::isEnabled() {
     return(mcb.isSensorsPoweredUp());
 }
