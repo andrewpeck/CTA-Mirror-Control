@@ -376,9 +376,9 @@ public:
          */
         adcData measure(int adc, int channel);
         /*! @brief Measure from ADC channel with a specified number of samples
-         *  @param nsamples Number of samples to take.
          *  @param adc Select ADC 0 or 1
          *  @param channel Measure from ADC channel 0-11
+         *  @param nsamples Number of samples to take.
          */
         adcData measure(int adc, int channel, int nsamples);
         ///@}
@@ -447,7 +447,7 @@ public:
          */
         /*! @brief Returns current ADC read delay. */
         int  getReadDelay();
-        /*! @brief Sets ADC read delay (in for-loop-cycles). */
+        /*! @brief Sets ADC read delay (in uncalibrated for-loop cycles). */
         void setReadDelay(int delay);
         ///@}
 
@@ -465,6 +465,15 @@ public:
 
 
     private:
+        /*! Read ADC with configurable delay between subsequent measurements
+         *
+         *  @param adc Select ADC 0 or 1
+         *  @param channel Measure from ADC channel 0-11
+         *  @param nsamples Number of samples to take.
+         *  @param ndelay Delay inserted between subsequent measurements
+         */
+        adcData measure(int adc, int channel, int nsamples, int ndelay);
+
         int readDelay;
         int defaultSamples;
 

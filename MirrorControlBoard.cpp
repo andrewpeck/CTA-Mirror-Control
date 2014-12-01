@@ -258,7 +258,7 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
     return ADC.decodeUSB(datum);
 }
 
-void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max)
+void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned ndelay)
 {
     spi.Configure();
     initializeADC(iadc);
@@ -292,6 +292,9 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
             if(datum<min)
                 min=datum;
         }
+
+        for (unsigned i=0; i<ndelay; i++);
+
     }
 
     // Read last FIFO

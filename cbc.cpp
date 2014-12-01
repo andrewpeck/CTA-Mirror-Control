@@ -373,12 +373,16 @@ void CBC::ADC::setReadDelay(int delay) {
 }
 
 CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples) {
+    return(measure(adc, channel, nsamples, readDelay));
+}
+
+CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples, int ndelay) {
     uint32_t sum;
     uint64_t sumsq;
     uint32_t min;
     uint32_t max;
 
-    mcb.measureADCStat(adc, channel, nsamples, sum, sumsq, min, max);
+    mcb.measureADCStat(adc, channel, nsamples, sum, sumsq, min, max, ndelay);
 
     uint32_t mean   = sum/nsamples;
     uint32_t var    = (sumsq - sum*sum / nsamples) / nsamples;

@@ -101,7 +101,7 @@ public:
     uint32_t measureADC(unsigned iadc, unsigned ichan);
 
     // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
-void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max);
+void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned ndelay=0);
 
 
 
