@@ -12,7 +12,16 @@ int main(int argc, const char** argv)
 {
     argv++, argc--;
 
-    CBC cbc;
+    CBC cbc (
+     8,
+     400,
+     false,
+     true,
+     0,
+     100,
+     0x0,
+     0x3F
+     );
 
     if(argc == 0)
         usage();
@@ -48,6 +57,8 @@ int main(int argc, const char** argv)
         cbc.driver.wakeup();
     else if (command == "reset")
         cbc.driver.reset();
+    else if (command == "resetEthernet")
+        cbc.usb.resetEthernet();
     else if (command == "enable_sr")
         cbc.driver.enableSR();
     else if (command == "disable_sr")
@@ -71,11 +82,11 @@ int main(int argc, const char** argv)
 
         unsigned idrive;
         if (strcmp(*argv,"all")==0)
-            idrive=0;
-        else
+            cbc.driver.enableAll();
+        else {
             idrive = atoi(*argv);
-
-        cbc.driver.enable(idrive);
+            cbc.driver.enable(idrive);
+        }
     }
     else if (command == "disable")
     {
@@ -84,11 +95,11 @@ int main(int argc, const char** argv)
 
         unsigned idrive;
         if (strcmp(*argv,"all")==0)
-            idrive=0;
-        else
+            cbc.driver.disableAll();
+        else {
             idrive = atoi(*argv);
-
-        cbc.driver.disable(idrive);
+            cbc.driver.disable(idrive);
+        }
     }
     else if ( (command == "enableusb") | (command == "enableUSB") )
     {
@@ -96,12 +107,14 @@ int main(int argc, const char** argv)
             usage();
 
         unsigned iusb;
-        if (strcmp(*argv,"all")==0)
-            iusb=0;
-        else
+        if (strcmp(*argv,"all")==0) {
+            cbc.usb.enableAll();
+        }
+        else {
             iusb = atoi(*argv);
+            cbc.usb.enable(iusb);
+        }
 
-        cbc.usb.enable(iusb);
     }
     else if ((command == "disableusb") | (command == "disableUSB"))
     {
@@ -109,12 +122,14 @@ int main(int argc, const char** argv)
             usage();
 
         unsigned iusb;
-        if (strcmp(*argv,"all")==0)
-            iusb=0; //iusb=0 for all channels
-        else
+        if (strcmp(*argv,"all")==0) {
+            cbc.usb.disableAll();
+        }
+        else {
             iusb = atoi(*argv);
+            cbc.usb.disable(iusb);
+        }
 
-        cbc.usb.disable(iusb);
     }
 
     else if (command == "step")
@@ -130,7 +145,11 @@ int main(int argc, const char** argv)
         int nstep = atoi(*argv);
         argc--, argv++;
 
-        cbc.driver.step(idrive, nstep);
+        std::cout << cbc.driver.step(idrive, nstep);
+    }
+    else if (command == "calibrate")
+    {
+        std::cout << cbc.driver.calibrateSteppingFrequency();
     }
     else if (command == "status")
     {
@@ -217,12 +236,16 @@ int main(int argc, const char** argv)
         CBC::ADC::adcData data;
 
         data = cbc.adc.readOnboardTemp();
-        printf("Onboard Voltage: %5.4f", data.voltage);
-        printf("Onboard Stddev:  %5.4f", data.stddev);
+        printf("Onboard Voltage: %5.4f\n", data.voltage);
+        printf("Onboard Stddev:  %5.4f\n", data.stddev);
+        printf("Max   :  %5.4f\n", data.voltageMax);
+        printf("Min   :  %5.4f\n", data.voltageMin);
 
         data = cbc.adc.readExternalTemp();
-        printf("External Voltage: %5.4f", data.voltage);
-        printf("External Stddev:  %5.4f", data.stddev);
+        printf("External Voltage: %5.4f\n", data.voltage);
+        printf("External Stddev:  %5.4f\n", data.stddev);
+        printf("Max   :  %5.4f\n", data.voltageMax);
+        printf("Min   :  %5.4f\n", data.voltageMin);
     }
     else if (command == "readEncoder")
     {
@@ -238,8 +261,43 @@ int main(int argc, const char** argv)
         CBC::ADC::adcData data;
         data = cbc.adc.readEncoder(chan);
 
-        printf("Voltage: %5.4f", data.voltage);
-        printf("Stddev:  %5.4f", data.stddev);
+        printf("Voltage: %5.4f\n", data.voltage);
+        printf("Stddev:  %5.4f\n", data.stddev);
+        printf("Max   :  %5.4f\n", data.voltageMax);
+        printf("Min   :  %5.4f\n", data.voltageMin);
+    }
+    else if (command == "readRefLow")
+    {
+        CBC::ADC::adcData data;
+
+        data = cbc.adc.readRefLow(0);
+        printf("Voltage: %5.4f\n", data.voltage);
+        printf("Stddev:  %5.4f\n", data.stddev);
+        printf("Max   :  %5.4f\n", data.voltageMax);
+        printf("Min   :  %5.4f\n", data.voltageMin);
+
+    }
+    else if (command == "readRefMid")
+    {
+        CBC::ADC::adcData data;
+
+        data = cbc.adc.readRefMid(0);
+        printf("Voltage: %5.4f\n", data.voltage);
+        printf("Stddev:  %5.4f\n", data.stddev);
+        printf("Max   :  %5.4f\n", data.voltageMax);
+        printf("Min   :  %5.4f\n", data.voltageMin);
+
+    }
+    else if (command == "readRefHigh")
+    {
+        CBC::ADC::adcData data;
+
+        data = cbc.adc.readRefHigh(0);
+        printf("Voltage: %5.4f\n", data.voltage);
+        printf("Stddev:  %5.4f\n", data.stddev);
+        printf("Max   :  %5.4f\n", data.voltageMax);
+        printf("Min   :  %5.4f\n", data.voltageMin);
+
     }
     else
         usage();
@@ -249,9 +307,6 @@ void usage () {
     std::string usage_text =
         "CBC v2.3.0 Usage:"
         "\n    command                {required arguments} [optional arguments]\n"
-        "\n    initialize             Initialize the hardware. Should be done once"
-        "                             after boot-up. Configures GPIOs, turns on all"
-        "                             hardware except USBs."
         "\n"
         "\n    power down             Go into power saving mode. Power down encoders, USB and A3977."
         "\n    power up               Power up all on-board and off-board electronics."
@@ -286,18 +341,6 @@ void usage () {
         "\n    step                   {DR 1-6} {NSTEPS} [Frequency=4000]"
         "\n                           Step drive some number of steps (positive to"
         "\n                           extend, negative to retract) with frequency in Hz"
-        "\n    "
-        "\n    slew                   {DR 1-6} [DIR=(extend/retract)] [Frequency=4000]"
-        "\n                           Slew drive (DR) in given direction (DIR, default extend) "
-        "\n                           with frequency in Hz."
-        "\n    "
-        "\n    step_all               {DR1_NSTEP DR2_NSTEP DR3_NSTEP DR4_NSTEP DR5_NSTEP DR6_NSTEP} [Frequency=4000]"
-        "\n                           Step all drives some number of steps (positive to extend,"
-        "\n                           negative to retract and zero to not move that drive.)"
-        "\n    "
-        "\n    slew_all               [DIR=(extend/retract)] [Frequency=4000]"
-        "\n                           Slew all (enabled) drives in given direction (DIR, default "
-        "\n                           extend) with frequency of steps in Hz."
         "\n    "
         "\n    status                 Print drive status information"
         "\n    "

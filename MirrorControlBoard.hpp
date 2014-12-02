@@ -15,7 +15,8 @@ class MirrorControlBoard
 {
 public:
     MirrorControlBoard(
-            int calibrationConstant_ = (1000000000/24)
+            int calibrationConstant_   = (1000000000)
+            //int calibrationConstant_ = (1000000000/24)
             );
 
     ~MirrorControlBoard();

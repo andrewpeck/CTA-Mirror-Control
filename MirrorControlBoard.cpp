@@ -10,6 +10,7 @@
 #include <time.h>
 #include <math.h>
 #include <cstdlib>
+#include <pthread.h>
 
 MirrorControlBoard::MirrorControlBoard(int calibrationConstant_) {
     calibrationConstant = calibrationConstant_;
@@ -277,7 +278,7 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
         // Read data
         uint32_t datum = spi.WriteRead(code);
 
-        if (iloop>=nburn)
+        if (iloop>nburn)
         {
             // Decode data
             datum = ADC.decodeUSB(datum);
@@ -319,12 +320,19 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
 
 void MirrorControlBoard::waitHalfPeriod(unsigned frequency)
 {
-     /* This is a MACHINE DEPENDANT calibration constant */
-     frequency = (calibrationConstant)/frequency;
+    /* Give this thread higher priority to improve timing stability */
+    pthread_t this_thread = pthread_self();
+    struct sched_param params;
+    params.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    pthread_setschedparam(this_thread, SCHED_FIFO, &params);
 
-     /* adjust for the number of microsteps */
-     frequency = frequency * getUStep();
-     for(volatile unsigned iloop=0;iloop<frequency;iloop++);
+    /*
+     * This is a MACHINE DEPENDANT calibration constant
+     * its units are [for-loops/second]
+     */
+    unsigned nloops = calibrationConstant/(2*frequency);
+
+    for(volatile unsigned iloop=0;iloop<nloops;iloop++);
 }
 
 void MirrorControlBoard::setCalibrationConstant(int constant) {

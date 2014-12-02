@@ -45,7 +45,7 @@ public:
  */
     CBC(
             int  microsteps        = 8,
-            int  steppingFrequency = 4000,
+            int  steppingFrequency = 400,
             bool highCurrentMode   = false,
             bool driveSR           = true,
             int  adcReadDelay      = 0,
@@ -265,9 +265,6 @@ public:
          */
         void setSteppingFrequency(int frequency);
         //@}
-
-    private:
-
         ///@{
         /*! @name Calibrate Stepping Frequency
          * This routine performs a calibration of the stepping frequency to
@@ -282,17 +279,10 @@ public:
          *
          * NOTE: This calibration is done automatically upon EVERY call of step(...)
          */
-        int calibrateSteppingFrequency(int nsteps = 100);
+        int calibrateSteppingFrequency(int nsteps = 10);
         ///@}
 
-        //@{
-        /*!
-         * Performs a step without calling the calibrate routine, to avoid
-         * troublesome cyclic functional dependencies.
-         */
-        void step(int drive, int nsteps, int frequency, bool dummy);
-        //@}
-
+    private:
         /*!
          * Global default stepping frequency
          */
@@ -420,22 +410,22 @@ public:
           */
 
         /*! @brief Returns low point voltage reference, nominally 0V, using a default number of ADC samples */
-        adcData readRefLow  ();
+        adcData readRefLow  (int adc);
         /*! @brief Returns low point voltage reference, nominally 0V, using a configurable number of ADC samples
          *  @param nsamples Number of ADC Samples to average */
-        adcData readRefLow  (int nsamples);
+        adcData readRefLow  (int adc, int nsamples);
 
          /*! @brief Returns midpoint voltage reference, nominally (RefLow + RefHigh)/2, using a default number of ADC samples. */
-        adcData readRefMid  ();
+        adcData readRefMid  (int adc);
          /*! @brief Returns midpoint voltage reference, nominally (RefLow + RefHigh)/2, using a configurable number of ADC samples.
           *  @param nsamples Number of ADC Samples to average */
-        adcData readRefMid  (int nsamples);
+        adcData readRefMid  (int adc, int nsamples);
 
         /*! @brief Returns High point voltage reference, nominally 5V, using a default number of ADC samples. */
-        adcData readRefHigh ();
+        adcData readRefHigh (int adc);
         /*! @brief Returns High point voltage reference, nominally 5V, using a configurable number of ADC samples
          *  @param nsamples Number of ADC Samples to average */
-        adcData readRefHigh (int nsamples);
+        adcData readRefHigh (int adc, int nsamples);
 
         ///@}
 
@@ -465,15 +455,6 @@ public:
 
 
     private:
-        /*! Read ADC with configurable delay between subsequent measurements
-         *
-         *  @param adc Select ADC 0 or 1
-         *  @param channel Measure from ADC channel 0-11
-         *  @param nsamples Number of samples to take.
-         *  @param ndelay Delay inserted between subsequent measurements
-         */
-        adcData measure(int adc, int channel, int nsamples, int ndelay);
-
         int readDelay;
         int defaultSamples;
 
