@@ -33,14 +33,17 @@ public:
  * @param defaultADCSamples   Set a global default number of ADC samples. Can be overrode for individual measurements.
  * @param usbEnable           Integer bitmask to enable USB channels according to the simple scheme:
  *                            <UL>
- *                            <LI> 000000 Disable All
- *                            <LI> 000001 Enable USB 1
- *                            <LI> 000010 Enable USB 2
- *                            <LI> 000100 Enable USB 3
- *                            <LI> 001000 Enable USB 4
- *                            <LI> 010000 Enable USB 5
- *                            <LI> 100000 Enable USB 6
+ *                            <LI> (0x00) 000000 Disable All
+ *                            <LI> (0x01) 000001 Enable USB 1
+ *                            <LI> (0x02) 000010 Enable USB 2
+ *                            <LI> (0x04) 000100 Enable USB 3
+ *                            <LI> (0x08) 001000 Enable USB 4
+ *                            <LI> (0x10) 010000 Enable USB 5
+ *                            <LI> (0x20) 100000 Enable USB 6
+ *                            <LI> (0x3F) 111111 Enable All
  *                            </UL>
+ *                            You enable arbitrary combinations of USBs by just forming the 'bitwise or'
+ *                            of the individual masks. Use a calculator or just put "usbEnable = (0x1 | 0x2 | 0x4)", for example...
  * @param driveEnable         Integer bitmask to enable encoder drives, working ala usbEnable
  */
     CBC(
@@ -105,6 +108,7 @@ public:
 
         /*! @brief Resets the USB Ethernet Dongle by toggling it off, waiting 1 second, then toggling it back on. */
         void resetEthernet();
+
         /*! @brief Enable the USB Ethernet Dongle */
         void enableEthernet();
         ///@}
@@ -222,6 +226,7 @@ public:
         /*! @name Step Drive
          *
          * NOTA BENE:
+         *
          *      "Frequency" is a CPU-dependent, load dependent variable. It
          *      can only be roughly calibrated for a particular processor,
          *      under particular circumstances.  A change in hardware necessitates
@@ -236,7 +241,7 @@ public:
          * Function returns the calculated calibration constant used to
          * translate between for-loop cycles and physical Hz
          */
-        int step (int drive, int nsteps);
+        void step (int drive, int nsteps);
 
         /*! @brief Step drive with configurable frequency
          *
@@ -247,7 +252,7 @@ public:
          * Function returns the calculated calibration constant used to
          * translate between for-loop cycles and physical Hz
          */
-        int step (int drive, int nsteps, int frequency);
+        void step (int drive, int nsteps, int frequency);
         ///@}
 
 
@@ -265,22 +270,6 @@ public:
          */
         void setSteppingFrequency(int frequency);
         //@}
-        ///@{
-        /*! @name Calibrate Stepping Frequency
-         * This routine performs a calibration of the stepping frequency to
-         * allow for an expression of the frequency in physical Hz.
-         *
-         * The stepping function is performed some number of iterations, and
-         * the system determines the amount of time it took to complete
-         * stepping.
-         *
-         * The discrepancy between expected time and measured time is used to
-         * modify the timing coefficient.
-         *
-         * NOTE: This calibration is done automatically upon EVERY call of step(...)
-         */
-        int calibrateSteppingFrequency(int nsteps = 10);
-        ///@}
 
     private:
         /*!
@@ -288,15 +277,18 @@ public:
          */
         int  steppingFrequency;
 
-        //@{
+        ///@{
         /*!
-         * Some parameters to set a a maximum and minimum
+         * Some parameters to set a maximum and minimum
          * allowable stepping frequency, that will forcefully limit stepping to
          * within its allowed range of values.
+         *
+         * Right now it is just set to a very large range, but hopefully some sane limits
+         * would be chosen in the future.
          */
         static const int  maximumSteppingFrequency = 0x1 << 16;
         static const int  minimumSteppingFrequency = 0;
-        //@}
+        ///@}
 
         MirrorControlBoard mcb;
     };
@@ -328,8 +320,9 @@ public:
 
     struct ADC {
     public:
-
-        /*! * Structure to hold statistical data from ADC measurements */
+        //////////////////////////////////////////////////////////////////////////////
+        ///Structure to hold statistical data from ADC measurements
+        //////////////////////////////////////////////////////////////////////////////
         struct adcData {
             /*! Averaged voltage reading */
             float voltage;
@@ -437,7 +430,8 @@ public:
          */
         /*! @brief Returns current ADC read delay. */
         int  getReadDelay();
-        /*! @brief Sets ADC read delay (in uncalibrated for-loop cycles). */
+        /*! @brief Sets ADC read delay (in uncalibrated for-loop cycles).
+         *  @param delay Integer delay, counted in "number of for-loop cycles" */
         void setReadDelay(int delay);
         ///@}
 
@@ -458,8 +452,10 @@ public:
         int readDelay;
         int defaultSamples;
 
-        /*! ADC voltage reference */
-        static const float volt_full = 5.0;
+        /*!
+         * ADC voltage reference
+         */
+        static constexpr float volt_full = 5.0;
 
         TLC3548_ADC tlcadc;
         MirrorControlBoard mcb;
@@ -473,7 +469,8 @@ public:
      *
      *  These connectors are two three-pin headers which provide GND, +5V, and a connection
      *  to the ADC (specifically, channels 5 and 6 on the second ADC). */
-    struct auxSensor {
+    struct AUXsensor {
+    public:
         /*! Enable power to auxillary sensors */
         void enable();
         /*! Disable power to auxillary sensors */
@@ -489,12 +486,11 @@ public:
     struct Driver driver;
     struct Encoder encoder;
     struct ADC adc;
-    struct auxSensor auxSensor;
+    struct AUXsensor auxSensor;
 
 private:
     GPIOInterface gpio;
     MirrorControlBoard mcb;
-
 };
 
 #endif

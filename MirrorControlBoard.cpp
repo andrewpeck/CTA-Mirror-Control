@@ -11,21 +11,31 @@
 #include <math.h>
 #include <cstdlib>
 #include <pthread.h>
+#include <stdio.h>
+#include <iostream>
+#include <chrono>
 
-MirrorControlBoard::MirrorControlBoard(int calibrationConstant_) {
+MirrorControlBoard::MirrorControlBoard(int calibrationConstant_)
+{
     calibrationConstant = calibrationConstant_;
 }
-MirrorControlBoard::~MirrorControlBoard() { }
 
-void MirrorControlBoard::enableIO () {
+MirrorControlBoard::~MirrorControlBoard()
+{
+}
+
+void MirrorControlBoard::enableIO ()
+{
     gpio.WriteLevel(layout.igpioEN_IO, 1);
 }
 
-void MirrorControlBoard::disableIO () {
+void MirrorControlBoard::disableIO ()
+{
     gpio.WriteLevel(layout.igpioEN_IO, 0);
 }
 
-void MirrorControlBoard::adcSleep (int iadc) {
+void MirrorControlBoard::adcSleep (int iadc)
+{
     // Set on-board ADC into sleep mode
     selectADC(iadc);
     spi.Configure();
@@ -115,8 +125,7 @@ bool MirrorControlBoard::isDriveSREnabled()
 void MirrorControlBoard::setUStep(UStep ustep)
 {
     unsigned mslog2 = 0;
-    switch(ustep)
-    {
+    switch(ustep) {
         case USTEP_1:
             mslog2 = 0x0;
             break;
@@ -144,44 +153,28 @@ MirrorControlBoard::UStep MirrorControlBoard::getUStep()
 
 void MirrorControlBoard:: stepOneDrive(unsigned idrive, Dir dir, unsigned frequency)
 {
-    // Write Direction to the DIR pin
+    /* Give this thread higher priority to improve timing stability */
+    pthread_t this_thread = pthread_self();
+    struct sched_param params;
+    params.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    pthread_setschedparam(this_thread, SCHED_FIFO, &params);
+
+    /* Write Direction to the DIR pin */
     gpio.WriteLevel(layout.igpioDir(idrive),(dir==DIR_RETRACT)?1:0);
 
-    // Writes one step to STEP pin
+    /* Writes one step to STEP pin */
     unsigned igpio = layout.igpioStep(idrive);
     gpio.WriteLevel(igpio,(dir==DIR_NONE)?0:1);
 
-    // a delay
+    /* a delay */
     waitHalfPeriod(frequency);
 
-    // Toggle pin back to low
+    /* Toggle pin back to low */
     gpio.WriteLevel(igpio,0);
-}
 
-void MirrorControlBoard::stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir, Dir dr4_dir, Dir dr5_dir, Dir dr6_dir, unsigned frequency)
-{
-    gpio.WriteLevel(layout.igpioDir1,(dr1_dir==DIR_RETRACT)?1:0);
-    gpio.WriteLevel(layout.igpioDir2,(dr2_dir==DIR_RETRACT)?1:0);
-    gpio.WriteLevel(layout.igpioDir3,(dr3_dir==DIR_RETRACT)?1:0);
-    gpio.WriteLevel(layout.igpioDir4,(dr4_dir==DIR_RETRACT)?1:0);
-    gpio.WriteLevel(layout.igpioDir5,(dr5_dir==DIR_RETRACT)?1:0);
-    gpio.WriteLevel(layout.igpioDir6,(dr6_dir==DIR_RETRACT)?1:0);
-
-    gpio.WriteLevel(layout.igpioStep1,(dr1_dir==DIR_NONE)?0:1);
-    gpio.WriteLevel(layout.igpioStep2,(dr2_dir==DIR_NONE)?0:1);
-    gpio.WriteLevel(layout.igpioStep3,(dr3_dir==DIR_NONE)?0:1);
-    gpio.WriteLevel(layout.igpioStep4,(dr4_dir==DIR_NONE)?0:1);
-    gpio.WriteLevel(layout.igpioStep5,(dr5_dir==DIR_NONE)?0:1);
-    gpio.WriteLevel(layout.igpioStep6,(dr6_dir==DIR_NONE)?0:1);
-
+    /* a delay */
     waitHalfPeriod(frequency);
-
-    gpio.WriteLevel(layout.igpioStep1,0);
-    gpio.WriteLevel(layout.igpioStep2,0);
-    gpio.WriteLevel(layout.igpioStep3,0);
-    gpio.WriteLevel(layout.igpioStep4,0);
-    gpio.WriteLevel(layout.igpioStep5,0);
-    gpio.WriteLevel(layout.igpioStep6,0);
+    sched_yield();
 }
 
 void MirrorControlBoard::setPhaseZeroOnAllDrives()
@@ -273,13 +266,11 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
     min             = ~max;
 
     // Loop over number of measurements
-    for(unsigned iloop=0; iloop<nloop; iloop++)
-    {
+    for(unsigned iloop=0; iloop<nloop; iloop++) {
         // Read data
         uint32_t datum = spi.WriteRead(code);
 
-        if (iloop>nburn)
-        {
+        if (iloop>nburn) {
             // Decode data
             datum = ADC.decodeUSB(datum);
             // Typecast to 64 bit integer..
@@ -294,8 +285,7 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
                 min=datum;
         }
 
-        for (unsigned i=0; i<ndelay; i++);
-
+        for (volatile unsigned i=0; i<ndelay; i++);
     }
 
     // Read last FIFO
@@ -320,25 +310,90 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
 
 void MirrorControlBoard::waitHalfPeriod(unsigned frequency)
 {
-    /* Give this thread higher priority to improve timing stability */
-    pthread_t this_thread = pthread_self();
-    struct sched_param params;
-    params.sched_priority = sched_get_priority_max(SCHED_FIFO);
-    pthread_setschedparam(this_thread, SCHED_FIFO, &params);
+
+#define NANOS 1000000000LL
+    /*
+     * Method 1: Sleep Method
+     */
+    //long halfperiod = NANOS/ ( 2*frequency);
+    //struct timespec delay;
+    //delay.tv_sec = 0;
+    //delay.tv_nsec = halfperiod/2;
+    //clock_nanosleep(CLOCK_MONOTONIC, 0, &delay, NULL);
+
+
 
     /*
-     * This is a MACHINE DEPENDANT calibration constant
-     * its units are [for-loops/second]
+     * Method 2: Waiting for a clock to pass
      */
-    unsigned nloops = calibrationConstant/(2*frequency);
 
-    for(volatile unsigned iloop=0;iloop<nloops;iloop++);
+    //long long halfperiod = NANOS /(1000*2*frequency);
+    //long long start, elapsed, microseconds;
+    //struct timespec begin, current;
+
+    ///* set up start time data */
+    //if (clock_gettime(CLOCK_MONOTONIC, &begin)) {
+    //    return;
+    //}
+
+    ///* Start time in nanoseconds */
+    //start = begin.tv_sec*NANOS + begin.tv_nsec;
+
+    //while (true) {
+    //    /* Elapsed time in nanoseconds */
+    //    if (clock_gettime(CLOCK_MONOTONIC, &current)) {
+    //        return;
+    //    }
+
+    //    elapsed = current.tv_sec*NANOS + current.tv_nsec - start;
+    //    microseconds = elapsed / 1000; // + (elapsed % 1000 >= 500); // round up halves
+
+    //    if (microseconds >= halfperiod)
+    //        break;
+    //}
+
+
+    /*
+     * Method 3: For loop
+     */
+
+    //    /*
+    //     * This is a MACHINE DEPENDANT calibration constant
+    //     * its units are [for-loops/second]
+    //     */
+    //    unsigned nloops = calibrationConstant/(2*frequency);
+    //
+    //    for(volatile unsigned iloop=0;iloop<nloops;iloop++);
+
+
+    /*
+     * Method 4: std::chrono (note! requires C++11)
+     */
+    using std::chrono::nanoseconds;
+    using std::chrono::duration_cast;
+    long int halfperiod = (NANOS / ( 2*frequency));
+    auto start = duration_cast<nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    while (true) {
+        /* Give this thread higher priority to improve timing stability */
+        pthread_t this_thread = pthread_self();
+        struct sched_param params;
+        params.sched_priority = sched_get_priority_max(SCHED_FIFO);
+        pthread_setschedparam(this_thread, SCHED_FIFO, &params);
+
+        auto now = duration_cast<nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+        auto diff = now-start;
+        if (diff > halfperiod)
+            break;
+    }
+    sched_yield();
 }
 
-void MirrorControlBoard::setCalibrationConstant(int constant) {
+void MirrorControlBoard::setCalibrationConstant(int constant)
+{
     calibrationConstant = constant;
 }
 
-int MirrorControlBoard::getCalibrationConstant() {
+int MirrorControlBoard::getCalibrationConstant()
+{
     return (calibrationConstant);
 }

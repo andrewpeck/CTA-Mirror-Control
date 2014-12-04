@@ -20,7 +20,16 @@
 CBC::~CBC() {};
 
 // Constructor..
-CBC::CBC ( int  microsteps, int  steppingFrequency, bool highCurrentMode, bool driveSR, int adcReadDelay, int defaultADCSamples, int usbEnable, int driveEnable)
+CBC::CBC (
+        int  microsteps,
+        int  steppingFrequency,
+        bool highCurrentMode,
+        bool driveSR,
+        int  adcReadDelay,
+        int  defaultADCSamples,
+        int  usbEnable,
+        int  driveEnable
+        )
 {
     gpio.ConfigureAll();
 
@@ -53,16 +62,16 @@ CBC::CBC ( int  microsteps, int  steppingFrequency, bool highCurrentMode, bool d
     /* Turn on Ethernet Dongle */
     usb.enableEthernet();
 
-    for (int i=0; i<6; i++)
-    {
+    /* Configure USBs */
+    for (int i=0; i<6; i++) {
         if ((usbEnable >> i) & 0x1)
             usb.enable(i+1);
         else
             usb.disable(i+1);
     }
 
-    for (int i=0; i<6; i++)
-    {
+    /* Configure Drives */
+    for (int i=0; i<6; i++) {
         if ((driveEnable >> i) & 0x1)
             driver.enable(i+1);
         else
@@ -70,7 +79,8 @@ CBC::CBC ( int  microsteps, int  steppingFrequency, bool highCurrentMode, bool d
     }
 }
 
-void CBC::powerUp() {
+void CBC::powerUp()
+{
     // turn on level shifters
     mcb.enableIO();
 
@@ -114,7 +124,7 @@ void CBC::USB::disable(int iusb)
 
 void CBC::USB::enableAll()
 {
-    for (int i=1; i<=6; i++)
+    for (int i=1; i<7; i++)
         enable(i);
 }
 
@@ -125,22 +135,26 @@ void CBC::USB::disableAll()
         disable(i);
 }
 
-bool CBC::USB::isEnabled (int iusb) {
+bool CBC::USB::isEnabled (int iusb)
+{
     if ((iusb<1) | (iusb>6))
         return(-1);
     else
         return (mcb.isUSBPoweredUp(iusb));
 }
 
-void CBC::USB::enableEthernet() {
+void CBC::USB::enableEthernet()
+{
     mcb.powerUpUSB(0);
 }
 
-void CBC::USB::disableEthernet() {
+void CBC::USB::disableEthernet()
+{
     mcb.powerDownUSB(0);
 }
 
-void CBC::USB::resetEthernet() {
+void CBC::USB::resetEthernet()
+{
     disableEthernet();
     sleep(1);
     enableEthernet();
@@ -153,8 +167,7 @@ void CBC::USB::resetEthernet() {
 void CBC::Driver::setMicrosteps(int usint)
 {
     MirrorControlBoard::UStep us=MirrorControlBoard::USTEP_1;
-    switch(usint)
-    {
+    switch(usint) {
         case 1:
             us = MirrorControlBoard::USTEP_1;
             break;
@@ -173,11 +186,11 @@ void CBC::Driver::setMicrosteps(int usint)
     mcb.setUStep(us);
 }
 
-int CBC::Driver::getMicrosteps() {
+int CBC::Driver::getMicrosteps()
+{
     unsigned us = mcb.getUStep();
     int steps = 0;
-    switch(us)
-    {
+    switch(us) {
         case 0:
             steps = 1;
             break;
@@ -228,131 +241,110 @@ void CBC::Driver::disableAll()
         disable(i);
 }
 
-bool CBC::Driver::isEnabled(int drive) {
+bool CBC::Driver::isEnabled(int drive)
+{
     return (mcb.isDriveEnabled(drive));
 }
 
-void CBC::Driver::sleep() {
+void CBC::Driver::sleep()
+{
     mcb.powerDownDriveControllers();
 }
 
-void CBC::Driver::wakeup() {
+void CBC::Driver::wakeup()
+{
     mcb.powerUpDriveControllers();
 }
 
-bool CBC::Driver::isAwake() {
+bool CBC::Driver::isAwake()
+{
     MirrorControlBoard mcb;
     return(mcb.isDriveControllersPoweredUp());
 }
 
-bool CBC::Driver::isHighCurrentEnabled() {
+bool CBC::Driver::isHighCurrentEnabled()
+{
     MirrorControlBoard mcb;
     return(mcb.isDriveHiCurrentEnabled());
 }
 
-void CBC::Driver::enableHighCurrent () {
+void CBC::Driver::enableHighCurrent ()
+{
     mcb.enableDriveHiCurrent();
 }
 
-void CBC::Driver::disableHighCurrent () {
+void CBC::Driver::disableHighCurrent ()
+{
     mcb.disableDriveHiCurrent();
 }
 
-bool CBC::Driver::isSREnabled() {
+bool CBC::Driver::isSREnabled()
+{
     return(mcb.isDriveSREnabled());
 }
 
-void CBC::Driver::enableSR() {
+void CBC::Driver::enableSR()
+{
     mcb.enableDriveSR();
 }
 
-void CBC::Driver::disableSR() {
+void CBC::Driver::disableSR()
+{
     mcb.disableDriveSR();
 }
 
-int CBC::Driver::calibrateSteppingFrequency (int nsteps) {
-    timespec ts;
-
-    unsigned nloops = 500000;
-
-    //begin time
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    long starttime = ts.tv_nsec;
-
-    for(volatile unsigned iloop=0;iloop<nloops;iloop++);
-
-    //finish time
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    long endtime = ts.tv_nsec;
-
-    long measured_time = abs(endtime - starttime);
-
-    long constant_new = (nloops)*(1000000000/measured_time);
-    mcb.setCalibrationConstant(constant_new);
-
-    //float correction = (measured_time) / expected_time;
-
-    //std::cout << "Start  : " << starttime <<std::endl;
-    //std::cout << "Fini   : " << endtime << std::endl;
-    //std::cout << "Measure: " << measured_time <<std::endl;
-    //std::cout << "Expect : " << expected_time <<std::endl;
-
-    //std::cout << "Const_old: " << mcb.getCalibrationConstant() << std::endl;
-    //std::cout << "Const_new: " << mcb.getCalibrationConstant() << std::endl;
-
-    return(constant_new);
-}
-
-void CBC::Driver::setSteppingFrequency (int frequency) {
-    if (frequency > maximumSteppingFrequency)
-        steppingFrequency = maximumSteppingFrequency;
-    else if (frequency < minimumSteppingFrequency)
-        steppingFrequency = minimumSteppingFrequency;
-    else
+void CBC::Driver::setSteppingFrequency (int frequency)
+{
         steppingFrequency = frequency;
 }
 
-void CBC::Driver::reset() {
+void CBC::Driver::reset()
+{
     mcb.setPhaseZeroOnAllDrives();
 }
 
-int CBC::Driver::step(int drive, int nsteps)
+void CBC::Driver::step(int drive, int nsteps)
 {
-    return(step(drive, nsteps, steppingFrequency));
+    step(drive, nsteps, steppingFrequency);
 }
 
-int CBC::Driver::step(int drive, int nsteps, int frequency)
+void CBC::Driver::step(int drive, int nsteps, int frequency)
 {
+    /* Check frequency limits */
+    if (frequency > maximumSteppingFrequency)
+        frequency = maximumSteppingFrequency;
+    else if (frequency < minimumSteppingFrequency)
+        frequency = minimumSteppingFrequency;
+
+    /* whine if invalid actuator number is used */
+    if ((drive<1)||(drive>6))
+        return;
+
     if (isEnabled(drive)) {
-        int calibrationFrequency = calibrateSteppingFrequency();
-
-        /* whine if invalid actuator number is used */
-        if ((drive<1)||(drive>6))
-            return (0);
-
         /* MCB counts from 0 */
         drive = drive - 1;
 
-        // if nstep > 0, extend. If nstep < 0, retract
+        /* if nstep > 0, extend. If nstep < 0, retract */
         MirrorControlBoard::Dir dir = MirrorControlBoard::DIR_EXTEND;
         if (nsteps<0)
             dir = MirrorControlBoard::DIR_RETRACT, nsteps=-nsteps;
 
+        /* Convert from microsteps to macrosteps */
         unsigned microsteps = nsteps * getMicrosteps();
-        //std::cout << "Microsteps : " << microsteps << "\n";
 
-        // loop over number of micro Steps
-        for (unsigned istep=0; istep<microsteps; istep++)
-        {
-            //std::cout << istep << "\n";
+        /* loop over number of micro Steps */
+        for (unsigned istep=0; istep<microsteps; istep++) {
+            /* Give this thread higher priority to improve timing stability */
+            pthread_t this_thread = pthread_self();
+            struct sched_param params;
+            params.sched_priority = sched_get_priority_max(SCHED_FIFO);
+            pthread_setschedparam(this_thread, SCHED_FIFO, &params);
+
+            /* Step the drive */
             mcb.stepOneDrive(drive, dir, frequency * getMicrosteps());
-            mcb.waitHalfPeriod(frequency * getMicrosteps());
         }
-
-        return (calibrationFrequency);
-    }
-    else {
-        return (0);
+        sched_yield();
+        return;
     }
 }
 
@@ -360,15 +352,18 @@ int CBC::Driver::step(int drive, int nsteps, int frequency)
 //=Encoder Control===========================================================
 //===========================================================================
 
-void CBC::Encoder::enable() {
+void CBC::Encoder::enable()
+{
     mcb.powerUpEncoders();
 }
 
-void CBC::Encoder::disable() {
+void CBC::Encoder::disable()
+{
     mcb.powerDownEncoders();
 }
 
-bool CBC::Encoder::isEnabled() {
+bool CBC::Encoder::isEnabled()
+{
     return (mcb.isEncodersPoweredUp());
 }
 
@@ -376,37 +371,90 @@ bool CBC::Encoder::isEnabled() {
 //=ADC Control/Readout=======================================================
 //===========================================================================
 
-CBC::ADC::adcData CBC::ADC::readEncoder ( int encoder) {
+CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples)
+{
+    uint32_t sum;
+    uint64_t sumsq;
+    uint32_t min;
+    uint32_t max;
+
+    /* initialize to zero */
+    adcData data;
+    memset(&data, 0, sizeof(adcData));
+
+    /* Make sure we are doing something sensible */
+    if ((adc > 1) | (adc < 0 ))
+        return(data);
+    if ((channel > 10) | (channel < 0 ))
+        return(data);
+    if (nsamples < 0)
+        return(data);
+
+    mcb.measureADCStat(adc, channel, nsamples, sum, sumsq, min, max, readDelay);
+
+    uint32_t mean   = sum/nsamples;
+    float    var    = (sumsq - (1.0*sum*sum)/nsamples)/nsamples;
+    float    stddev = sqrt(var);
+
+    data.voltage      = tlcadc.voltData(mean,                  volt_full);
+    data.stddev       = tlcadc.voltData(stddev,                volt_full);
+    data.voltageMin   = tlcadc.voltData(min,                   volt_full);
+    data.voltageMax   = tlcadc.voltData(max,                   volt_full);
+    data.voltageError = tlcadc.voltData(stddev/sqrt(nsamples), volt_full);
+
+    return (data);
+}
+
+/*
+ * Encoders
+ */
+
+CBC::ADC::adcData CBC::ADC::readEncoder (int encoder)
+{
     return(readEncoder(encoder,defaultSamples));
 }
 
-CBC::ADC::adcData CBC::ADC::readEncoder ( int encoder, int nsamples) {
+CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
+{
+    /* Return all zeros if you read something wrong */
     if ( (encoder < 1) | (encoder > 6) ) {
         adcData data;
         memset(&data, 0, sizeof(adcData));
         return (data);
     }
     else {
+        /* we count from zero in MCB */
         encoder = encoder-1;
         return(measure(0,encoder,nsamples));
     }
 }
 
-CBC::ADC::adcData CBC::ADC::readOnboardTemp () {
+/*
+ * Temperature Sensors
+ */
+CBC::ADC::adcData CBC::ADC::readOnboardTemp ()
+{
     return(readOnboardTemp(defaultSamples));
 }
 
-CBC::ADC::adcData CBC::ADC::readOnboardTemp (int nsamples) {
+CBC::ADC::adcData CBC::ADC::readOnboardTemp (int nsamples)
+{
     return(measure(0,6,nsamples));
 }
 
-CBC::ADC::adcData CBC::ADC::readExternalTemp () {
+CBC::ADC::adcData CBC::ADC::readExternalTemp ()
+{
     return(readExternalTemp(defaultSamples));
 }
 
-CBC::ADC::adcData CBC::ADC::readExternalTemp (int nsamples) {
+CBC::ADC::adcData CBC::ADC::readExternalTemp (int nsamples)
+{
     return(measure(0,7,nsamples));
 }
+
+/*
+ * Voltage References
+ */
 
 CBC::ADC::adcData CBC::ADC::readRefLow(int adc)
 {
@@ -437,52 +485,41 @@ CBC::ADC::adcData CBC::ADC::readRefHigh(int adc, int nsamples) {
     return(measure(adc,8,nsamples));
 }
 
-int  CBC::ADC::getReadDelay() {
+/*
+ * Voltage References
+ */
+
+int  CBC::ADC::getReadDelay()
+{
     return (readDelay);
 }
 
-void CBC::ADC::setReadDelay(int delay) {
-    readDelay = delay;
-}
-
-CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples) {
-    uint32_t sum;
-    uint64_t sumsq;
-    uint32_t min;
-    uint32_t max;
-
-    mcb.measureADCStat(adc, channel, nsamples, sum, sumsq, min, max, readDelay);
-
-    uint32_t mean   = sum/nsamples;
-    float var    = (sumsq - (1.0*sum*sum)/nsamples)/nsamples;
-    float stddev = sqrt(var);
-
-    adcData data;
-    data.voltage      = tlcadc.voltData(mean,                  volt_full);
-    data.stddev       = tlcadc.voltData(stddev,                volt_full);
-    data.voltageMin   = tlcadc.voltData(min,                   volt_full);
-    data.voltageMax   = tlcadc.voltData(max,                   volt_full);
-    data.voltageError = tlcadc.voltData(stddev/sqrt(nsamples), volt_full);
-
-    return (data);
+void CBC::ADC::setReadDelay(int delay)
+{
+    if (delay >= 0)
+        readDelay = delay;
 }
 
 void CBC::ADC::setDefaultSamples(int nsamples) {
-    defaultSamples = nsamples;
+    if (nsamples > 0)
+        defaultSamples = nsamples;
 }
 
 //===========================================================================
 //=Sensor Control============================================================
 //===========================================================================
 
-void CBC::auxSensor::enable() {
+void CBC::AUXsensor::enable()
+{
     mcb.powerUpSensors();
 }
 
-void CBC::auxSensor::disable() {
+void CBC::AUXsensor::disable()
+{
     mcb.powerDownSensors();
 }
 
-bool CBC::auxSensor::isEnabled() {
+bool CBC::AUXsensor::isEnabled()
+{
     return(mcb.isSensorsPoweredUp());
 }

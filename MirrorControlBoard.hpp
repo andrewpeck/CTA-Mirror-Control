@@ -64,11 +64,6 @@ public:
      */
     void stepOneDrive(unsigned idrive, Dir dir, unsigned frequency = 1000);
 
-    // Simultaneously Steps all drives in a configurable direction..
-    void stepAllDrives(Dir dr1_dir, Dir dr2_dir, Dir dr3_dir,
-            Dir dr4_dir, Dir dr5_dir, Dir dr6_dir,
-            unsigned frequency = 1000);
-
     void setPhaseZeroOnAllDrives();
 
     void enableDriveSR(bool enable = true);

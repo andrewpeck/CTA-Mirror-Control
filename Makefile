@@ -4,7 +4,7 @@ LIBOBJECTS =  GPIOInterface.o MirrorControlBoard.o SpiInterface.o Layout.o TLC35
 #	  OmniORBHelper.o VSAssert.o VSDataConverter.o VSOptions.o 
 ALLOBJECTS = demo.o $(LIBOBJECTS)
 
-MYCXXFLAGS = -Wall -O3 -I. -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS #-DNOCOSEVENT -IomniORB4
+MYCXXFLAGS = -Wall -std=c++11 -O3 -I. -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS #-DNOCOSEVENT -IomniORB4
 MYLDFLAGS  = 
 MYLIBS     = #-lomniDynamic4 -lomniORB4 
 

@@ -145,11 +145,7 @@ int main(int argc, const char** argv)
         int nstep = atoi(*argv);
         argc--, argv++;
 
-        std::cout << cbc.driver.step(idrive, nstep);
-    }
-    else if (command == "calibrate")
-    {
-        std::cout << cbc.driver.calibrateSteppingFrequency();
+        cbc.driver.step(idrive, nstep);
     }
     else if (command == "status")
     {
