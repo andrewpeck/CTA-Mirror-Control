@@ -31,7 +31,6 @@ CBC::CBC (
         int  driveEnable
         )
 {
-    gpio.ConfigureAll();
 
     powerUp();
 
@@ -81,6 +80,9 @@ CBC::CBC (
 
 void CBC::powerUp()
 {
+    // Configure GPIOs
+    gpio.ConfigureAll();
+
     // turn on level shifters
     mcb.enableIO();
 
