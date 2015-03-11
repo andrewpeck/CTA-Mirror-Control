@@ -22,4 +22,9 @@ clean:
 
 install: 
 	cp $(TARGET) /usr/lib/$(TARGET)
+	chmod 755 /usr/lib/$(TARGET)
 	cp cbc.hpp  /usr/include/cbc.hpp
+	chmod 644 /usr/include/cbc.hpp
+
+tar: 
+	tar czvf libcbc.tar.gz ../libcbc/*.cpp ../libcbc/*.hpp ../libcbc/Makefile
