@@ -1,33 +1,25 @@
-# SJF
+CXX = g++
+SOURCES = $(shell echo *.cpp)
+OBJECTS = $(SOURCES:.cpp=.o)
 
-LIBOBJECTS =  GPIOInterface.o MirrorControlBoard.o SpiInterface.o Layout.o TLC3548_ADC.o cbc.o
-#	  OmniORBHelper.o VSAssert.o VSDataConverter.o VSOptions.o 
-ALLOBJECTS = demo.o $(LIBOBJECTS)
+CXXFLAGS = -std=c++11 -fPIC -g -Wall -O3 -I.
+LDFLAGS  = -shared
 
-MYCXXFLAGS = -Wall -std=c++11 -O3 -I. -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS #-DNOCOSEVENT -IomniORB4
-MYLDFLAGS  = 
-MYLIBS     = #-lomniDynamic4 -lomniORB4 
+TARGET = libcbc.so
 
-#MYCXXFLAGS += -g -fno-inline 
-#MYLDFLAGS  += -g
+all: $(TARGET)
 
-all: cbccmd
-
-#sctelescope: sctelescope.o $(LIBOBJECTS)
-#	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
-#	$(STRIP) $@
-
-cbccmd: cbccmd.o $(LIBOBJECTS)
-	$(CXX) $(LDFLAGS) $(MYLDFLAGS) -o $@ $^ $(MYLIBS)
-#	$(STRIP) $@
+$(TARGET): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(MYCXXFLAGS) -c $<
+	$(CXX) $(CXXFLAGS) -c $<
 
 .PHONY: clean tar
 
-tar:	clean
-	tar zcvf ../sctelescope-code-1.1.0.tar.gz *.hpp *.cpp Makefile
-
 clean:
-	$(RM) cbccmd *.o *~
+	$(RM) *.o *.so
+
+install: 
+	cp $(TARGET) /usr/lib/$(TARGET)
+	cp cbc.hpp  /usr/include/cbc.hpp

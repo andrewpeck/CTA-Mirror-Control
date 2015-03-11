@@ -25,8 +25,8 @@ public:
     enum TriggerLevel { TL_FULL, TL_75PC, TL_50PC, TL_25PC };
 
     uint32_t codeCommand(uint32_t cmd, uint32_t data = 0);
-    uint32_t codeSelectChannel(unsigned ichan); 
-    float voltData(const uint32_t data, const float full_volt = 5.0); 
+    uint32_t codeSelectChannel(unsigned ichan);
+    float voltData(const uint32_t data, const float full_volt = 5.0);
 
     uint32_t codeSWPowerDown();
     uint32_t codeSelectRefMid();
@@ -54,9 +54,8 @@ public:
             InputMode       im = IM_SINGLE_ENDED,
             OutputFormat    of = OF_BOB,
             PinFunction     pf = PF_EOC,
-            TriggerLevel    tl = TL_50PC); 
-
-private: 
+            TriggerLevel    tl = TL_50PC);
+private:
 };
 
 #endif // ndef TLC3548_ADC_HPP
