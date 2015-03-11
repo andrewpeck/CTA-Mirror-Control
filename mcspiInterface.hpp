@@ -13,16 +13,16 @@ public:
     ~mcspiInterface();
 
     uint32_t WriteRead(uint32_t data);
+    void Configure();
 
 
 private:
-    void EnableChannel  (); 
-    void DisableChannel (); 
-    void EnableClocks   (); 
-    void DisableClocks  (); 
-    void SetMasterMode  (); 
-    void Reset(); 
-    void Configure(); 
+    void EnableChannel  ();
+    void DisableChannel ();
+    void EnableClocks   ();
+    void DisableClocks  ();
+    void SetMasterMode  ();
+    void Reset();
 
     static const int channel[];
 
@@ -69,21 +69,21 @@ private:
     off_t physMCSPI_read         ( const unsigned ispi ) ;
     off_t physMCSPI_write        ( const unsigned ispi ) ;
 
-    // Clock control 
+    // Clock control
     // Bit 18 = EN_MCSPI1
     // Bit 19 = EN_MCSPI2
     // Bit 20 = EN_MCSPI3
     // Bit 21 = EN_MCSPI4
     // 0x1 = enable, 0x0 = disable
-    
-    static const off_t physBaseCLKCTRL     = 0x48004A00; 
-    // Module interface clock control
-    static const off_t physCM_ICLKEN1_CORE = 0x48004A10; 
-    // Module functional clock control
-    static const off_t physCM_FCLKEN1_CORE = 0x48004A00; 
 
-    static const off_t physBasePadConf     = 0x48002030; 
-    static const off_t physMCSPIPadConf    = 0x48004A00; 
+    static const off_t physBaseCLKCTRL     = 0x48004A00;
+    // Module interface clock control
+    static const off_t physCM_ICLKEN1_CORE = 0x48004A10;
+    // Module functional clock control
+    static const off_t physCM_FCLKEN1_CORE = 0x48004A00;
+
+    static const off_t physBasePadConf     = 0x48002030;
+    static const off_t physMCSPIPadConf    = 0x48004A00;
 
     // --------------------------------------------------------------------------
     // Functions to return pointers to mapped SSP registers
@@ -103,12 +103,12 @@ private:
     volatile uint32_t* ptrMCSPI_rx           ( const unsigned ispi);
     volatile uint32_t* ptrMCSPI_irqstatus    ( const unsigned ispi);
     volatile uint32_t* ptrMCSPI_irqenable    ( const unsigned ispi);
-    volatile uint32_t* ptrMCSPI_ICLKEN       (); 
-    volatile uint32_t* ptrMCSPI_FCLKEN       (); 
-    volatile uint32_t* ptrMCSPIPadConf       (); 
+    volatile uint32_t* ptrMCSPI_ICLKEN       ();
+    volatile uint32_t* ptrMCSPI_FCLKEN       ();
+    volatile uint32_t* ptrMCSPIPadConf       ();
 
     // --------------------------------------------------------------------------
-    // 
+    //
     // --------------------------------------------------------------------------
 
     // Create a virtual addressing space for a given physical address
@@ -122,13 +122,13 @@ private:
     volatile void*  m_mcspi2_base;
     volatile void*  m_mcspi3_base;
     volatile void*  m_mcspi4_base;
-    volatile void*  m_iclk; 
-    volatile void*  m_fclk; 
-    volatile void*  m_padconf; 
+    volatile void*  m_iclk;
+    volatile void*  m_fclk;
+    volatile void*  m_padconf;
 
-    // utilities 
-    bool txFifoFull (const unsigned ispi); 
+    // utilities
+    bool txFifoFull (const unsigned ispi);
 
-    Layout layout; 
+    Layout layout;
 };
 #endif
