@@ -38,7 +38,7 @@ public:
 
 private:
 
-    static const int nGPIO = 192;
+    const int nGPIO = 192;
 
     // Functions to return pointers to mapped GPIO registers
     volatile uint32_t* ptrGPIOReadLevel(const unsigned ipin);
@@ -52,19 +52,19 @@ private:
     // GPIO register (PHYSICAL) Address Definitions
     // --------------------------------------------------------------------------
 
-    static const off_t physBaseGPIO1             = 0x48310000;
-    static const off_t physBaseGPIO2             = 0x49050000;
-    static const off_t physBaseGPIO3             = 0x49052000;
-    static const off_t physBaseGPIO4             = 0x49054000;
-    static const off_t physBaseGPIO5             = 0x49056000;
-    static const off_t physBaseGPIO6             = 0x49058000;
+    const off_t physBaseGPIO1             = 0x48310000;
+    const off_t physBaseGPIO2             = 0x49050000;
+    const off_t physBaseGPIO3             = 0x49052000;
+    const off_t physBaseGPIO4             = 0x49054000;
+    const off_t physBaseGPIO5             = 0x49056000;
+    const off_t physBaseGPIO6             = 0x49058000;
 
-    static const off_t gpio_offset_ctrl          = 0x030;
-    static const off_t gpio_offset_oe            = 0x034;  //enable the pins output capabilities. Its only function is to carry the pads configuration.
-    static const off_t gpio_offset_datain        = 0x038;  //register the data that is read from the GPIO pins
-    static const off_t gpio_offset_dataout       = 0x03C;  //setting the value of the GPIO output pins
-    static const off_t gpio_offset_cleardataout  = 0x090;
-    static const off_t gpio_offset_setdataout    = 0x094;
+    const off_t gpio_offset_ctrl          = 0x030;
+    const off_t gpio_offset_oe            = 0x034;  //enable the pins output capabilities. Its only function is to carry the pads configuration.
+    const off_t gpio_offset_datain        = 0x038;  //register the data that is read from the GPIO pins
+    const off_t gpio_offset_dataout       = 0x03C;  //setting the value of the GPIO output pins
+    const off_t gpio_offset_cleardataout  = 0x090;
+    const off_t gpio_offset_setdataout    = 0x094;
 
     // --------------------------------------------------------------------------
     // Functions to Return Addresses for GPIO pins
