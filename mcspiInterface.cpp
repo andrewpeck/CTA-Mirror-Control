@@ -22,9 +22,8 @@
 #define MMAPFAIL ((void*)-1)
 
 #define MUNMAP(VIRT) munmap(const_cast<void*>(VIRT), 4096)
-#define MAP_SIZE     4096UL
-#define MAP_MASK     (MAP_SIZE - 1)
-
+#define MUNMAP(VIRT) \
+    munmap(const_cast<void*>(VIRT), 4096)
 
 #define BIT(nr)                  (1UL << (nr))
 
@@ -52,6 +51,23 @@
 
 #define WAKEUPENABLE            BIT(0)
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <signal.h>
+#include <fcntl.h>
+#include <ctype.h>
+#include <termios.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+
+#define FATAL do { fprintf(stderr, "Error at line %d, file %s (%d) [%s]\n", \
+  __LINE__, __FILE__, errno, strerror(errno)); exit(1); } while(0)
+
+#define MAP_SIZE 4096UL
+#define MAP_MASK (MAP_SIZE - 1)
 
 //------------------------------------------------------------------------------
 // Public Members
@@ -59,56 +75,100 @@
 
 // constructor
 mcspiInterface::mcspiInterface() :
+    cm_fclken1_core   (NULL),
+    cm_iclken1_core   (NULL),
+    mcspi_sysconfig   (NULL),
+    mcspi_sysstatus   (NULL),
+    mcspi_wakeupenable(NULL),
+    mcspi_modulctrl   (NULL),
+    mcspi_chconf      (NULL),
+    mcspi_chstat      (NULL),
+    mcspi_chctrl      (NULL),
+    mcspi_tx          (NULL),
+    mcspi_rx          (NULL),
+    mcspi_irqstatus   (NULL),
+    mcspi_irqenable   (NULL),
     m_mmap_fd(-1),
-    m_iclk(),
-    m_fclk(),
-    m_padconf(),
-    m_mcspi1_base()
+    m_cm_core_base(NULL),
+    m_mcspi1_base(NULL)
+    //m_padconf(),
 {
     debug_print("%s\n", "Start of MCSPI Constructor");
+
+
     // open /dev/mem and check for failure
     m_mmap_fd = open("/dev/mem", O_RDWR | O_SYNC);
-    if(m_mmap_fd<0) {
+    if(m_mmap_fd<0)
+    {
         perror("open(\"/dev/mem\")");
         exit(EXIT_FAILURE);
     }
 
     //      virtual adr     physical adr
-    makeMap(m_iclk,         physCM_FCLKEN1_CORE);
-    makeMap(m_fclk,         physCM_ICLKEN1_CORE);
-    makeMap(m_padconf,      physBasePadConf);
-    makeMap(m_mcspi1_base,  physBaseMCSPI1);
+    m_mcspi1_base  = makeMap(ADR_MCSPI_BASE);
+    m_cm_core_base = makeMap(ADR_CM_CORE_BASE);
+
+
+    cm_fclken1_core    = mappedAddress(OFF_CM_FCLKEN1_CORE, m_cm_core_base);
+    cm_iclken1_core    = mappedAddress(OFF_CM_ICLKEN1_CORE, m_cm_core_base);
+
+    mcspi_sysconfig    = mappedAddress(OFF_MCSPI_SYSCONFIG , m_mcspi1_base);
+    mcspi_sysstatus    = mappedAddress(OFF_MCSPI_SYSSTATUS , m_mcspi1_base);
+    mcspi_wakeupenable = mappedAddress(OFF_MCSPI_WAKEUPENABLE , m_mcspi1_base);
+    mcspi_modulctrl    = mappedAddress(OFF_MCSPI_MODULCTRL, m_mcspi1_base);
+    mcspi_chconf       = mappedAddress(OFF_MCSPI_CHCONF, m_mcspi1_base);
+    mcspi_chstat       = mappedAddress(OFF_MCSPI_CHSTAT, m_mcspi1_base);
+    mcspi_chctrl       = mappedAddress(OFF_MCSPI_CHCTRL, m_mcspi1_base);
+    mcspi_tx           = mappedAddress(OFF_MCSPI_TX, m_mcspi1_base);
+    mcspi_rx           = mappedAddress(OFF_MCSPI_RX, m_mcspi1_base);
+    mcspi_irqstatus    = mappedAddress(OFF_MCSPI_IRQSTATUS, m_mcspi1_base);
+    mcspi_irqenable    = mappedAddress(OFF_MCSPI_IRQENABLE, m_mcspi1_base);
+
+    //makeMap(m_padconf,      ADR_PADCONF_BASE);
     debug_print("%s\n", "End of MCSPI Constructor");
 }
 
 // destructor
 mcspiInterface::~mcspiInterface()
 {
-    MUNMAP(m_iclk);
-    MUNMAP(m_fclk);
-    MUNMAP(m_padconf);
-    MUNMAP(m_mcspi1_base);
+    munmap(m_mcspi1_base, 4096);
+    munmap(m_cm_core_base, 4096);
+    //MUNMAP(m_padconf);
 }
 
 /* Initializes MCSPI Controller: Enables clocks, and performs soft-reset of the
  * MCSPI system
-*/
+ */
+
+void* mcspiInterface::makeMap(off_t target)
+{
+    void *map_base = mmap(0, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, m_mmap_fd, target & ~MAP_MASK);
+    if (map_base == (void*) -1)
+        exit(EXIT_FAILURE);
+
+    void *virt_address = map_base + (target & MAP_MASK);
+
+    return virt_address;
+}
+
+volatile uint32_t* mcspiInterface::mappedAddress(off_t offset, void* mappedBaseAddress)
+{
+    void* mappedAddress = static_cast<char *>(mappedBaseAddress) + offset;
+    return reinterpret_cast<volatile uint32_t*>(mappedAddress);
+}
+
 
 void mcspiInterface::EnableClocks()
 {
     /*  Clock Enable
-     *  Bit 18 = EN_MCSPI1
-     *  Bit 19 = EN_MCSPI2
-     *  Bit 20 = EN_MCSPI3
-     *  Bit 21 = EN_MCSPI4
-     *  0x1 = enable, 0x0 = disable
+     *  Bit 18 0x1 = enable, 0x0 = disable
      */
 
     /* interface clock */
-    *ptrMCSPI_ICLKEN() &= ~ENABLE_INTERFACE_CLOCK;
+    *cm_iclken1_core |= ENABLE_INTERFACE_CLOCK;
 
     /* functional clock */
-    *ptrMCSPI_FCLKEN() &= ~ENABLE_FUNCTIONAL_CLOCK;
+    *cm_fclken1_core |= ENABLE_FUNCTIONAL_CLOCK;
 }
 
 void mcspiInterface::DisableClocks()
@@ -122,10 +182,10 @@ void mcspiInterface::DisableClocks()
      */
 
     /* interface clock */
-    *ptrMCSPI_ICLKEN() |= ENABLE_INTERFACE_CLOCK;
+    *cm_iclken1_core &= ~ENABLE_INTERFACE_CLOCK;
 
     /* functional clock */
-    *ptrMCSPI_FCLKEN() |= ENABLE_FUNCTIONAL_CLOCK;
+    *cm_fclken1_core &= ~ENABLE_FUNCTIONAL_CLOCK;
 }
 
 
@@ -142,12 +202,12 @@ void mcspiInterface::DisableClocks()
  *  disable clocks */
 void mcspiInterface::Reset()
 {
-    debug_print("%s\n", "Before Enable Clocks");
+    debug_print("%s\n", "Start Enable Clocks");
     EnableClocks();
-    debug_print("%s\n", "After Enable Clocks");
+    debug_print("%s\n", "Finished Enabling Clocks");
 
-    debug_print("Reset:ptrMCSPI_sysconfig%s\n", "");
-    *ptrMCSPI_sysconfig() |= SYSCONFIG_SOFTRESET;
+    debug_print("Reset:mcspi_sysconfig%s\n", "");
+    *mcspi_sysconfig |= SYSCONFIG_SOFTRESET;
     debug_print("%s\n", "before while loop");
 
     // SPIm.MCSPI_SYSSTATUS[0] will be set to 1 when the reset is finished
@@ -155,41 +215,41 @@ void mcspiInterface::Reset()
     while (true)
     {
         debug_print("%s\n", "waiting while true");
-        if ( (*ptrMCSPI_sysstatus() & RESETDONE)==1 )
+        if ( (*mcspi_sysstatus & RESETDONE)==1 )
             break;
     }
 
     debug_print("%s\n", "sysconfig");
-    *ptrMCSPI_sysconfig() |= (SYSCONFIG_AUTOIDLE | SYSCONFIG_ENAWAKEUP | SYSCONFIG_SMARTIDLE);
+    *mcspi_sysconfig |= (SYSCONFIG_AUTOIDLE | SYSCONFIG_ENAWAKEUP | SYSCONFIG_SMARTIDLE);
 
     debug_print("%s\n", "wakeup");
-    *ptrMCSPI_wakeupenable() |= WAKEUPENABLE;
+    *mcspi_wakeupenable |= WAKEUPENABLE;
 
     debug_print("%s\n", "Set Master Mode");
     SetMasterMode();
 
     debug_print("%s\n", "Disable Clocks");
-    DisableClocks();
+    //DisableClocks();
 }
 
 void mcspiInterface::EnableChannel()
 {
     // Start Channel
-    *ptrMCSPI_chctrl() |= CHANNEL_ENABLE;
+    *mcspi_chctrl |= CHANNEL_ENABLE;
 }
 
 void mcspiInterface::DisableChannel()
 {
     //Stop Channel
-    *ptrMCSPI_chctrl() &= ~CHANNEL_ENABLE;
+    *mcspi_chctrl &= ~CHANNEL_ENABLE;
 }
 
 void mcspiInterface::SetMasterMode()
 {
-    *ptrMCSPI_modulctrl() &= ~MASTER_SLAVE;
+    *mcspi_modulctrl &= ~MASTER_SLAVE;
 
     // Manage CS with force
-    //*ptrMCSPI_modulctrl() |= 0x1;
+    //*mcspi_modulctrl |= 0x1;
 }
 
 //void mcspiInterface::RestoreContext()
@@ -216,7 +276,7 @@ void mcspiInterface::Configure()
     //printf("\nReset finished..");
 
     // get current config
-    //uint32_t config = *ptrMCSPI_chconf();
+    //uint32_t config = *mcspi_chconf;
     //printf("\nInitial Config = 0x%08X", config);
 
     //set polarity and phase
@@ -227,17 +287,17 @@ void mcspiInterface::Configure()
     int polarity = 0;
 
     //7. Set the SPI1.MCSPI_CHxCONF[0] PHA bit to 0 for data latched on odd-numbered edges of the SPI
-    *ptrMCSPI_chconf() &= ~(PHASE);
+    *mcspi_chconf &= ~(PHASE);
     if (phase)
     {
-        *ptrMCSPI_chconf() |=  (PHASE);        //mcspi_chxconf[0]
+        *mcspi_chconf |=  (PHASE);        //mcspi_chxconf[0]
     }
 
     //6. Set the SPI1.MCSPI_CHxCONF[1] POL bit to 1
-    *ptrMCSPI_chconf() &= ~(POLARITY);
+    *mcspi_chconf &= ~(POLARITY);
     if (polarity)
     {
-        *ptrMCSPI_chconf() |=  (POLARITY); //mcspi_chxconf[1]
+        *mcspi_chconf |=  (POLARITY); //mcspi_chxconf[1]
     }
 
     /*      set clock rate in MCSPI_CHXCONF[5..2]
@@ -260,25 +320,25 @@ void mcspiInterface::Configure()
      *        32768   ~1.5    kHz
      */
     int clock_divider = 0x4 << 2;      //16
-    *ptrMCSPI_chconf() &= ~(CLOCK_DIVIDER);         //mcspi_chxconf[5..2]
-    *ptrMCSPI_chconf() |= clock_divider;            //mcspi_chxconf[5..2]
+    *mcspi_chconf &= ~(CLOCK_DIVIDER);         //mcspi_chxconf[5..2]
+    *mcspi_chconf |= clock_divider;            //mcspi_chxconf[5..2]
 
     /*     5. Set the SPI1.MCSPI_CHxCONF[6] EPOL bit to 1 for spi1_cs0 activated low
      *     during active state.  clock.
      */
-    *ptrMCSPI_chconf() |= EPOL;
+    *mcspi_chconf |= EPOL;
 
     //spim_csx polarity
     //0x0 => spim_csx high during active state
     //0x1 => spim_csx low  during active state
     int spim_polarity = 0x1 << 6;
-    *ptrMCSPI_chconf() &= ~(CS_POLARITY);
-    *ptrMCSPI_chconf() |=  (spim_polarity); //mcspi_chxconf[6]
+    *mcspi_chconf &= ~(CS_POLARITY);
+    *mcspi_chconf |=  (spim_polarity); //mcspi_chxconf[6]
 
     //set spi word length
     int spi_word_length = 0xF << 7;  //16 bit word length
-    *ptrMCSPI_chconf() &= ~(SPI_WORD_LENGTH);
-    *ptrMCSPI_chconf() |=  (spi_word_length); //mcspi_chxconf[11..7]
+    *mcspi_chconf &= ~(SPI_WORD_LENGTH);
+    *mcspi_chconf |=  (spi_word_length); //mcspi_chxconf[11..7]
 
     /*
      *     3. Set the SPI1.MCSPI_CHxCONF[13:12] TRM field to 0x0 for transmit
@@ -290,28 +350,28 @@ void mcspiInterface::Configure()
      */
 
     int transfer_mode = 0x0 << 12;
-    *ptrMCSPI_chconf() &= ~(SPI_TRANSFER_MODE);
-    *ptrMCSPI_chconf() |=  (transfer_mode); //mcspi_chxconf[13..12]
+    *mcspi_chconf &= ~(SPI_TRANSFER_MODE);
+    *mcspi_chconf |=  (transfer_mode); //mcspi_chxconf[13..12]
 
     /*     1. Set the SPI1.MCSPI_CHxCONF[18] IS bit to 0 for the spi1_somi pin in receive mode.
     */
 
-    *ptrMCSPI_chconf() &= ~(INPUT_SELECT);
+    *mcspi_chconf &= ~(INPUT_SELECT);
 
     /*     2. Set the SPI1.MCSPI_CHxCONF[17] DPE1 bit to 0 and the
      *     SPI1.MCSPI_CHxCONF[16] DPE0 bit to 1 for the spi1.simo pin in
      *     transmit mode.
      */
 
-    *ptrMCSPI_chconf() &= ~(TX_EN1);
-    *ptrMCSPI_chconf() |=  (TX_EN0);
+    *mcspi_chconf &= ~(TX_EN1);
+    *mcspi_chconf |=  (TX_EN0);
 
 
     //int tx_fifo_enable = 0x1;
-    //*ptrMCSPI_chconf() |= ( << 27);
+    //*mcspi_chconf |= ( << 27);
 
     //printf("\nWrite Config = 0x%08X", config);
-    //config = *ptrMCSPI_chconf(0);
+    //config = *mcspi_chconf(0);
     //printf("\nFinal Config  = 0x%08X", config);
     //printf("\n");
 
@@ -320,34 +380,42 @@ void mcspiInterface::Configure()
      *  SPI words (single channel master mode only). The MCSPI_MODULCTRL[0]
      *  SINGLE bit must bit set to 1.
      */
-    //*ptrMCSPI_chconf(0) |= FORCE;
+    //*mcspi_chconf(0) |= FORCE;
 }
 
 uint32_t mcspiInterface::WriteRead(uint32_t data)
 {
-    /* 20.6.2.6.3 Programming in Interrupt Mode
-     * This section follows the flow of Figure 20-26.
-     * 1. Initialize software variables: WRITE_COUNT = 0 and READ_COUNT = 0.
-     */
+
+    ///* 20.6.2.6.3 Programming in Interrupt Mode
+    // * This section follows the flow of Figure 20-26.
+    // * 1. Initialize software variables: WRITE_COUNT = 0 and READ_COUNT = 0.
+    // */
     int         write_count = 0;
     int         read_count  = 0;
     int         nwrite      = 1;
     int         nread       = 1;
 
-    uint32_t    read        = 0;
+    uint32_t    readdata        = 0;
 
-    debug_print("%s\n", "Before first Reset");
+    debug_print("%s\n", "Start Reset");
     Reset();
-    debug_print("%s\n", "After first Reset");
+    debug_print("%s\n", "End Reset");
 
-    /* 2. Initialize interrupts: Write 0x7 in the SPI1.MCSPI_IRQSTATUS[3:0]
-    *     field and set the SPI1.MCSPI_IRQENABLE[3:0] field to 0x7.
-    */
-    *ptrMCSPI_irqenable() &= ~0x7;
-    *ptrMCSPI_irqenable() |=  0x7;
+    //uint32_t* mcspi = (uint32_t*) ((uint8_t*)m_mcspi1_base + ADR_MCSPI_BASE);
+    //volatile uint32_t* ptrmcspi_irqenable = mcspi + (ADR_MCSPI_BASE-OFF_MCSPI_IRQENABLE);
+    //*ptrmcspi_irqenable &= ~(0x7);
 
-    *ptrMCSPI_irqstatus() &= ~0x7;
-    *ptrMCSPI_irqstatus() |=  0x7;
+    ///* 2. Initialize interrupts: Write 0x7 in the SPI1.MCSPI_IRQSTATUS[3:0]
+    //*     field and set the SPI1.MCSPI_IRQENABLE[3:0] field to 0x7.
+    //*/
+    //*mcspi_irqenable &= ~0x7;
+    //*mcspi_irqenable |=  0x7;
+
+    debug_print("%s\n", "irqenabled");
+
+    //*mcspi_irqstatus &= ~0x7;
+    //*mcspi_irqstatus |=  0x7;
+    debug_print("%s %08x\n", "irqstatus updated", *mcspi_irqstatus);
 
     /* 3. Follow the steps described in Section 20.6.2.6.2.1.1, Mode Selection.  */
     Configure();
@@ -368,14 +436,15 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
      *     Bit 8 == Input Enable
      */
 
-    *ptrMCSPIPadConf() |= 0x1 << 8;
+    //this should be uncommented
+    //*mcspiPadConf |= 0x1 << 8;
 
 
     /* Set the SPI1.MCSPI_CHxCTRL[0] EN bit to 1 (where x = 0) to enable channel 0. */
     EnableChannel();
 
     // assert !CS
-    //*ptrMCSPI_chconf(0) |= (FORCE);
+    //*mcspi_chconf(0) |= (FORCE);
 
     /* 4. If WRITE_COUNT = w and READ_COUNT = w, write SPI1.MCSPI_CHxCTRL[0] = 0x0 (x = 0) to stop
      *    the channel.  This interrupt routine follows the flow of Table
@@ -387,185 +456,40 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
     while (write_count < nwrite && read_count < nread)
     {
         /*  2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1: */
-        if ((*ptrMCSPI_irqstatus() & 0x1) == 1)
+        if ((*mcspi_irqstatus & 0x1) == 1)
         {
-            printf("\n I am here");
             /* (a) Write the command/address or data value in SPI1.MCSPI_TXx (where x = 0). */
-            *ptrMCSPI_tx() = data;
+            *mcspi_tx = data;
             /* (b) WRITE_COUNT + = 1 */
             write_count++;
             /* (c) Write SPI1.MCSPI_IRQSTATUS[0] = 0x1. */
-            *ptrMCSPI_irqstatus() |= 0x1;
+            *mcspi_irqstatus |= 0x1;
         }
 
         /* 3. If the SPI1.MCSPI_IRQSTATUS[2] RX0_FULL bit is set to 1: */
-        if (((*ptrMCSPI_irqstatus() >> 2) & 0x1) == 1)
+        if (((*mcspi_irqstatus >> 2) & 0x1) == 1)
         {
             printf("\n I am there");
             /* a) Read SPI1.MCSPI_RXx (where x = 0) */
-            read = *ptrMCSPI_rx();
+            readdata = *mcspi_rx;
             /* b) READ_COUNT += 1 */
             read_count++;
             /* c) Write SPI1.MCSPI_IRQSTATUS[2] = 0x1 */
-            *ptrMCSPI_irqstatus() |= 0x1 << 2;
+            *mcspi_irqstatus |= 0x1 << 2;
         }
     }
     DisableChannel();
 
     // deassert !CS
-    // *ptrMCSPI_chconf(0) &= ~(FORCE);
+    // *mcspi_chconf(0) &= ~(FORCE);
 
-    return read;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Private Members
-////////////////////////////////////////////////////////////////////////////////
-
-// SPI1 supports up to four peripherals, SPI2 and SPI3 support up to two
-// peripherals, and SPI4 supports only one peripheral.
-// channel address = base address + 0x14 * x
-// x= 0 to 3 for MCSPI1.
-// x= 0 to 1 for MCSPI2 and MCSPI3.
-// x= 0      for MCSPI4.
-// in software let's enumerate these lines: 0,1,2,3,4,5,6,7,8
-const int mcspiInterface::channel[] =  {0,1,2,3,0,1,0,1,0};
-
-volatile uint32_t* mcspiInterface::phys2VirtMCSPI32(off_t adr_physical)
-{
-    debug_print("ADR_PHYSICAL  %08X\n", adr_physical);
-    debug_print("m_mcspi1_base %08X\n", &m_mcspi1_base);
-
-    return phys2Virt32(adr_physical,m_mcspi1_base,physBaseMCSPI1);
-}
-
-// Takes Physical Address and Returns pointer to memory mapped virtual address
-volatile uint32_t* mcspiInterface::phys2Virt32(off_t phys, volatile void* map_base_virt, off_t map_base_phys)
-{
-    off_t map_offset;
-
-    // map offset is the difference between the physical address and the
-    // physical base address
-    map_offset = phys - map_base_phys;
-
-    volatile uint8_t *virtual_base_pointer = static_cast<volatile uint8_t*>(map_base_virt);
-
-    printf("phys2Virt32:map_offset:         %08X\n", map_offset);
-    printf("phys2Virt32:map_base_virt:      %08X\n", &map_base_virt);
-    printf("phys2Virt32:map_base_virt_cast: %08X\n", virtual_base_pointer);
-
-    // virtual address the base of the virtual address + the map_offset with
-    // some fancy typecasting we static cast the void pointer map_base_virt
-    // into a pointer to an 8 bit integer...  then offset that pointer by some
-    // number of bytes, then reinterpret the data at that memory as a pointer
-    // to a 32bit unsigned integer, and return that pointer!
-    volatile uint32_t* adr_virtual = reinterpret_cast<volatile uint32_t*>
-        (static_cast<volatile uint8_t*>(map_base_virt) + map_offset);
-
-    printf("phys2Virt32:%s\n", "return adr_virtual");
-    return adr_virtual;
-}
-
-// --------------------------------------------------------------------------
-// functions defining (physical) start of memory mapped regions
-// --------------------------------------------------------------------------
-// Functions to return pointers to mapped SSP registers
-// --------------------------------------------------------------------------
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_sysconfig()
-{
-    debug_print("%s\n", "Before phys2Virt");
-    return phys2VirtMCSPI32(mcspi_offset_sysconfig);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_sysstatus()
-{
-    return phys2VirtMCSPI32(mcspi_offset_sysconfig);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_wakeupenable()
-{
-    return phys2VirtMCSPI32(mcspi_offset_wakeupenable);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_modulctrl()
-{
-    return phys2VirtMCSPI32(mcspi_offset_modulctrl);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_chconf()
-{
-    uint32_t  adr_physical = mcspi_offset_chconf;
-    volatile uint32_t* adr_virtual  = phys2VirtMCSPI32(adr_physical);
-    return adr_virtual;
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_chstat()
-{
-    return phys2VirtMCSPI32(mcspi_offset_chstat);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_chctrl()
-{
-    uint32_t adr_physical = mcspi_offset_chctrl;
-    volatile uint32_t* adr_virtual  = phys2VirtMCSPI32(adr_physical);
-    return adr_virtual;
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_tx()
-{
-    return phys2VirtMCSPI32(mcspi_offset_tx);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_rx()
-{
-    return phys2VirtMCSPI32(mcspi_offset_rx);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_irqstatus()
-{
-    return phys2VirtMCSPI32(mcspi_offset_irqstatus);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_irqenable()
-{
-    return phys2VirtMCSPI32(mcspi_offset_irqenable);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_ICLKEN()
-{
-    return phys2Virt32(physCM_ICLKEN1_CORE,m_iclk,physCM_ICLKEN1_CORE);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPI_FCLKEN()
-{
-    return phys2Virt32(physCM_FCLKEN1_CORE,m_fclk,physCM_FCLKEN1_CORE);
-}
-
-volatile uint32_t* mcspiInterface::ptrMCSPIPadConf()
-{
-    return phys2Virt32(physMCSPIPadConf,m_padconf,physBasePadConf);
-}
-
-volatile void* mcspiInterface::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length)
-{
-    virtual_addr = mmap(0, length, PROT_READ | PROT_WRITE, MAP_SHARED, m_mmap_fd, physical_addr);
-    debug_print("\nmap_address: %08X", &virtual_addr);
-
-    // Error handling
-    if (&virtual_addr==MMAPFAIL)
-    {
-        fprintf(stderr, "ERROR: Failed to map memory!\n");
-        exit(EXIT_FAILURE);
-    }
-    else
-        return &virtual_addr;
+    return readdata;
 }
 
 
-bool mcspiInterface::txFifoFull ()
-{
-    //Read 0x0: FIFO Transmit Buffer is not full
-    //Read 0x1: FIFO Transmit Buffer is full
-    return (0x1 & (*ptrMCSPI_chstat() >> 4));
-}
+//bool mcspiInterface::txFifoFull ()
+//{
+//    //Read 0x0: FIFO Transmit Buffer is not full
+//    //Read 0x1: FIFO Transmit Buffer is full
+//    return (0x1 & (*ptrMCSPI_chstat() >> 4));
+//}

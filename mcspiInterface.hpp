@@ -39,25 +39,27 @@ private:
     // GPIO register (PHYSICAL) Address Definitions
     // --------------------------------------------------------------------------
 
-    const off_t physBaseMCSPI1             = 0x48098000;
+    const off_t ADR_MCSPI_BASE          = 0x48098000; // this is right
+    //const off_t ADR_MCSPI_BASE           = 0x4809A000; // this is NOT right!
 
-    const off_t mcspi_offset_revision      =  0x00;
-    const off_t mcspi_offset_sysconfig     =  0x10;
-    const off_t mcspi_offset_sysstatus     =  0x14;
-    const off_t mcspi_offset_irqstatus     =  0x18;
-    const off_t mcspi_offset_irqenable     =  0x1C;
-    const off_t mcspi_offset_wakeupenable  =  0x20;
-    const off_t mcspi_offset_syst          =  0x24;
-    const off_t mcspi_offset_modulctrl     =  0x28;
+    const off_t OFF_MCSPI_REVISION      = 0x000;
+    const off_t OFF_MCSPI_SYSCONFIG     = 0x010;
+    const off_t OFF_MCSPI_SYSSTATUS     = 0x014;
+    const off_t OFF_MCSPI_IRQSTATUS     = 0x018; // this IS right
+    //const off_t OFF_MCSPI_IRQSTATUS     = 0x000; // this is NOT right
+    //const off_t OFF_MCSPI_IRQSTATUS     = 0x030; // this is NOT right
+    const off_t OFF_MCSPI_IRQENABLE     = 0x01C;
+    const off_t OFF_MCSPI_WAKEUPENABLE  = 0x020;
+    const off_t OFF_MCSPI_SYST          = 0x024;
+    const off_t OFF_MCSPI_MODULCTRL     = 0x028;
 
-    const off_t mcspi_offset_chconf=  0x2C;
-    const off_t mcspi_offset_chstat=  0x30;
-    const off_t mcspi_offset_chctrl=  0x34;
-    const off_t mcspi_offset_tx=  0x38;
-    const off_t mcspi_offset_rx=  0x3C;
+    const off_t OFF_MCSPI_CHCONF        = 0x02C;
+    const off_t OFF_MCSPI_CHSTAT        = 0x030;
+    const off_t OFF_MCSPI_CHCTRL        = 0x034;
+    const off_t OFF_MCSPI_TX            = 0x038;
+    const off_t OFF_MCSPI_RX            = 0x03C;
+    const off_t OFF_MCSPI_XFERLEVEL     = 0x07C;
 
-    const off_t mcspi_offset_xferlevel     =  0x7C;
-    //
     // Clock control
     // Bit 18 = EN_MCSPI1
     // Bit 19 = EN_MCSPI2
@@ -65,56 +67,49 @@ private:
     // Bit 21 = EN_MCSPI4
     // 0x1 = enable, 0x0 = disable
 
-    const off_t physBaseCLKCTRL     = 0x48004A00;
-    // Module interface clock control
-    const off_t physCM_ICLKEN1_CORE = 0x48004A10;
-    // Module functional clock control
-    const off_t physCM_FCLKEN1_CORE = 0x48004A00;
+    const off_t ADR_CM_CORE_BASE    = 0x48004A00; //size = 8192 bytes // REAL
+    const off_t OFF_CM_FCLKEN1_CORE = 0x00; // Module functional clock control
+    const off_t OFF_CM_ICLKEN1_CORE = 0x10; // Module interface clock control
 
-    const off_t physBasePadConf     = 0x48002030;
-    const off_t physMCSPIPadConf    = 0x48004A00;
+    const off_t ADR_PADCONF_BASE     = 0x48002030;
+    //const off_t physMCSPIPadConf    = 0x48004A00;
 
     // --------------------------------------------------------------------------
-    // Functions to return pointers to mapped SSP registers
+    // Pointers to mapped registers
     // --------------------------------------------------------------------------
 
-    volatile uint32_t* phys2VirtMCSPI32      ( off_t adr_physical);
-    volatile uint32_t* phys2Virt32           ( off_t phys, volatile void* map_base_virt, off_t map_base_phys);
+    volatile uint32_t* cm_fclken1_core    ;
+    volatile uint32_t* cm_iclken1_core    ;
 
+    volatile uint32_t* mcspi_sysconfig    ;
+    volatile uint32_t* mcspi_sysstatus    ;
+    volatile uint32_t* mcspi_wakeupenable ;
+    volatile uint32_t* mcspi_modulctrl    ;
+    volatile uint32_t* mcspi_chconf       ;
+    volatile uint32_t* mcspi_chstat       ;
+    volatile uint32_t* mcspi_chctrl       ;
+    volatile uint32_t* mcspi_tx           ;
+    volatile uint32_t* mcspi_rx           ;
+    volatile uint32_t* mcspi_irqstatus    ;
+    volatile uint32_t* mcspi_irqenable    ;
 
-    volatile uint32_t* ptrMCSPI_sysconfig    ();
-    volatile uint32_t* ptrMCSPI_sysstatus    ();
-    volatile uint32_t* ptrMCSPI_wakeupenable ();
-    volatile uint32_t* ptrMCSPI_modulctrl    ();
-    volatile uint32_t* ptrMCSPI_chconf       ();
-    volatile uint32_t* ptrMCSPI_chstat       ();
-    volatile uint32_t* ptrMCSPI_chctrl       ();
-    volatile uint32_t* ptrMCSPI_tx           ();
-    volatile uint32_t* ptrMCSPI_rx           ();
-    volatile uint32_t* ptrMCSPI_irqstatus    ();
-    volatile uint32_t* ptrMCSPI_irqenable    ();
-    volatile uint32_t* ptrMCSPI_ICLKEN       ();
-    volatile uint32_t* ptrMCSPI_FCLKEN       ();
-    volatile uint32_t* ptrMCSPIPadConf       ();
+    //volatile uint32_t* ptrMCSPIPadConf       ();
 
     // --------------------------------------------------------------------------
 
     // Create a virtual addressing space for a given physical address
-    volatile void*  makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length=4096);
+    void* makeMap(off_t target);
+    volatile uint32_t* mappedAddress(off_t offset, void* mappedBaseAddress);
 
     // Memory mapped file descriptor
     int             m_mmap_fd;
 
     // Pointer to base of memory mapped address space
-    volatile void*  m_iclk;
-    volatile void*  m_fclk;
-    volatile void*  m_padconf;
-    volatile void*  m_mcspi1_base;
-    volatile void*  m_mcspi2_base;
-    volatile void*  m_mcspi3_base;
-    volatile void*  m_mcspi4_base;
+    void*  m_cm_core_base;
+    //volatile void*  m_padconf;
+    void*  m_mcspi1_base;
 
     // utilities
-    bool txFifoFull ();
+    //bool txFifoFull ();
 };
 #endif
