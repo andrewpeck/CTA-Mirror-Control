@@ -37,7 +37,6 @@ public:
     void ConfigureAll();
 
 private:
-
     const int nGPIO = 192;
 
     // Functions to return pointers to mapped GPIO registers
@@ -52,19 +51,17 @@ private:
     // GPIO register (PHYSICAL) Address Definitions
     // --------------------------------------------------------------------------
 
-    const off_t physBaseGPIO1             = 0x48310000;
-    const off_t physBaseGPIO2             = 0x49050000;
-    const off_t physBaseGPIO3             = 0x49052000;
-    const off_t physBaseGPIO4             = 0x49054000;
-    const off_t physBaseGPIO5             = 0x49056000;
-    const off_t physBaseGPIO6             = 0x49058000;
+    const off_t ADR_GPIO1_BASE            = 0x48310000;
+    const off_t ADR_GPIO2_BASE            = 0x49050000;
+    const off_t ADR_GPIO3_BASE            = 0x49052000;
+    const off_t ADR_GPIO4_BASE            = 0x49054000;
+    const off_t ADR_GPIO5_BASE            = 0x49056000;
+    const off_t ADR_GPIO6_BASE            = 0x49058000;
 
-    const off_t gpio_offset_ctrl          = 0x030;
-    const off_t gpio_offset_oe            = 0x034;  //enable the pins output capabilities. Its only function is to carry the pads configuration.
-    const off_t gpio_offset_datain        = 0x038;  //register the data that is read from the GPIO pins
-    const off_t gpio_offset_dataout       = 0x03C;  //setting the value of the GPIO output pins
-    const off_t gpio_offset_cleardataout  = 0x090;
-    const off_t gpio_offset_setdataout    = 0x094;
+    const off_t OFF_GPIO_CTRL          = 0x030;
+    const off_t OFF_GPIO_OE            = 0x034;  //enable the pins output capabilities. Its only function is to carry the pads configuration.
+    const off_t OFF_GPIO_DATAIN        = 0x038;  //register the data that is read from the GPIO pins
+    const off_t OFF_GPIO_DATAOUT       = 0x03C;  //setting the value of the GPIO output pins
 
     // --------------------------------------------------------------------------
     // Functions to Return Addresses for GPIO pins
@@ -89,7 +86,7 @@ private:
     off_t physGPIOSetLevel(const unsigned ipin);
 
     // Create a virtual addressing space for a given physical address
-    volatile void*  makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length=4096);
+    void makeMap(volatile void* &virtual_addr, off_t physical_addr, size_t length=4096);
 
     // Memory mapped file descriptor
     int             m_mmap_fd;
