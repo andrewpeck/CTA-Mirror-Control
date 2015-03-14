@@ -15,7 +15,7 @@
 #include <sys/mman.h>
 #include <mcspiInterface.hpp>
 
-#define DEBUG 1
+#define DEBUG 0
 #define debug_print(fmt, ...) \
             do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
 
@@ -319,7 +319,7 @@ void mcspiInterface::Configure()
      *        16384   ~2.9    kHz
      *        32768   ~1.5    kHz
      */
-    int clock_divider = 0x4 << 2;      //16
+    int clock_divider = 8 << 2;
     *mcspi_chconf &= ~(CLOCK_DIVIDER);         //mcspi_chxconf[5..2]
     *mcspi_chconf |= clock_divider;            //mcspi_chxconf[5..2]
 
@@ -362,16 +362,21 @@ void mcspiInterface::Configure()
      *     SPI1.MCSPI_CHxCONF[16] DPE0 bit to 1 for the spi1.simo pin in
      *     transmit mode.
      */
-
     *mcspi_chconf &= ~(TX_EN1);
     *mcspi_chconf |=  (TX_EN0);
 
+    // Chip Select Time Control
+    *mcspi_chconf &= ~(0x3 << 25);
+    *mcspi_chconf |=  (0x3 << 25);
 
-    //int tx_fifo_enable = 0x1;
-    //*mcspi_chconf |= ( << 27);
+    int tx_fifo_enable = 0x1 << 27;
+    *mcspi_chconf &= ~(tx_fifo_enable);
+
+    int rx_fifo_enable = 0x1 << 28;
+    *mcspi_chconf &= ~(rx_fifo_enable);
 
     //printf("\nWrite Config = 0x%08X", config);
-    //config = *mcspi_chconf(0);
+    //config = *mcspi_chconf;
     //printf("\nFinal Config  = 0x%08X", config);
     //printf("\n");
 
@@ -380,7 +385,7 @@ void mcspiInterface::Configure()
      *  SPI words (single channel master mode only). The MCSPI_MODULCTRL[0]
      *  SINGLE bit must bit set to 1.
      */
-    //*mcspi_chconf(0) |= FORCE;
+    //*mcspi_chconf |= FORCE;
 }
 
 uint32_t mcspiInterface::WriteRead(uint32_t data)
@@ -395,7 +400,7 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
     int         nwrite      = 1;
     int         nread       = 1;
 
-    uint32_t    readdata        = 0;
+    uint32_t    readdata        = 0x0;
 
     debug_print("%s\n", "Start Reset");
     Reset();
@@ -444,7 +449,7 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
     EnableChannel();
 
     // assert !CS
-    //*mcspi_chconf(0) |= (FORCE);
+    //*mcspi_chconf &= ~(FORCE);
 
     /* 4. If WRITE_COUNT = w and READ_COUNT = w, write SPI1.MCSPI_CHxCTRL[0] = 0x0 (x = 0) to stop
      *    the channel.  This interrupt routine follows the flow of Table
@@ -453,11 +458,12 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
      *      2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1:
      */
 
-    while (write_count < nwrite && read_count < nread)
+    while (write_count < nwrite)
     {
         /*  2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1: */
         if ((*mcspi_irqstatus & 0x1) == 1)
         {
+            //printf("Writing Data: %04x\n", data);
             /* (a) Write the command/address or data value in SPI1.MCSPI_TXx (where x = 0). */
             *mcspi_tx = data;
             /* (b) WRITE_COUNT + = 1 */
@@ -465,23 +471,30 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
             /* (c) Write SPI1.MCSPI_IRQSTATUS[0] = 0x1. */
             *mcspi_irqstatus |= 0x1;
         }
+    }
 
+    while (read_count < nread)
+    {
+        usleep(1000);
+        printf("Waiting for read\n");
         /* 3. If the SPI1.MCSPI_IRQSTATUS[2] RX0_FULL bit is set to 1: */
         if (((*mcspi_irqstatus >> 2) & 0x1) == 1)
         {
-            printf("\n I am there");
             /* a) Read SPI1.MCSPI_RXx (where x = 0) */
-            readdata = *mcspi_rx;
+            //readdata = (*mcspi_rx >> 16) & 0xFFFF;
+            readdata = (*mcspi_rx & 0xFFFF);
+            //printf("Read Data: %04x\n",readdata);
             /* b) READ_COUNT += 1 */
             read_count++;
             /* c) Write SPI1.MCSPI_IRQSTATUS[2] = 0x1 */
             *mcspi_irqstatus |= 0x1 << 2;
+
         }
     }
     DisableChannel();
 
     // deassert !CS
-    // *mcspi_chconf(0) &= ~(FORCE);
+    //*mcspi_chconf |= (FORCE);
 
     return readdata;
 }
