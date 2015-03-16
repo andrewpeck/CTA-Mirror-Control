@@ -423,6 +423,7 @@ CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples)
     float    var    = (sumsq - (1.0*sum*sum)/nsamples)/nsamples;
     float    stddev = sqrt(var);
 
+    static const float volt_full = 5.0f;
     data.voltage      = cbc->tlcadc->voltData(mean,                  volt_full);
     data.stddev       = cbc->tlcadc->voltData(stddev,                volt_full);
     data.voltageMin   = cbc->tlcadc->voltData(min,                   volt_full);
@@ -554,3 +555,4 @@ bool CBC::AUXsensor::isEnabled()
 {
     return(cbc->mcb->isSensorsPoweredUp());
 }
+

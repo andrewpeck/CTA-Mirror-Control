@@ -458,11 +458,6 @@ class CBC
                 CBC *cbc;
                 int readDelay;
                 int defaultSamples;
-
-                /*!
-                 * ADC voltage reference
-                 */
-                static constexpr float volt_full = 5.0f;
         } adc;
 
         //////////////////////////////////////////////////////////////////////////////
