@@ -262,7 +262,7 @@ void CBC::Driver::disableAll()
 
 bool CBC::Driver::isEnabled(int drive)
 {
-    return (cbc->mcb->isDriveEnabled(drive));
+    return (cbc->mcb->isDriveEnabled(drive-1)); // MCB counts from zero
 }
 
 void CBC::Driver::sleep()
