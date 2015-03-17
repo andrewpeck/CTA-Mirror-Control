@@ -39,18 +39,15 @@ private:
     // GPIO register (PHYSICAL) Address Definitions
     // --------------------------------------------------------------------------
 
-    const off_t ADR_MCSPI_BASE          = 0x48098000; // this is right
-    //const off_t ADR_MCSPI_BASE           = 0x4809A000; // this is NOT right!
+    const off_t ADR_MCSPI_BASE          = 0x48098000;
 
-    const off_t OFF_MCSPI_REVISION      = 0x000;
+    //const off_t OFF_MCSPI_REVISION      = 0x000;
     const off_t OFF_MCSPI_SYSCONFIG     = 0x010;
     const off_t OFF_MCSPI_SYSSTATUS     = 0x014;
-    const off_t OFF_MCSPI_IRQSTATUS     = 0x018; // this IS right
-    //const off_t OFF_MCSPI_IRQSTATUS     = 0x000; // this is NOT right
-    //const off_t OFF_MCSPI_IRQSTATUS     = 0x030; // this is NOT right
+    const off_t OFF_MCSPI_IRQSTATUS     = 0x018;
     const off_t OFF_MCSPI_IRQENABLE     = 0x01C;
     const off_t OFF_MCSPI_WAKEUPENABLE  = 0x020;
-    const off_t OFF_MCSPI_SYST          = 0x024;
+    //const off_t OFF_MCSPI_SYST          = 0x024;
     const off_t OFF_MCSPI_MODULCTRL     = 0x028;
 
     const off_t OFF_MCSPI_CHCONF        = 0x02C;
@@ -58,7 +55,7 @@ private:
     const off_t OFF_MCSPI_CHCTRL        = 0x034;
     const off_t OFF_MCSPI_TX            = 0x038;
     const off_t OFF_MCSPI_RX            = 0x03C;
-    const off_t OFF_MCSPI_XFERLEVEL     = 0x07C;
+    //const off_t OFF_MCSPI_XFERLEVEL     = 0x07C;
 
     // Clock control
     // Bit 18 = EN_MCSPI1
@@ -71,7 +68,7 @@ private:
     const off_t OFF_CM_FCLKEN1_CORE = 0x00; // Module functional clock control
     const off_t OFF_CM_ICLKEN1_CORE = 0x10; // Module interface clock control
 
-    const off_t ADR_PADCONF_BASE     = 0x48002030;
+    //const off_t ADR_PADCONF_BASE     = 0x48002030;
     //const off_t physMCSPIPadConf    = 0x48004A00;
 
     // --------------------------------------------------------------------------

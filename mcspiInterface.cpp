@@ -148,7 +148,7 @@ void* mcspiInterface::makeMap(off_t target)
     if (map_base == (void*) -1)
         exit(EXIT_FAILURE);
 
-    void *virt_address = map_base + (target & MAP_MASK);
+    void *virt_address = static_cast<char *>(map_base) + (target & MAP_MASK);
 
     return virt_address;
 }
@@ -412,104 +412,106 @@ uint32_t mcspiInterface::WriteReadInterruptMode(uint32_t data)
 
     uint32_t    readdata    = 0x0;
 
-start:
-    debug_print("%s\n", "Start Reset");
-    //Reset();
-    debug_print("%s\n", "End Reset");
+    bool finished_reading = false;
+    while (!finished_reading) {
+        debug_print("%s\n", "Start Reset");
+        //Reset();
+        debug_print("%s\n", "End Reset");
 
-    ///* 2. Initialize interrupts: Write 0x7 in the SPI1.MCSPI_IRQSTATUS[3:0]
-    //*     field and set the SPI1.MCSPI_IRQENABLE[3:0] field to 0x7.
-    //*/
-    *mcspi_irqenable &= ~0x7;
-    *mcspi_irqenable |=  0x7;
+        ///* 2. Initialize interrupts: Write 0x7 in the SPI1.MCSPI_IRQSTATUS[3:0]
+        //*     field and set the SPI1.MCSPI_IRQENABLE[3:0] field to 0x7.
+        //*/
+        *mcspi_irqenable &= ~0x7;
+        *mcspi_irqenable |=  0x7;
 
-    debug_print("%s\n", "irqenabled");
+        debug_print("%s\n", "irqenabled");
 
-    *mcspi_irqstatus &= ~0x7;
-    *mcspi_irqstatus |=  0x7;
+        *mcspi_irqstatus &= ~0x7;
+        *mcspi_irqstatus |=  0x7;
 
-    debug_print("%s %08x\n", "irqstatus updated", *mcspi_irqstatus);
+        debug_print("%s %08x\n", "irqstatus updated", *mcspi_irqstatus);
 
-    /* 3. Follow the steps described in Section 20.6.2.6.2.1.1, Mode Selection.  */
-    Configure();
+        /* 3. Follow the steps described in Section 20.6.2.6.2.1.1, Mode Selection.  */
+        Configure();
 
-    /* Clock Initialization and spi1_cs0 Enable
-     * In master mode, the SPI must provide the clock and enable the channel:
-     * Set the SPI1.MCSPI_MODULCTRL[2] MS bit to 0 to provide the clock.
-     */
-    SetMasterMode();
+        /* Clock Initialization and spi1_cs0 Enable
+         * In master mode, the SPI must provide the clock and enable the channel:
+         * Set the SPI1.MCSPI_MODULCTRL[2] MS bit to 0 to provide the clock.
+         */
+        SetMasterMode();
 
-    /*     Set the INPUTENABLE bit of the corresponding CONTROL_PADCONF_x
-     *     register to achieve the synchronous clock by using loopback through
-     *     the output and input buffers of the pad.
-     *
-     *     CONTROL_PADCONF_MCSPI1_CLK[15:0]
-     *     0x4800 21C8
-     *     Section 13.4.4
-     *     Bit 8 == Input Enable
-     */
+        /*     Set the INPUTENABLE bit of the corresponding CONTROL_PADCONF_x
+         *     register to achieve the synchronous clock by using loopback through
+         *     the output and input buffers of the pad.
+         *
+         *     CONTROL_PADCONF_MCSPI1_CLK[15:0]
+         *     0x4800 21C8
+         *     Section 13.4.4
+         *     Bit 8 == Input Enable
+         */
 
-    //this should be uncommented
-    //*mcspiPadConf |= 0x1 << 8;
+        //this should be uncommented
+        //*mcspiPadConf |= 0x1 << 8;
 
 
-    /* Set the SPI1.MCSPI_CHxCTRL[0] EN bit to 1 (where x = 0) to enable channel 0. */
-    EnableChannel();
+        /* Set the SPI1.MCSPI_CHxCTRL[0] EN bit to 1 (where x = 0) to enable channel 0. */
+        EnableChannel();
 
-    // assert !CS
-    //*mcspi_chconf &= ~(FORCE);
+        // assert !CS
+        //*mcspi_chconf &= ~(FORCE);
 
-    /* 4. If WRITE_COUNT = w and READ_COUNT = w, write SPI1.MCSPI_CHxCTRL[0] = 0x0 (x = 0) to stop
-     *    the channel.  This interrupt routine follows the flow of Table
-     *    20-16 and Figure 20-28.
-     *      1. Read the SPI1.MCSPI_IRQSTATUS[3:0] field.
-     *      2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1:
-     */
+        /* 4. If WRITE_COUNT = w and READ_COUNT = w, write SPI1.MCSPI_CHxCTRL[0] = 0x0 (x = 0) to stop
+         *    the channel.  This interrupt routine follows the flow of Table
+         *    20-16 and Figure 20-28.
+         *      1. Read the SPI1.MCSPI_IRQSTATUS[3:0] field.
+         *      2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1:
+         */
 
-    int read_attempts = 0;
-    while (write_count < nwrite)
-    {
-        /*  2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1: */
-        if ((*mcspi_irqstatus & 0x1)==1)
+        int read_attempts = 0;
+        while (write_count < nwrite)
         {
-            //printf("Writing Data: %04x\n", data);
-            /* (a) Write the command/address or data value in SPI1.MCSPI_TXx (where x = 0). */
-            *mcspi_tx = data;
-            /* (b) WRITE_COUNT + = 1 */
-            write_count++;
-            /* (c) Write SPI1.MCSPI_IRQSTATUS[0] = 0x1. */
-            *mcspi_irqstatus |= 0x1;
-        }
-    }
-
-    while (read_count < nread)
-    {
-        //usleep(1);
-        //printf("Waiting for read\n");
-        /* 3. If the SPI1.MCSPI_IRQSTATUS[2] RX0_FULL bit is set to 1: */
-        if (((*mcspi_irqstatus >> 2) & 0x1)==1)
-        {
-            /* a) Read SPI1.MCSPI_RXx (where x = 0) */
-            //readdata = (*mcspi_rx >> 16) & 0xFFFF;
-            readdata = (*mcspi_rx & 0xFFFF);
-            //printf("Read Data: %04x\n",readdata);
-            /* b) READ_COUNT += 1 */
-            read_count++;
-            /* c) Write SPI1.MCSPI_IRQSTATUS[2] = 0x1 */
-            *mcspi_irqstatus |= (0x1 << 2);
-            DisableChannel();
-            return readdata;
-        }
-        else {
-            read_attempts += 1;
-            if (read_attempts > 5) {
-                printf("Stalled... reset\n");
-                write_count = 0;
-                DisableChannel();
-                goto start;
+            /*  2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1: */
+            if ((*mcspi_irqstatus & 0x1)==1)
+            {
+                //printf("Writing Data: %04x\n", data);
+                /* (a) Write the command/address or data value in SPI1.MCSPI_TXx (where x = 0). */
+                *mcspi_tx = data;
+                /* (b) WRITE_COUNT + = 1 */
+                write_count++;
+                /* (c) Write SPI1.MCSPI_IRQSTATUS[0] = 0x1. */
+                *mcspi_irqstatus |= 0x1;
             }
         }
+
+        while (read_count < nread)
+        {
+            //usleep(1);
+            //printf("Waiting for read\n");
+            /* 3. If the SPI1.MCSPI_IRQSTATUS[2] RX0_FULL bit is set to 1: */
+            if (((*mcspi_irqstatus >> 2) & 0x1)==1)
+            {
+                /* a) Read SPI1.MCSPI_RXx (where x = 0) */
+                //readdata = (*mcspi_rx >> 16) & 0xFFFF;
+                readdata = (*mcspi_rx & 0xFFFF);
+                //printf("Read Data: %04x\n",readdata);
+                /* b) READ_COUNT += 1 */
+                read_count++;
+                /* c) Write SPI1.MCSPI_IRQSTATUS[2] = 0x1 */
+                *mcspi_irqstatus |= (0x1 << 2);
+                finished_reading = true;
+            }
+            else {
+                read_attempts += 1;
+                if (read_attempts > 5) {
+                    debug_print("%s\n","Stalled... reset");
+                    write_count = 0;
+                    break;
+                }
+            }
+        }
+        DisableChannel();
     }
+    return readdata;
 
     // deassert !CS
     //*mcspi_chconf |= (FORCE);
