@@ -126,6 +126,8 @@ mcspiInterface::mcspiInterface() :
 
     //makeMap(m_padconf,      ADR_PADCONF_BASE);
     debug_print("%s\n", "End of MCSPI Constructor");
+
+    Reset();
 }
 
 // destructor
@@ -302,24 +304,24 @@ void mcspiInterface::Configure()
 
     /*      set clock rate in MCSPI_CHXCONF[5..2]
      *      Divider Clock Rate
-     *        1       48      MHz
-     *        2       24      MHz
-     *        4       12      MHz
-     *        8       6       MHz
-     *        16      3       MHz
-     *        32      1.5     MHz
-     *        64      750     kHz
-     *        128     375     kHz
-     *        256     ~187    kHz
-     *        512     ~93.7   kHz
-     *        1024    ~46.8   kHz
-     *        2048    ~23.4   kHz
-     *        4096    ~11.7   kHz
-     *        8192    ~5.8    kHz
-     *        16384   ~2.9    kHz
-     *        32768   ~1.5    kHz
+     *      0x0  1       48      MHz
+     *      0x1  2       24      MHz
+     *      0x2  4       12      MHz
+     *      0x3  8       6       MHz
+     *      0x4  16      3       MHz
+     *      0x5  32      1.5     MHz
+     *      0x6  64      750     kHz
+     *      0x7  128     375     kHz
+     *      0x8  256     ~187    kHz
+     *      0x9  512     ~93.7   kHz
+     *      0xA  1024    ~46.8   kHz
+     *      0xB  2048    ~23.4   kHz
+     *      0xC  4096    ~11.7   kHz
+     *      0xD  8192    ~5.8    kHz
+     *      0xE  16384   ~2.9    kHz
+     *      0xF  32768   ~1.5    kHz
      */
-    int clock_divider = 8 << 2;
+    int clock_divider = 0x1 << 2;
     *mcspi_chconf &= ~(CLOCK_DIVIDER);         //mcspi_chxconf[5..2]
     *mcspi_chconf |= clock_divider;            //mcspi_chxconf[5..2]
 
@@ -375,6 +377,9 @@ void mcspiInterface::Configure()
     int rx_fifo_enable = 0x1 << 28;
     *mcspi_chconf &= ~(rx_fifo_enable);
 
+    //int clock_divider_granularity = 0x0 << 29;
+    //*mcspi_chconf &= (~0x1 << 29);
+    //*mcspi_chconf |= clock_divider_granularity;
     //printf("\nWrite Config = 0x%08X", config);
     //config = *mcspi_chconf;
     //printf("\nFinal Config  = 0x%08X", config);
@@ -390,6 +395,11 @@ void mcspiInterface::Configure()
 
 uint32_t mcspiInterface::WriteRead(uint32_t data)
 {
+    return(WriteReadInterruptMode(data));
+}
+
+uint32_t mcspiInterface::WriteReadInterruptMode(uint32_t data)
+{
 
     ///* 20.6.2.6.3 Programming in Interrupt Mode
     // * This section follows the flow of Figure 20-26.
@@ -400,26 +410,24 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
     int         nwrite      = 1;
     int         nread       = 1;
 
-    uint32_t    readdata        = 0x0;
+    uint32_t    readdata    = 0x0;
 
+start:
     debug_print("%s\n", "Start Reset");
-    Reset();
+    //Reset();
     debug_print("%s\n", "End Reset");
-
-    //uint32_t* mcspi = (uint32_t*) ((uint8_t*)m_mcspi1_base + ADR_MCSPI_BASE);
-    //volatile uint32_t* ptrmcspi_irqenable = mcspi + (ADR_MCSPI_BASE-OFF_MCSPI_IRQENABLE);
-    //*ptrmcspi_irqenable &= ~(0x7);
 
     ///* 2. Initialize interrupts: Write 0x7 in the SPI1.MCSPI_IRQSTATUS[3:0]
     //*     field and set the SPI1.MCSPI_IRQENABLE[3:0] field to 0x7.
     //*/
-    //*mcspi_irqenable &= ~0x7;
-    //*mcspi_irqenable |=  0x7;
+    *mcspi_irqenable &= ~0x7;
+    *mcspi_irqenable |=  0x7;
 
     debug_print("%s\n", "irqenabled");
 
-    //*mcspi_irqstatus &= ~0x7;
-    //*mcspi_irqstatus |=  0x7;
+    *mcspi_irqstatus &= ~0x7;
+    *mcspi_irqstatus |=  0x7;
+
     debug_print("%s %08x\n", "irqstatus updated", *mcspi_irqstatus);
 
     /* 3. Follow the steps described in Section 20.6.2.6.2.1.1, Mode Selection.  */
@@ -458,10 +466,11 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
      *      2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1:
      */
 
+    int read_attempts = 0;
     while (write_count < nwrite)
     {
         /*  2. If the SPI1.MCSPI_IRQSTATUS[0] TX0_EMPTY bit is set to 1: */
-        if ((*mcspi_irqstatus & 0x1) == 1)
+        if ((*mcspi_irqstatus & 0x1)==1)
         {
             //printf("Writing Data: %04x\n", data);
             /* (a) Write the command/address or data value in SPI1.MCSPI_TXx (where x = 0). */
@@ -475,10 +484,10 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
 
     while (read_count < nread)
     {
-        usleep(1000);
-        printf("Waiting for read\n");
+        //usleep(1);
+        //printf("Waiting for read\n");
         /* 3. If the SPI1.MCSPI_IRQSTATUS[2] RX0_FULL bit is set to 1: */
-        if (((*mcspi_irqstatus >> 2) & 0x1) == 1)
+        if (((*mcspi_irqstatus >> 2) & 0x1)==1)
         {
             /* a) Read SPI1.MCSPI_RXx (where x = 0) */
             //readdata = (*mcspi_rx >> 16) & 0xFFFF;
@@ -487,16 +496,24 @@ uint32_t mcspiInterface::WriteRead(uint32_t data)
             /* b) READ_COUNT += 1 */
             read_count++;
             /* c) Write SPI1.MCSPI_IRQSTATUS[2] = 0x1 */
-            *mcspi_irqstatus |= 0x1 << 2;
-
+            *mcspi_irqstatus |= (0x1 << 2);
+            DisableChannel();
+            return readdata;
+        }
+        else {
+            read_attempts += 1;
+            if (read_attempts > 5) {
+                printf("Stalled... reset\n");
+                write_count = 0;
+                DisableChannel();
+                goto start;
+            }
         }
     }
-    DisableChannel();
 
     // deassert !CS
     //*mcspi_chconf |= (FORCE);
 
-    return readdata;
 }
 
 

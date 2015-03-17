@@ -18,7 +18,7 @@ public:
 
 
 private:
-
+    uint32_t WriteReadInterruptMode(uint32_t data);
     void EnableChannel  ();
     void DisableChannel ();
     void EnableClocks   ();
