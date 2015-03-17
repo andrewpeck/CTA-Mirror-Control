@@ -124,7 +124,6 @@ private:
     int calibrationConstant;
 
     static const unsigned m_nusb=7;
-    unsigned          m_ssp_clk_div;
 };
 
 #endif // defined MIRRORCONTROLBOARD_HPP

@@ -38,11 +38,11 @@ void MirrorControlBoard::adcSleep (int iadc)
 {
     // Set on-board ADC into sleep mode
     selectADC(iadc);
-    spi.Configure();
+    //spi.Configure();
     spi.WriteRead(ADC.codeSWPowerDown());
 
     selectADC(iadc);
-    spi.Configure();
+    //spi.Configure();
     spi.WriteRead(ADC.codeSWPowerDown());
 }
 
@@ -252,11 +252,11 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 
 void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned ndelay)
 {
-    spi.Configure();
+    //spi.Configure();
     initializeADC(iadc);
     selectADC(iadc);
     uint32_t code   = ADC.codeSelect(ichan);
-    unsigned nburn = 0;
+    unsigned nburn = 1;
     unsigned nloop  = nburn + nmeas;
     sum             = 0;
     sumsq           = 0;
