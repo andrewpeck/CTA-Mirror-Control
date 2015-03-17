@@ -13,11 +13,9 @@ public:
     ~mcspiInterface();
 
     uint32_t WriteRead(uint32_t data);
-    void Configure();
-
-
 
 private:
+    void Configure();
     uint32_t WriteReadInterruptMode(uint32_t data);
     void EnableChannel  ();
     void DisableChannel ();
