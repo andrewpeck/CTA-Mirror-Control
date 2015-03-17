@@ -61,14 +61,14 @@ GPIOInterface::~GPIOInterface()
 // Public Members
 //------------------------------------------------------------------------------
 
-bool GPIOInterface::ReadLevel(const unsigned ipin)
+bool GPIOInterface::ReadLevel(int ipin)
 {
     bool level = *(ptrGPIOReadLevel(ipin)) & MaskPin(ipin);
     //printf("Read %i from pin %i",level,ipin);
     return level;
 }
 
-void GPIOInterface::WriteLevel(const unsigned ipin, bool level)
+void GPIOInterface::WriteLevel(int ipin, bool level)
 {
     if (level)
         SetLevel(ipin);
@@ -76,7 +76,7 @@ void GPIOInterface::WriteLevel(const unsigned ipin, bool level)
         ClrLevel(ipin);
 }
 
-bool GPIOInterface::GetDirection(const unsigned ipin)
+bool GPIOInterface::GetDirection(int ipin)
 {
     volatile uint32_t* reg = ptrGPIODirection(ipin);
     uint32_t val = *reg;
@@ -84,7 +84,7 @@ bool GPIOInterface::GetDirection(const unsigned ipin)
     return dir;
 }
 
-void GPIOInterface::SetDirection(const unsigned ipin, bool dir)
+void GPIOInterface::SetDirection(int ipin, bool dir)
 {
     volatile uint32_t* reg = ptrGPIODirection(ipin);
     if(dir==1)
@@ -92,11 +92,6 @@ void GPIOInterface::SetDirection(const unsigned ipin, bool dir)
     else
         *reg &= ~(MaskPin(ipin));
     //printf("\ngpioSetDirection :: Writing %04X", val);
-}
-
-void GPIOInterface::Configure(const unsigned ipin, bool dir)
-{
-    SetDirection(ipin, dir);
 }
 
 void GPIOInterface::ConfigureAll()
@@ -125,34 +120,34 @@ void GPIOInterface::ConfigureAll()
 // Private Members
 //------------------------------------------------------------------------------
 
-inline volatile uint32_t* GPIOInterface::ptrGPIODirection(const unsigned ipin)
+inline volatile uint32_t* GPIOInterface::ptrGPIODirection(int ipin)
 {
     return phys2VirtGPIO32(physGPIODirection(ipin),ipin);
 }
 
-inline volatile uint32_t* GPIOInterface::ptrGPIOSetLevel(const unsigned ipin)
+inline volatile uint32_t* GPIOInterface::ptrGPIOSetLevel(int ipin)
 {
     return phys2VirtGPIO32(physGPIOSetLevel(ipin),ipin);
 }
 
-inline volatile uint32_t* GPIOInterface::ptrGPIOReadLevel(const unsigned ipin)
+inline volatile uint32_t* GPIOInterface::ptrGPIOReadLevel(int ipin)
 {
     return phys2VirtGPIO32(physGPIOReadLevel(ipin),ipin);
 }
 
-inline void GPIOInterface::SetLevel(const unsigned ipin)
+inline void GPIOInterface::SetLevel(int ipin)
 {
     // Write a One to the bit specified by ipin
     *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | MaskPin(ipin);
 }
 
-inline void GPIOInterface::ClrLevel(const unsigned ipin)
+inline void GPIOInterface::ClrLevel(int ipin)
 {
     // Write a zero to the bit specified by ipin
     *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~(MaskPin(ipin));
 }
 
-volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t physical_addr, const unsigned ipin)
+volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t physical_addr, int ipin)
 {
     if (ipin<32)
         return phys2Virt32(physical_addr,m_gpio1_base,ADR_GPIO1_BASE);
@@ -186,7 +181,7 @@ inline volatile uint32_t* GPIOInterface::phys2Virt32(off_t phys, volatile void* 
     return adr_virtual;
 }
 
-off_t GPIOInterface::offset2adrGPIO(unsigned ipin, off_t offset)
+off_t GPIOInterface::offset2adrGPIO(int ipin, off_t offset)
 {
     if (ipin<0)
         return (0);
@@ -206,19 +201,19 @@ off_t GPIOInterface::offset2adrGPIO(unsigned ipin, off_t offset)
         return(0);
 }
 
-off_t GPIOInterface::physGPIOReadLevel(const unsigned ipin)
+off_t GPIOInterface::physGPIOReadLevel(int ipin)
 {
     return offset2adrGPIO(ipin,OFF_GPIO_DATAIN);
 }
 
-off_t GPIOInterface::physGPIODirection(const unsigned ipin)
+off_t GPIOInterface::physGPIODirection(int ipin)
 {
     return offset2adrGPIO(ipin,OFF_GPIO_OE);
 }
 
-off_t GPIOInterface::physGPIOSetLevel(const unsigned ipin)
+off_t GPIOInterface::physGPIOSetLevel(int ipin)
 {
-    return offset2adrGPIO(ipin,OFF_GPIO_DATAOUT);
+    return offset2adrGPIO(ipin, OFF_GPIO_DATAOUT);
 }
 
 void GPIOInterface::makeMap(volatile void*& virtual_addr, off_t physical_addr, size_t length)
@@ -230,6 +225,6 @@ void GPIOInterface::makeMap(volatile void*& virtual_addr, off_t physical_addr, s
         exit(EXIT_FAILURE);
 }
 
-unsigned GPIOInterface::MaskPin (unsigned ipin) {
+uint32_t GPIOInterface::MaskPin (int ipin) {
     return (0x1 << (ipin % 32));
 }

@@ -19,33 +19,28 @@ public:
     ~GPIOInterface();
 
     // Read GPIO by ipin (0-191)
-    bool ReadLevel(const unsigned ipin);
+    bool ReadLevel(int ipin);
 
     // Write GPIO by ipin (0-191)
-    void WriteLevel(const unsigned ipin, bool level);
+    void WriteLevel(int ipin, bool level);
 
     // Get GPIO Direction In/Out
-    bool GetDirection(const unsigned ipin);
+    bool GetDirection(int ipin);
 
     // Set GPIO Direction In/Out (0-191)
-    void SetDirection(const unsigned ipin, bool dir);
-
-    // Configures a given GPIO pin for a direction (1=OUT,0=in) and function (0-191)
-    void Configure(const unsigned ipin, bool dir);
+    void SetDirection(int ipin, bool dir);
 
     // Configure Input/Output directions for ALL GPIOs
     void ConfigureAll();
 
 private:
-    const int nGPIO = 192;
-
     // Functions to return pointers to mapped GPIO registers
-    volatile uint32_t* ptrGPIOReadLevel(const unsigned ipin);
-    volatile uint32_t* ptrGPIODirection(const unsigned ipin);
-    volatile uint32_t* ptrGPIOSetLevel(const unsigned ipin);
+    volatile uint32_t* ptrGPIOReadLevel(int ipin);
+    volatile uint32_t* ptrGPIODirection(int ipin);
+    volatile uint32_t* ptrGPIOSetLevel(int ipin);
 
-    void SetLevel(const unsigned ipin);
-    void ClrLevel(const unsigned ipin);
+    void SetLevel(int ipin);
+    void ClrLevel(int ipin);
 
     // --------------------------------------------------------------------------
     // GPIO register (PHYSICAL) Address Definitions
@@ -58,7 +53,7 @@ private:
     const off_t ADR_GPIO5_BASE            = 0x49056000;
     const off_t ADR_GPIO6_BASE            = 0x49058000;
 
-    const off_t OFF_GPIO_CTRL          = 0x030;
+    //const off_t OFF_GPIO_CTRL          = 0x030;
     const off_t OFF_GPIO_OE            = 0x034;  //enable the pins output capabilities. Its only function is to carry the pads configuration.
     const off_t OFF_GPIO_DATAIN        = 0x038;  //register the data that is read from the GPIO pins
     const off_t OFF_GPIO_DATAOUT       = 0x03C;  //setting the value of the GPIO output pins
@@ -68,22 +63,22 @@ private:
     // --------------------------------------------------------------------------
 
     // Adds register offset to correct base address to produce physical address
-    off_t offset2adrGPIO(unsigned ipin, off_t offset);
+    off_t offset2adrGPIO(int ipin, off_t offset);
 
     // Returns Virtual (memory mapped) address for a given GPIO pin
-    volatile uint32_t* phys2VirtGPIO32(off_t phys, const unsigned ipin);
+    volatile uint32_t* phys2VirtGPIO32(off_t phys, int ipin);
 
     // Takes Physical Address and Returns pointer to memory mapped virtual address
     volatile uint32_t* phys2Virt32(off_t phys, volatile void* map_base_virt, off_t map_base_phys);
 
     // Returns physical address of GPIO Read Register for a given GPIO pin
-    off_t physGPIOReadLevel(const unsigned ipin);
+    off_t physGPIOReadLevel(int ipin);
 
     // Returns physical address of Output Enable Register for a given GPIO pin
-    off_t physGPIODirection(const unsigned ipin);
+    off_t physGPIODirection(int ipin);
 
     // Returns physical address of Output Write Register for a given GPIO pin
-    off_t physGPIOSetLevel(const unsigned ipin);
+    off_t physGPIOSetLevel(int ipin);
 
     // Create a virtual addressing space for a given physical address
     void makeMap(volatile void* &virtual_addr, off_t physical_addr, size_t length=4096);
@@ -99,7 +94,7 @@ private:
     volatile void*  m_gpio5_base;
     volatile void*  m_gpio6_base;
 
-    unsigned MaskPin (unsigned ipin);
+    uint32_t MaskPin (int ipin);
 
     Layout layout;
 
