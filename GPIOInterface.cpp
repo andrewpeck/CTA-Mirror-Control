@@ -125,28 +125,28 @@ void GPIOInterface::ConfigureAll()
 // Private Members
 //------------------------------------------------------------------------------
 
-volatile uint32_t* GPIOInterface::ptrGPIODirection(const unsigned ipin)
+inline volatile uint32_t* GPIOInterface::ptrGPIODirection(const unsigned ipin)
 {
     return phys2VirtGPIO32(physGPIODirection(ipin),ipin);
 }
 
-volatile uint32_t* GPIOInterface::ptrGPIOSetLevel(const unsigned ipin)
+inline volatile uint32_t* GPIOInterface::ptrGPIOSetLevel(const unsigned ipin)
 {
     return phys2VirtGPIO32(physGPIOSetLevel(ipin),ipin);
 }
 
-volatile uint32_t* GPIOInterface::ptrGPIOReadLevel(const unsigned ipin)
+inline volatile uint32_t* GPIOInterface::ptrGPIOReadLevel(const unsigned ipin)
 {
     return phys2VirtGPIO32(physGPIOReadLevel(ipin),ipin);
 }
 
-void GPIOInterface::SetLevel(const unsigned ipin)
+inline void GPIOInterface::SetLevel(const unsigned ipin)
 {
     // Write a One to the bit specified by ipin
     *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) | MaskPin(ipin);
 }
 
-void GPIOInterface::ClrLevel(const unsigned ipin)
+inline void GPIOInterface::ClrLevel(const unsigned ipin)
 {
     // Write a zero to the bit specified by ipin
     *(ptrGPIOSetLevel(ipin)) = *(ptrGPIOReadLevel(ipin)) & ~(MaskPin(ipin));
@@ -170,7 +170,7 @@ volatile uint32_t* GPIOInterface::phys2VirtGPIO32(off_t physical_addr, const uns
         return 0;
 }
 
-volatile uint32_t* GPIOInterface::phys2Virt32(off_t phys, volatile void* map_base_virt, off_t map_base_phys)
+inline volatile uint32_t* GPIOInterface::phys2Virt32(off_t phys, volatile void* map_base_virt, off_t map_base_phys)
 {
     // map offset is the difference between the physical address and the physical base address
     off_t adr_offset = phys - map_base_phys;
