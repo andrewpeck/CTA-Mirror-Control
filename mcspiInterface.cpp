@@ -17,7 +17,7 @@
 
 #define DEBUG 0
 #define debug_print(fmt, ...) \
-            do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+    do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
 
 #define MMAPFAIL ((void*)-1)
 
@@ -64,7 +64,7 @@
 #include <sys/mman.h>
 
 #define FATAL do { fprintf(stderr, "Error at line %d, file %s (%d) [%s]\n", \
-  __LINE__, __FILE__, errno, strerror(errno)); exit(1); } while(0)
+        __LINE__, __FILE__, errno, strerror(errno)); exit(1); } while(0)
 
 #define MAP_SIZE 4096UL
 #define MAP_MASK (MAP_SIZE - 1)
@@ -190,20 +190,18 @@ void mcspiInterface::DisableClocks()
     *cm_fclken1_core &= ~ENABLE_FUNCTIONAL_CLOCK;
 }
 
-
-
-/*  Reset Sequence:
- *  enable Clocks
- *  Write softreset
- *  wait for reset to finish
- *  set autoidle+enawakeup+smartidle
- *
- *  write wakeupenable
- *
- *  set mode to master
- *  disable clocks */
 void mcspiInterface::Reset()
 {
+    /*  Reset Sequence:
+     *  enable Clocks
+     *  Write softreset
+     *  wait for reset to finish
+     *  set autoidle+enawakeup+smartidle
+     *
+     *  write wakeupenable
+     *
+     *  set mode to master
+     *  disable clocks */
     debug_print("%s\n", "Start Enable Clocks");
     EnableClocks();
     debug_print("%s\n", "Finished Enabling Clocks");
@@ -254,153 +252,36 @@ void mcspiInterface::SetMasterMode()
     //*mcspi_modulctrl |= 0x1;
 }
 
-//void mcspiInterface::RestoreContext()
-//{
-//
-//    /* Write to MCSPI_MODULCTRL
-//     * Write to MCSPI_SYSCONFIG
-//     * Write to MCSPI_WAKUPENABLE
-//     * Some weird loop
-//     *
-//     * Seems to just be rewriting a saved configuration
-//     */
-//}
-
-void mcspiInterface::Configure()
+void mcspiInterface::ConfigureInterruptMode()
 {
-    /*  Transfer Setup Sequence from Kernel
-     *  Set MCSPI_MAX_FREQ
-     *  Set Chip Select Polarity, Manage with Force
-     *  Set Clock Divisor
-     *  Set SPI Mode
-     *  */
+    setPhase(1);    //mode 1 --> polarity=0 phase=1
+    setPolarity(0);
 
-    //printf("\nReset finished..");
-
-    // get current config
-    //uint32_t config = *mcspi_chconf;
-    //printf("\nInitial Config = 0x%08X", config);
-
-    //set polarity and phase
-    //mcspi_chxconf[0] phase
-    //mcspi_chxconf[1] polarity
-    //mode 1 --> polarity=0 phase=1
-    int phase    = 1;
-    int polarity = 0;
-
-    //7. Set the SPI1.MCSPI_CHxCONF[0] PHA bit to 0 for data latched on odd-numbered edges of the SPI
-    *mcspi_chconf &= ~(PHASE);
-    if (phase)
-    {
-        *mcspi_chconf |=  (PHASE);        //mcspi_chxconf[0]
-    }
-
-    //6. Set the SPI1.MCSPI_CHxCONF[1] POL bit to 1
-    *mcspi_chconf &= ~(POLARITY);
-    if (polarity)
-    {
-        *mcspi_chconf |=  (POLARITY); //mcspi_chxconf[1]
-    }
-
-    /*      set clock rate in MCSPI_CHXCONF[5..2]
-     *      Divider Clock Rate
-     *      0x0  1       48      MHz
-     *      0x1  2       24      MHz
-     *      0x2  4       12      MHz
-     *      0x3  8       6       MHz
-     *      0x4  16      3       MHz
-     *      0x5  32      1.5     MHz
-     *      0x6  64      750     kHz
-     *      0x7  128     375     kHz
-     *      0x8  256     ~187    kHz
-     *      0x9  512     ~93.7   kHz
-     *      0xA  1024    ~46.8   kHz
-     *      0xB  2048    ~23.4   kHz
-     *      0xC  4096    ~11.7   kHz
-     *      0xD  8192    ~5.8    kHz
-     *      0xE  16384   ~2.9    kHz
-     *      0xF  32768   ~1.5    kHz
-     */
-    int clock_divider = 0x1 << 2;
-    *mcspi_chconf &= ~(CLOCK_DIVIDER);         //mcspi_chxconf[5..2]
-    *mcspi_chconf |= clock_divider;            //mcspi_chxconf[5..2]
-
-    /*     5. Set the SPI1.MCSPI_CHxCONF[6] EPOL bit to 1 for spi1_cs0 activated low
-     *     during active state.  clock.
-     */
-    *mcspi_chconf |= EPOL;
-
-    //spim_csx polarity
-    //0x0 => spim_csx high during active state
-    //0x1 => spim_csx low  during active state
-    int spim_polarity = 0x1 << 6;
-    *mcspi_chconf &= ~(CS_POLARITY);
-    *mcspi_chconf |=  (spim_polarity); //mcspi_chxconf[6]
-
-    //set spi word length
-    int spi_word_length = 0xF << 7;  //16 bit word length
-    *mcspi_chconf &= ~(SPI_WORD_LENGTH);
-    *mcspi_chconf |=  (spi_word_length); //mcspi_chxconf[11..7]
-
-    /*
-     *     3. Set the SPI1.MCSPI_CHxCONF[13:12] TRM field to 0x0 for transmit
-     *     and receive mode.  Transmit/receive modes RW 0x0
-     *         0x0: Transmit and receive mode
-     *         0x1: Receive-only mode
-     *         0x2: Transmit-only mode
-     *         0x3: Reserved
-     */
-
-    int transfer_mode = 0x0 << 12;
-    *mcspi_chconf &= ~(SPI_TRANSFER_MODE);
-    *mcspi_chconf |=  (transfer_mode); //mcspi_chxconf[13..12]
-
-    /*     1. Set the SPI1.MCSPI_CHxCONF[18] IS bit to 0 for the spi1_somi pin in receive mode.
-    */
-
-    *mcspi_chconf &= ~(INPUT_SELECT);
+    setClockDivider(1); // 1 == 24 MHz
+    setEPOL(1);
+    setSPIMPolarity(1);
+    setWordLength(0xF);
+    setTransferMode(0);
+    setInputSelect (0); // set to 0 for the spi1_somi pin in receive mode
 
     /*     2. Set the SPI1.MCSPI_CHxCONF[17] DPE1 bit to 0 and the
      *     SPI1.MCSPI_CHxCONF[16] DPE0 bit to 1 for the spi1.simo pin in
      *     transmit mode.
      */
-    *mcspi_chconf &= ~(TX_EN1);
-    *mcspi_chconf |=  (TX_EN0);
-
-    // Chip Select Time Control
-    *mcspi_chconf &= ~(0x3 << 25);
-    *mcspi_chconf |=  (0x3 << 25);
-
-    int tx_fifo_enable = 0x1 << 27;
-    *mcspi_chconf &= ~(tx_fifo_enable);
-
-    int rx_fifo_enable = 0x1 << 28;
-    *mcspi_chconf &= ~(rx_fifo_enable);
-
-    //int clock_divider_granularity = 0x0 << 29;
-    //*mcspi_chconf &= (~0x1 << 29);
-    //*mcspi_chconf |= clock_divider_granularity;
-    //printf("\nWrite Config = 0x%08X", config);
-    //config = *mcspi_chconf;
-    //printf("\nFinal Config  = 0x%08X", config);
-    //printf("\n");
-
-
-    /*  Manual spim_csx assertion to keep spim_csx for channel x active between
-     *  SPI words (single channel master mode only). The MCSPI_MODULCTRL[0]
-     *  SINGLE bit must bit set to 1.
-     */
-    //*mcspi_chconf |= FORCE;
+    setDPE01(1,0);
+    setChipSelectTimeControl(0x3);
+    setTXfifoEnable(0);
+    setRXfifoEnable(0);
+    //setClockDividerGranularity (0);
 }
 
-uint32_t mcspiInterface::WriteRead(uint32_t data)
+uint16_t mcspiInterface::WriteRead(uint16_t data)
 {
-    return(WriteReadInterruptMode(data));
+    return((uint16_t) WriteReadInterruptMode(data));
 }
 
 uint32_t mcspiInterface::WriteReadInterruptMode(uint32_t data)
 {
-
     ///* 20.6.2.6.3 Programming in Interrupt Mode
     // * This section follows the flow of Figure 20-26.
     // * 1. Initialize software variables: WRITE_COUNT = 0 and READ_COUNT = 0.
@@ -432,7 +313,7 @@ uint32_t mcspiInterface::WriteReadInterruptMode(uint32_t data)
         debug_print("%s %08x\n", "irqstatus updated", *mcspi_irqstatus);
 
         /* 3. Follow the steps described in Section 20.6.2.6.2.1.1, Mode Selection.  */
-        Configure();
+        ConfigureInterruptMode();
 
         /* Clock Initialization and spi1_cs0 Enable
          * In master mode, the SPI must provide the clock and enable the channel:
@@ -511,13 +392,12 @@ uint32_t mcspiInterface::WriteReadInterruptMode(uint32_t data)
         }
         DisableChannel();
     }
+
     return readdata;
 
     // deassert !CS
     //*mcspi_chconf |= (FORCE);
-
 }
-
 
 //bool mcspiInterface::txFifoFull ()
 //{
@@ -525,3 +405,113 @@ uint32_t mcspiInterface::WriteReadInterruptMode(uint32_t data)
 //    //Read 0x1: FIFO Transmit Buffer is full
 //    return (0x1 & (*ptrMCSPI_chstat() >> 4));
 //}
+//
+void mcspiInterface::setPhase(int phase) {
+    *mcspi_chconf &= ~(PHASE);
+    if (phase) {
+        *mcspi_chconf |=  (PHASE);        //mcspi_chxconf[0]
+    }
+}
+void mcspiInterface::setPolarity(int polarity)
+{
+    *mcspi_chconf &= ~(POLARITY);
+    if (polarity)
+    {
+        *mcspi_chconf |=  (POLARITY); //mcspi_chxconf[1]
+    }
+}
+
+void mcspiInterface::setClockDivider(int divider)
+{
+    divider &= 0xF;
+    *mcspi_chconf &= ~(CLOCK_DIVIDER);         //mcspi_chxconf[5..2]
+    *mcspi_chconf |= (divider << 2);            //mcspi_chxconf[5..2]
+}
+
+//spim_csx polarity
+//0x0 => spim_csx high during active state
+//0x1 => spim_csx low  during active state
+void mcspiInterface::setSPIMPolarity(int polarity)
+{
+    *mcspi_chconf &= ~(CS_POLARITY);
+    *mcspi_chconf |=  (polarity << 6); //mcspi_chxconf[6]
+}
+/*     5. Set the SPI1.MCSPI_CHxCONF[6] EPOL bit to 1 for spi1_cs0 activated low
+ *     during active state.  clock.
+ */
+void mcspiInterface::setEPOL(int epol) {
+    *mcspi_chconf &= ~EPOL;
+    *mcspi_chconf |= epol;
+}
+//set spi word length
+void mcspiInterface::setWordLength(int length)
+{
+    length &= 0xF;
+    int spi_word_length = length << 7;  //16 bit word length
+    *mcspi_chconf &= ~(SPI_WORD_LENGTH);
+    *mcspi_chconf |=  (spi_word_length); //mcspi_chxconf[11..7]
+}
+
+void mcspiInterface::setTransferMode(int mode)
+{
+    mode &= 0x3;
+    mode = mode << 12;
+    *mcspi_chconf &= ~(SPI_TRANSFER_MODE);
+    *mcspi_chconf |=  (mode); //mcspi_chxconf[13..12]
+}
+
+void mcspiInterface::setInputSelect (int input_select)
+{
+    *mcspi_chconf &= ~(INPUT_SELECT);
+    *mcspi_chconf |= (input_select << 18);
+}
+
+void mcspiInterface::setDPE01 (int dpe0, int dpe1)
+{
+    dpe0 &= 0x1;
+    dpe0  = dpe0 << 16;
+
+    dpe1 &= 0x1;
+    dpe1  = dpe1 << 17;
+
+    *mcspi_chconf &= ~(TX_EN1);
+    *mcspi_chconf &= ~(TX_EN0);
+    *mcspi_chconf |=  (dpe0);
+    *mcspi_chconf |=  (dpe1);
+}
+
+void mcspiInterface::setChipSelectTimeControl (int time)
+{
+    time &= 0x3;
+    *mcspi_chconf &= ~(0x3 << 25);
+    *mcspi_chconf |=  (time << 25);
+}
+
+void mcspiInterface::setTXfifoEnable (bool enable)
+{
+    int tx_fifo_enable = enable << 27;
+    *mcspi_chconf &= ~(0x1 << 27);
+    *mcspi_chconf |= tx_fifo_enable;
+}
+
+void mcspiInterface::setRXfifoEnable (bool enable)
+{
+    int rx_fifo_enable = enable << 27;
+    *mcspi_chconf &= ~(0x1 << 28);
+    *mcspi_chconf |= rx_fifo_enable;
+}
+
+void mcspiInterface::setClockDividerGranularity (int granularity)
+{
+    int clock_divider_granularity = granularity << 29;
+    *mcspi_chconf &= (~0x1 << 29);
+    *mcspi_chconf |= clock_divider_granularity;
+}
+
+void mcspiInterface::forceCS(bool state)
+{
+    if (state)
+        *mcspi_chconf |=  FORCE;
+    if (!state)
+        *mcspi_chconf &= ~FORCE;
+}
