@@ -355,35 +355,35 @@ void MirrorControlBoard::waitHalfPeriod(unsigned frequency)
      * Method 3: For loop
      */
 
-    //    /*
-    //     * This is a MACHINE DEPENDANT calibration constant
-    //     * its units are [for-loops/second]
-    //     */
-    //    unsigned nloops = calibrationConstant/(2*frequency);
-    //
-    //    for(volatile unsigned iloop=0;iloop<nloops;iloop++);
+    /*
+     * This is a MACHINE DEPENDANT calibration constant
+     * its units are [for-loops/second]
+     */
+    unsigned nloops = calibrationConstant/(2*frequency);
+
+    for(volatile unsigned iloop=0;iloop<nloops;iloop++);
 
 
     /*
      * Method 4: std::chrono (note! requires C++11)
      */
-    using std::chrono::nanoseconds;
-    using std::chrono::duration_cast;
-    long int halfperiod = (NANOS / ( 2*frequency));
-    auto start = duration_cast<nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-    while (true) {
-        /* Give this thread higher priority to improve timing stability */
-        pthread_t this_thread = pthread_self();
-        struct sched_param params;
-        params.sched_priority = sched_get_priority_max(SCHED_FIFO);
-        pthread_setschedparam(this_thread, SCHED_FIFO, &params);
+    //using std::chrono::nanoseconds;
+    //using std::chrono::duration_cast;
+    //long int halfperiod = (NANOS / ( 2*frequency));
+    //auto start = duration_cast<nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    //while (true) {
+    //    /* Give this thread higher priority to improve timing stability */
+    //    pthread_t this_thread = pthread_self();
+    //    struct sched_param params;
+    //    params.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    //    pthread_setschedparam(this_thread, SCHED_FIFO, &params);
 
-        auto now = duration_cast<nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
-        auto diff = now-start;
-        if (diff > halfperiod)
-            break;
-    }
-    sched_yield();
+    //    auto now = duration_cast<nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    //    auto diff = now-start;
+    //    if (diff > halfperiod)
+    //        break;
+    //}
+    //sched_yield();
 }
 
 void MirrorControlBoard::setCalibrationConstant(int constant)
