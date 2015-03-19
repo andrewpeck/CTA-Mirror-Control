@@ -28,3 +28,6 @@ install:
 
 tar: 
 	tar czvf libcbc.tar.gz ../libcbc/*.cpp ../libcbc/*.hpp ../libcbc/Makefile
+
+update: 
+	rm master.zip ; wget --no-check-certificate https://github.com/andrewpeck/CTA-Mirror-Control/archive/master.zip && unzip -o master.zip && mv CTA-Mirror-Control-master/* .; mv CTA-Mirror-Control-master/.gitignore .; rmdir CTA-Mirror-Control-master ; rm master.zip
