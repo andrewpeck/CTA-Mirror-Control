@@ -18,10 +18,7 @@
 class MirrorControlBoard
 {
 public:
-    MirrorControlBoard(
-            int calibrationConstant_   = (1000000000)
-            //int calibrationConstant_ = (1000000000/24)
-            );
+    MirrorControlBoard(int calibrationConstant = (1000000000/24));
 
     ~MirrorControlBoard();
 
@@ -121,7 +118,7 @@ private:
     mcspiInterface spi;
     TLC3548_ADC ADC;
 
-    int calibrationConstant;
+    int m_calibrationConstant;
 
     static const unsigned m_nusb=7;
 };
