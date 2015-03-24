@@ -282,7 +282,7 @@ class CBC
                 /*!
                  * Global default stepping frequency
                  */
-                int  steppingFrequency;
+                int  m_steppingFrequency;
 
                 ///@{
                 /*!
@@ -456,8 +456,8 @@ class CBC
                 ADC(CBC *cbc);
             private:
                 CBC *cbc;
-                int readDelay;
-                int defaultSamples;
+                int m_readDelay;
+                int m_defaultSamples;
         } adc;
 
         //////////////////////////////////////////////////////////////////////////////

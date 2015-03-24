@@ -314,7 +314,7 @@ void CBC::Driver::disableSR()
 
 void CBC::Driver::setSteppingFrequency (int frequency)
 {
-        steppingFrequency = frequency;
+        m_steppingFrequency = frequency;
 }
 
 void CBC::Driver::reset()
@@ -324,7 +324,7 @@ void CBC::Driver::reset()
 
 void CBC::Driver::step(int drive, int nsteps)
 {
-    step(drive, nsteps, steppingFrequency);
+    step(drive, nsteps, m_steppingFrequency);
 }
 
 void CBC::Driver::step(int drive, int nsteps, int frequency)
@@ -417,7 +417,7 @@ CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples)
     if (nsamples < 0)
         return(data);
 
-    cbc->mcb->measureADCStat(adc, channel, nsamples, sum, sumsq, min, max, readDelay);
+    cbc->mcb->measureADCStat(adc, channel, nsamples, sum, sumsq, min, max, m_readDelay);
 
     uint32_t mean   = sum/nsamples;
     float    var    = (sumsq - (1.0*sum*sum)/nsamples)/nsamples;
@@ -439,7 +439,7 @@ CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples)
 
 CBC::ADC::adcData CBC::ADC::readEncoder (int encoder)
 {
-    return(readEncoder(encoder,defaultSamples));
+    return(readEncoder(encoder,m_defaultSamples));
 }
 
 CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
@@ -462,7 +462,7 @@ CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
  */
 CBC::ADC::adcData CBC::ADC::readOnboardTemp ()
 {
-    return(readOnboardTemp(defaultSamples));
+    return(readOnboardTemp(m_defaultSamples));
 }
 
 CBC::ADC::adcData CBC::ADC::readOnboardTemp (int nsamples)
@@ -472,7 +472,7 @@ CBC::ADC::adcData CBC::ADC::readOnboardTemp (int nsamples)
 
 CBC::ADC::adcData CBC::ADC::readExternalTemp ()
 {
-    return(readExternalTemp(defaultSamples));
+    return(readExternalTemp(m_defaultSamples));
 }
 
 CBC::ADC::adcData CBC::ADC::readExternalTemp (int nsamples)
@@ -486,7 +486,7 @@ CBC::ADC::adcData CBC::ADC::readExternalTemp (int nsamples)
 
 CBC::ADC::adcData CBC::ADC::readRefLow(int adc)
 {
-    return (readRefLow(adc, defaultSamples));
+    return (readRefLow(adc, m_defaultSamples));
 }
 
 CBC::ADC::adcData CBC::ADC::readRefLow(int adc, int nsamples)
@@ -496,7 +496,7 @@ CBC::ADC::adcData CBC::ADC::readRefLow(int adc, int nsamples)
 
 CBC::ADC::adcData CBC::ADC::readRefMid(int adc)
 {
-    return (readRefMid(adc, defaultSamples));
+    return (readRefMid(adc, m_defaultSamples));
 }
 
 CBC::ADC::adcData CBC::ADC::readRefMid(int adc, int nsamples)
@@ -506,7 +506,7 @@ CBC::ADC::adcData CBC::ADC::readRefMid(int adc, int nsamples)
 
 CBC::ADC::adcData CBC::ADC::readRefHigh(int adc)
 {
-    return (readRefHigh(adc, defaultSamples));
+    return (readRefHigh(adc, m_defaultSamples));
 }
 
 CBC::ADC::adcData CBC::ADC::readRefHigh(int adc, int nsamples) {
@@ -519,18 +519,18 @@ CBC::ADC::adcData CBC::ADC::readRefHigh(int adc, int nsamples) {
 
 int  CBC::ADC::getReadDelay()
 {
-    return (readDelay);
+    return (m_readDelay);
 }
 
 void CBC::ADC::setReadDelay(int delay)
 {
     if (delay >= 0)
-        readDelay = delay;
+        m_readDelay = delay;
 }
 
 void CBC::ADC::setDefaultSamples(int nsamples) {
     if (nsamples > 0)
-        defaultSamples = nsamples;
+        m_defaultSamples = nsamples;
 }
 
 //===========================================================================
