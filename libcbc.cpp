@@ -96,16 +96,13 @@ void CBC::powerUp()
     // turn on level shifters
     mcb->enableIO();
 
-    //driver.wakeup();
+    driver.wakeup();
     //driver.reset();
     //encoder.enable();
     //auxSensor.enable();
 
     mcb->initializeADC(0);
     mcb->initializeADC(1);
-    //spi.Configure();
-    //spi.WriteRead(0x0000);
-
 }
 
 void CBC::powerDown() {
