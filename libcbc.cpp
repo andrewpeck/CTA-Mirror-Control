@@ -233,6 +233,7 @@ void CBC::Driver::enable(int drive)
 
     //enable drive
     cbc->mcb->enableDrive(drive-1); //MCB counts from zero
+    usleep(m_delay);
 }
 
 void CBC::Driver::disable(int drive)
@@ -242,6 +243,7 @@ void CBC::Driver::disable(int drive)
         return;
 
     //disable drive
+    usleep(m_delay);
     cbc->mcb->disableDrive(drive-1); //MCB counts from zero
 }
 
@@ -336,6 +338,7 @@ void CBC::Driver::step(int drive, int nsteps, int frequency)
     if ((drive<1)||(drive>6))
         return;
 
+    usleep(m_delay);
     if (isEnabled(drive)) {
         /* MCB counts from 0 */
         drive = drive - 1;
@@ -449,7 +452,8 @@ CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
     }
     else {
         /* we count from zero in MCB */
-        encoder = encoder-1;
+        encoder = (encoder-1);
+        usleep(m_delay);
         return(measure(0,encoder,nsamples));
     }
 }

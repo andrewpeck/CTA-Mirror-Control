@@ -16,9 +16,7 @@ class GPIOInterface;
  */
 class CBC
 {
-
     public:
-
         /*!
          *
          * Constructor performs initialization of the CBC board, and accepts several
@@ -481,8 +479,10 @@ class CBC
             private:
                 CBC *cbc;
         } auxSensor;
-
     private:
+        /* delay inserted after enabling, before stepping, before
+         * disabling, before reading encoders */
+        static const int m_delay = 15000; // in milliseconds
 };
 
 #endif
