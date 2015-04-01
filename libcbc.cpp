@@ -98,19 +98,21 @@ void CBC::powerUp()
 
     driver.wakeup();
     //driver.reset();
-    //encoder.enable();
-    //auxSensor.enable();
+    encoder.enable();
+    auxSensor.enable();
 
     mcb->initializeADC(0);
     mcb->initializeADC(1);
 }
 
 void CBC::powerDown() {
-    //driver.disableAll();
-    //driver.sleep();
-    //encoder.disable();
-    //auxSensor.disable();
-    //usb.disableAll();
+    driver.sleep();
+    encoder.disable();
+    auxSensor.disable();
+    driver.disableAll();
+    usb.disableAll();
+}
+
 }
 
 //===========================================================================

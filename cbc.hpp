@@ -77,8 +77,10 @@ class CBC
 
         /*! Power up CBC
          *
-         * Performs the reverse sequence of CBC powerDown. This is called automatically
-         * when the CBC class is constructed.
+         * Performs the reverse sequence of CBC powerDown, but does NOT:
+         * Turn On all USBs
+         * Enable all Drives
+         * This is called automatically when the CBC class is constructed.
          */
         void powerUp();
 
