@@ -493,10 +493,15 @@ class CBC
             private:
                 CBC *cbc;
         } auxSensor;
-    private:
+
+
         /* delay inserted after enabling, before stepping, before
          * disabling, before reading encoders */
-        static const int m_delay = 15000; // in milliseconds
+        int m_delay; // in milliseconds
+        void setDelayTime(int delay);
+        int getDelayTime();
+
+    private:
 };
 
 #endif

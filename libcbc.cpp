@@ -81,6 +81,7 @@ void CBC::configure(struct Config config)
             driver.disable(i+1);
     }
 
+    setDelayTime(config.delaytime);
 }
 
 void CBC::powerUp()
@@ -108,7 +109,19 @@ void CBC::powerDown() {
     usb.disableAll();
 }
 
+void CBC::setDelayTime(int delay)
+{
+    if (delay >= 0)
+        m_delay = delay;
 }
+
+int CBC::getDelayTime()
+{
+    return m_delay;
+}
+
+void setDelayTime(int delay);
+int getDelayTime();
 
 //===========================================================================
 //=USB Control===============================================================
@@ -230,7 +243,7 @@ void CBC::Driver::enable(int drive)
 
     //enable drive
     cbc->mcb->enableDrive(drive-1); //MCB counts from zero
-    usleep(m_delay);
+    usleep(cbc->getDelayTime());
 }
 
 void CBC::Driver::disable(int drive)
@@ -240,7 +253,7 @@ void CBC::Driver::disable(int drive)
         return;
 
     //disable drive
-    usleep(m_delay);
+    usleep(cbc->getDelayTime());
     cbc->mcb->disableDrive(drive-1); //MCB counts from zero
 }
 
@@ -335,7 +348,7 @@ void CBC::Driver::step(int drive, int nsteps, int frequency)
     if ((drive<1)||(drive>6))
         return;
 
-    usleep(m_delay);
+    usleep(cbc->getDelayTime());
     if (isEnabled(drive)) {
         /* MCB counts from 0 */
         drive = drive - 1;
@@ -450,7 +463,7 @@ CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
     else {
         /* we count from zero in MCB */
         encoder = (encoder-1);
-        usleep(m_delay);
+        usleep(cbc->getDelayTime());
         return(measure(0,encoder,nsamples));
     }
 }
