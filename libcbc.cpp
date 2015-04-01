@@ -26,54 +26,48 @@ CBC::~CBC()
 };
 
 // Constructor..
-CBC::CBC (
-        int  microsteps,
-        int  steppingFrequency,
-        bool highCurrentMode,
-        bool driveSR,
-        int  adcReadDelay,
-        int  defaultADCSamples,
-        int  usbEnable,
-        int  driveEnable
-        ) : usb(this), driver(this), encoder (this), adc (this), auxSensor(this)
+CBC::CBC (struct Config config) : usb(this), driver(this), encoder (this), adc (this), auxSensor(this)
 {
-
     gpio   = new GPIOInterface;
     mcb    = new MirrorControlBoard;
     tlcadc = new TLC3548_ADC;
 
+    configure(config);
     powerUp();
+}
 
+void CBC::configure(struct Config config)
+{
     /* Microsteps */
-    driver.setMicrosteps(microsteps);
+    driver.setMicrosteps(config.microsteps);
 
     /* Set Stepping Frequency */
-    driver.setSteppingFrequency(steppingFrequency);
+    driver.setSteppingFrequency(config.steppingFrequency);
 
     /* High Current Mode */
-    if (highCurrentMode)
+    if (config.highCurrentMode)
         driver.enableHighCurrent();
     else
         driver.disableHighCurrent();
 
     /* Drive SR */
-    if (driveSR)
+    if (config.driveSR)
         driver.enableSR();
     else
         driver.disableSR();
 
     /* ADC Read Delay */
-    adc.setReadDelay(adcReadDelay);
+    adc.setReadDelay(config.adcReadDelay);
 
     /* ADC Number of Samples */
-    adc.setDefaultSamples(defaultADCSamples);
+    adc.setDefaultSamples(config.defaultADCSamples);
 
- //   /* Turn on Ethernet Dongle */
+    /* Turn on Ethernet Dongle */
     usb.enableEthernet();
 
     /* Configure USBs */
     for (int i=0; i<6; i++) {
-        if ((usbEnable >> i) & 0x1)
+        if ((config.usbEnable >> i) & 0x1)
             usb.enable(i+1);
         else
             usb.disable(i+1);
@@ -81,11 +75,12 @@ CBC::CBC (
 
     /* Configure Drives */
     for (int i=0; i<6; i++) {
-        if ((driveEnable >> i) & 0x1)
+        if ((config.driveEnable >> i) & 0x1)
             driver.enable(i+1);
         else
             driver.disable(i+1);
     }
+
 }
 
 void CBC::powerUp()
@@ -559,3 +554,4 @@ bool CBC::AUXsensor::isEnabled()
     return(cbc->mcb->isSensorsPoweredUp());
 }
 
+struct CBC::Config CBC::config_default;

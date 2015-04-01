@@ -45,17 +45,29 @@ class CBC
          *                            of the individual masks. Use a calculator or just put "usbEnable = (0x1 | 0x2 | 0x4)", for example...
          * @param driveEnable         Integer bitmask to enable encoder drives, working ala usbEnable
          */
-        CBC(
-                int  microsteps        = 8,
-                int  steppingFrequency = 400,
-                bool highCurrentMode   = false,
-                bool driveSR           = true,
-                int  adcReadDelay      = 0,
-                int  defaultADCSamples = 100,
-                int  usbEnable         = 0,
-                int  driveEnable       = 0
-           );
 
+        struct Config
+        {
+            Config() : steppingFrequency(400), highCurrentMode(false),
+            driveSR(true), adcReadDelay(0), defaultADCSamples(100), usbEnable(0),
+            driveEnable(0), microsteps(8), delaytime(15000) {}
+
+            int  steppingFrequency ;
+            bool highCurrentMode   ;
+            bool driveSR           ;
+            int  adcReadDelay      ;
+            int  defaultADCSamples ;
+            int  usbEnable         ;
+            int  driveEnable       ;
+            int  microsteps        ;
+            int  delaytime         ;
+        };
+
+        static struct Config config_default;
+
+        void configure(struct Config config);
+
+        CBC(struct Config config=CBC::config_default);
         ~CBC();
 
         GPIOInterface *gpio;
