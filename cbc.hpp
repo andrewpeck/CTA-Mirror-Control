@@ -19,35 +19,35 @@ class CBC
     public:
         /*!
          *
-         * Constructor performs initialization of the CBC board, and accepts several
-         * configuration parameters as variables. In lieu of any parameters, the
-         * program will assume sane defaults. All variables can be adjusted after
-         * initialization.
-         *
-         * @param microsteps          Number of microsteps [1,2,4 or 8]
-         * @param steppingFrequency   Stepping frequency [in Hertz]
-         * @param highCurrentMode     Stepper motor High Current Mode [true/false]
-         * @param driveSR             Drive synchronous rectification mode [true/false]
-         * @param adcReadDelay        Delay inserted between subsequent ADC reads [any integer]
-         * @param defaultADCSamples   Set a global default number of ADC samples. Can be overrode for individual measurements.
-         * @param usbEnable           Integer bitmask to enable USB channels according to the simple scheme:
-         *                            <UL>
-         *                            <LI> (0x00) 000000 Disable All
-         *                            <LI> (0x01) 000001 Enable USB 1
-         *                            <LI> (0x02) 000010 Enable USB 2
-         *                            <LI> (0x04) 000100 Enable USB 3
-         *                            <LI> (0x08) 001000 Enable USB 4
-         *                            <LI> (0x10) 010000 Enable USB 5
-         *                            <LI> (0x20) 100000 Enable USB 6
-         *                            <LI> (0x3F) 111111 Enable All
-         *                            </UL>
-         *                            You enable arbitrary combinations of USBs by just forming the 'bitwise or'
-         *                            of the individual masks. Use a calculator or just put "usbEnable = (0x1 | 0x2 | 0x4)", for example...
-         * @param driveEnable         Integer bitmask to enable encoder drives, working ala usbEnable
+         * Constructor performs initialization of the CBC board, and accepts
+         * a configuration struct CBC::Config to override default construction
+         * parameters.
          */
 
         struct Config
         {
+            /* @param microsteps          Number of microsteps [1,2,4 or 8]
+             * @param steppingFrequency   Stepping frequency [in Hertz]
+             * @param highCurrentMode     Stepper motor High Current Mode [true/false]
+             * @param driveSR             Drive synchronous rectification mode [true/false]
+             * @param adcReadDelay        Delay inserted between subsequent ADC reads [any integer]
+             * @param defaultADCSamples   Set a global default number of ADC samples. Can be overrode for individual measurements.
+             * @param usbEnable           Integer bitmask to enable USB channels according to the simple scheme:
+             *                            <UL>
+             *                            <LI> (0x00) 000000 Disable All
+             *                            <LI> (0x01) 000001 Enable USB 1
+             *                            <LI> (0x02) 000010 Enable USB 2
+             *                            <LI> (0x04) 000100 Enable USB 3
+             *                            <LI> (0x08) 001000 Enable USB 4
+             *                            <LI> (0x10) 010000 Enable USB 5
+             *                            <LI> (0x20) 100000 Enable USB 6
+             *                            <LI> (0x3F) 111111 Enable All
+             *                            </UL>
+             *                            You enable arbitrary combinations of USBs by just forming the 'bitwise or'
+             *                            of the individual masks. Use a calculator or just put "usbEnable = (0x1 | 0x2 | 0x4)", for example...
+             * @param driveEnable         Integer bitmask to enable encoder drives, working ala usbEnable
+             * @param delayTime           Microseconds delay to pad between stepping, reading encoders, enable/disable motors
+             */
             Config() : steppingFrequency(400), highCurrentMode(false),
             driveSR(true), adcReadDelay(0), defaultADCSamples(100), usbEnable(0),
             driveEnable(0), microsteps(8), delaytime(15000) {}
@@ -60,7 +60,7 @@ class CBC
             int  usbEnable         ;
             int  driveEnable       ;
             int  microsteps        ;
-            int  delaytime         ;
+            int  delayTime         ;
         };
 
         static struct Config config_default;
@@ -100,7 +100,6 @@ class CBC
         ///USB Control
         //////////////////////////////////////////////////////////////////////////////
         struct USB {
-
             ///@{
             /*! @name USB Control
              * Functions to control the CBC USB Ports.
@@ -241,22 +240,11 @@ class CBC
 
                 ///@{
                 /*! @name Step Drive
-                 *
-                 * NOTA BENE:
-                 *
-                 *      "Frequency" is a CPU-dependent, load dependent variable. It
-                 *      can only be roughly calibrated for a particular processor,
-                 *      under particular circumstances.  A change in hardware necessitates
-                 *      a change in the calibration constant.
-                 *
                  */
 
                 /*! @brief Step drive using global frequency
                  * @param drive  Motor drive 1-6
                  * @param nsteps Number of MACRO-steps
-                 *
-                 * Function returns the calculated calibration constant used to
-                 * translate between for-loop cycles and physical Hz
                  */
                 void step (int drive, int nsteps);
 
@@ -265,9 +253,6 @@ class CBC
                  * @param drive  Motor drive 1-6
                  * @param nsteps Number of MACRO-steps
                  * @param frequency OPTIONAL argument to specify a stepping frequency, otherwise the global default will be assumed.
-                 *
-                 * Function returns the calculated calibration constant used to
-                 * translate between for-loop cycles and physical Hz
                  */
                 void step (int drive, int nsteps, int frequency);
                 ///@}

@@ -81,7 +81,7 @@ void CBC::configure(struct Config config)
             driver.disable(i+1);
     }
 
-    setDelayTime(config.delaytime);
+    setDelayTime(config.delayTime);
 }
 
 void CBC::powerUp()
