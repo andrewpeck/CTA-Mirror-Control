@@ -247,40 +247,10 @@ namespace MirrorControlBoard
         uint32_t code = TLC3548::codeSelect(ichan);
         spi.WriteRead(code);
 
-void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned ndelay)
-{
-    //spi.Configure();
-    initializeADC(iadc);
-    selectADC(iadc);
-    uint32_t code   = ADC.codeSelect(ichan);
-    unsigned nburn = 1;
-    unsigned nloop  = nburn + nmeas;
-    sum             = 0;
-    sumsq           = 0;
-    max             = 0;
-    min             = ~max;
+        // Read ADC
+        uint32_t datum = spi.WriteRead(TLC3548::codeReadFIFO());
 
-    // Loop over number of measurements
-    for(unsigned iloop=0; iloop<nloop; iloop++) {
-        // Read data
-        uint32_t datum = spi.WriteRead(code);
-
-        if (iloop>nburn) {
-            // Decode data
-            datum = ADC.decodeUSB(datum);
-            // Typecast to 64 bit integer..
-            uint64_t datum64 = datum;
-
-            // Accumulate statistics
-            sum+=datum;
-            sumsq+=datum64*datum64;
-            if(datum>max)
-                max=datum;
-            if(datum<min)
-                min=datum;
-        }
-
-        for (volatile unsigned i=0; i<ndelay; i++);
+        return TLC3548::decodeUSB(datum);
     }
 
     void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned ndelay)
@@ -296,20 +266,35 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
         max             = 0;
         min             = ~max;
 
-    //typecast and accumulate statistics
-    uint64_t datum64 = datum;
-    sum+=datum;
-    sumsq+=datum64*datum64;
+        pthread_t this_thread = pthread_self();
+        struct sched_param params;
+        params.sched_priority = sched_get_priority_max(SCHED_FIFO);
+        pthread_setschedparam(this_thread, SCHED_FIFO, &params);
 
-    if(datum>max)
-        max=datum;
-    if(datum<min)
-        min=datum;
-}
+        // Loop over number of measurements
+        for(unsigned iloop=0; iloop<nloop; iloop++) {
+            // Read data
+            uint32_t datum = spi.WriteRead(code);
 
-//------------------------------------------------------------------------------
-// General Purpose Utilities
-//------------------------------------------------------------------------------
+            if (iloop>nburn) {
+                // Decode data
+                datum = TLC3548::decodeUSB(datum);
+                // Typecast to 64 bit integer..
+                uint64_t datum64 = datum;
+
+                // Accumulate statistics
+                sum+=datum;
+                sumsq+=datum64*datum64;
+                if(datum>max)
+                    max=datum;
+                if(datum<min)
+                    min=datum;
+            }
+
+            for (volatile unsigned i=0; i<ndelay; i++);
+        }
+
+        sched_yield();
 
         // Read last FIFO
         uint32_t datum = spi.WriteRead(TLC3548::codeReadFIFO());
