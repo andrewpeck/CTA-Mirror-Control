@@ -101,7 +101,7 @@ void GPIOInterface::ConfigureAll()
 
     for (int i=0; i<192; i++)
     {
-        int config = layout.gpioConfiguration(i);
+        int config = Layout::gpioConfiguration(i);
         if (config==0)   // output
         {
             fprintf(configfile,"Configuring gpio %i as output\n", i);

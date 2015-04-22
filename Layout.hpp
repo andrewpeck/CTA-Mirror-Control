@@ -9,95 +9,90 @@
 #define GPIODIR_IN  0
 #define GPIODIR_OUT 1
 
-class Layout
+namespace Layout
 {
-public:
-    Layout();
-    ~Layout();
-
     // Returns GPIO Input/Output Direction for given GPIO
-    static int gpioConfiguration(unsigned ipin);
+    int gpioConfiguration(unsigned ipin);
 
     // Returns LAYOUT independent GPIO number 0-192 for Each Signal
-    static unsigned igpioN_M_RESET     ;
-    static unsigned igpioEN_IO         ;
+    extern unsigned igpioN_M_RESET     ;
+    extern unsigned igpioEN_IO         ;
 
-    static unsigned igpioPowerADC      ; //PowerADC                 OUTPUT
-    static unsigned igpioADCSel1       ; //ADCSel1                  OUTPUT
-    static unsigned igpioADCSel2       ; //ADCSel2                  OUTPUT
+    extern unsigned igpioPowerADC      ; //PowerADC                 OUTPUT
+    extern unsigned igpioADCSel1       ; //ADCSel1                  OUTPUT
+    extern unsigned igpioADCSel2       ; //ADCSel2                  OUTPUT
 
-    static unsigned igpioEncoderEnable ; //EncoderEnable
+    extern unsigned igpioEncoderEnable ; //EncoderEnable
 
-    static unsigned igpioConsoleRXD    ; //ConsoleRXD
-    static unsigned igpioConsoleTXD    ; //ConsoleTXD
+    extern unsigned igpioConsoleRXD    ; //ConsoleRXD
+    extern unsigned igpioConsoleTXD    ; //ConsoleTXD
 
-    static unsigned igpioTP1           ;
-    static unsigned igpioTP2           ;
-    static unsigned igpioTP3           ;
-    static unsigned igpioTP4           ;
-    static unsigned igpioTP5           ;
-    static unsigned igpioTP6           ;
-    static unsigned igpioTP7           ;
+    extern unsigned igpioTP1           ;
+    extern unsigned igpioTP2           ;
+    extern unsigned igpioTP3           ;
+    extern unsigned igpioTP4           ;
+    extern unsigned igpioTP5           ;
+    extern unsigned igpioTP6           ;
+    extern unsigned igpioTP7           ;
 
-    static unsigned igpioUSBReset      ; //USBReset
-    static unsigned igpioUSBOff1       ; //USB1EnableBar            OUTPUT
-    static unsigned igpioUSBOff2       ; //USB2EnableBar            OUTPUT
-    static unsigned igpioUSBOff3       ; //USB3EnableBar            OUTPUT
-    static unsigned igpioUSBOff4       ; //USB4EnableBar            OUTPUT
-    static unsigned igpioUSBOff5       ; //USB5EnableBar            OUTPUT
-    static unsigned igpioUSBOff6       ; //USB6EnableBar            OUTPUT
-    static unsigned igpioUSBOff7       ; //USB7EnableBar            OUTPUT
+    extern unsigned igpioUSBReset      ; //USBReset
+    extern unsigned igpioUSBOff1       ; //USB1EnableBar            OUTPUT
+    extern unsigned igpioUSBOff2       ; //USB2EnableBar            OUTPUT
+    extern unsigned igpioUSBOff3       ; //USB3EnableBar            OUTPUT
+    extern unsigned igpioUSBOff4       ; //USB4EnableBar            OUTPUT
+    extern unsigned igpioUSBOff5       ; //USB5EnableBar            OUTPUT
+    extern unsigned igpioUSBOff6       ; //USB6EnableBar            OUTPUT
+    extern unsigned igpioUSBOff7       ; //USB7EnableBar            OUTPUT
 
-    static unsigned igpioMS1           ; //DRMS1                    OUTPUT
-    static unsigned igpioMS2           ; //DRMS2                    OUTPUT
+    extern unsigned igpioMS1           ; //DRMS1                    OUTPUT
+    extern unsigned igpioMS2           ; //DRMS2                    OUTPUT
 
-    static unsigned igpioPwrIncBar     ; //DRPowerIncreaseBar       OUTPUT
-    static unsigned igpioSR            ; //DRSRBar                  OUTPUT
-    static unsigned igpioReset         ; //DRResetBar               OUTPUT
-    static unsigned igpioSleep         ; //DRSleepBar               OUTPUT
+    extern unsigned igpioPwrIncBar     ; //DRPowerIncreaseBar       OUTPUT
+    extern unsigned igpioSR            ; //DRSRBar                  OUTPUT
+    extern unsigned igpioReset         ; //DRResetBar               OUTPUT
+    extern unsigned igpioSleep         ; //DRSleepBar               OUTPUT
 
-    static unsigned igpioStep1         ; //DR1Step                  OUTPUT
-    static unsigned igpioStep2         ; //DR2Step                  OUTPUT
-    static unsigned igpioStep3         ; //DR3Step                  OUTPUT
-    static unsigned igpioStep4         ; //DR4Step                  OUTPUT
-    static unsigned igpioStep5         ; //DR5Step                  OUTPUT
-    static unsigned igpioStep6         ; //DR6Step                  OUTPUT
+    extern unsigned igpioStep1         ; //DR1Step                  OUTPUT
+    extern unsigned igpioStep2         ; //DR2Step                  OUTPUT
+    extern unsigned igpioStep3         ; //DR3Step                  OUTPUT
+    extern unsigned igpioStep4         ; //DR4Step                  OUTPUT
+    extern unsigned igpioStep5         ; //DR5Step                  OUTPUT
+    extern unsigned igpioStep6         ; //DR6Step                  OUTPUT
 
-    static unsigned igpioDir1          ; //DR1Dir                   OUTPUT
-    static unsigned igpioDir2          ; //DR2Dir                   OUTPUT
-    static unsigned igpioDir3          ; //DR3Dir                   OUTPUT
-    static unsigned igpioDir4          ; //DR4Dir                   OUTPUT
-    static unsigned igpioDir5          ; //DR5Dir                   OUTPUT
-    static unsigned igpioDir6          ; //DR6Dir                   OUTPUT
+    extern unsigned igpioDir1          ; //DR1Dir                   OUTPUT
+    extern unsigned igpioDir2          ; //DR2Dir                   OUTPUT
+    extern unsigned igpioDir3          ; //DR3Dir                   OUTPUT
+    extern unsigned igpioDir4          ; //DR4Dir                   OUTPUT
+    extern unsigned igpioDir5          ; //DR5Dir                   OUTPUT
+    extern unsigned igpioDir6          ; //DR6Dir                   OUTPUT
 
-    static unsigned igpioEnable1       ; //DR1EnableBar             OUTPUT
-    static unsigned igpioEnable2       ; //DR2EnableBar             OUTPUT
-    static unsigned igpioEnable3       ; //DR3EnableBar             OUTPUT
-    static unsigned igpioEnable4       ; //DR4EnableBar             OUTPUT
-    static unsigned igpioEnable5       ; //DR5EnableBar             OUTPUT
-    static unsigned igpioEnable6       ; //DR6EnableBar             OUTPUT
+    extern unsigned igpioEnable1       ; //DR1EnableBar             OUTPUT
+    extern unsigned igpioEnable2       ; //DR2EnableBar             OUTPUT
+    extern unsigned igpioEnable3       ; //DR3EnableBar             OUTPUT
+    extern unsigned igpioEnable4       ; //DR4EnableBar             OUTPUT
+    extern unsigned igpioEnable5       ; //DR5EnableBar             OUTPUT
+    extern unsigned igpioEnable6       ; //DR6EnableBar             OUTPUT
 
-    static unsigned igpioSPI_Tx        ; //SPI MOSI                 OUTPUT
-    static unsigned igpioSPI_Rx        ; //SPI MISO                 INPUT
-    static unsigned igpioSPI_Sclk      ; //SPI CLK                  OUTPUT
-    static unsigned igpioSPI_SFRM_bar  ; 
+    extern unsigned igpioSPI_Tx        ; //SPI MOSI                 OUTPUT
+    extern unsigned igpioSPI_Rx        ; //SPI MISO                 INPUT
+    extern unsigned igpioSPI_Sclk      ; //SPI CLK                  OUTPUT
+    extern unsigned igpioSPI_SFRM_bar  ;
 
     // Returns Motor Direction Control Pin GPIO Number for a given idrive
-    static unsigned igpioDir(const unsigned idrive);
+    unsigned igpioDir(const unsigned idrive);
 
     // Returns Motor Step Pin GPIO Number for a given idrive
-    static unsigned igpioStep(const unsigned idrive);
+    unsigned igpioStep(const unsigned idrive);
 
     // Returns Motor Enable Pin GPIO Number for a given idrive
-    static unsigned igpioEnable(const unsigned idrive);
+    unsigned igpioEnable(const unsigned idrive);
 
     // Returns USB Power Enable Pin GPIO Number for a given iusb
-    static unsigned igpioUSBOff(const unsigned iusb);
+    unsigned igpioUSBOff(const unsigned iusb);
 
-private:
     //Maps Overo output pins (J1 1-70, J 71-140) to GPIO Pins
     //-1 is returned for a pin140 that is not a GPIO
-    static int pin140ToGPIO(unsigned ipin140);
+    int pin140ToGPIO(unsigned ipin140);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Layout Specific Pin Assignments for Overo

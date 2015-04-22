@@ -6,121 +6,101 @@
 #ifndef MIRRORCONTROLBOARD_HPP
 #define MIRRORCONTROLBOARD_HPP
 
-#include <Layout.hpp>
 #include <vector>
+#include <stdint.h>
 
-// local includes
-#include <SpiInterface.hpp>
-#include <TLC3548_ADC.hpp>
-#include <GPIOInterface.hpp>
-#include <mcspiInterface.hpp>
-
-class MirrorControlBoard
+namespace MirrorControlBoard
 {
-public:
-    MirrorControlBoard(int calibrationConstant = (1000000000/24));
+        enum UStep { USTEP_1, USTEP_2, USTEP_4, USTEP_8 };
+        enum Dir { DIR_EXTEND, DIR_RETRACT, DIR_NONE };
+        enum GPIODir { DIR_OUTPUT, DIR_INPUT};
 
-    ~MirrorControlBoard();
+        void enableIO();
+        void disableIO();
 
-    enum UStep { USTEP_1, USTEP_2, USTEP_4, USTEP_8 };
-    enum Dir { DIR_EXTEND, DIR_RETRACT, DIR_NONE };
-    enum GPIODir { DIR_OUTPUT, DIR_INPUT};
+        //------------------------------------------------------------------------------
+        // Power Control Function Prototypes
+        //------------------------------------------------------------------------------
 
-    void enableIO();
-    void disableIO();
+        void adcSleep(int iadc);
 
-    //------------------------------------------------------------------------------
-    // Power Control Function Prototypes
-    //------------------------------------------------------------------------------
+        /* USB power enable_bar bit */
+        void powerDownUSB(unsigned iusb);
+        void powerUpUSB(unsigned iusb);
+        bool isUSBPoweredUp(unsigned iusb);
 
-    void adcSleep(int iadc);
+        /* Encoder Enable Bit */
+        void powerDownEncoders();
+        void powerUpEncoders();
+        bool isEncodersPoweredUp();
 
-    /* USB power enable_bar bit */
-    void powerDownUSB(unsigned iusb);
-    void powerUpUSB(unsigned iusb);
-    bool isUSBPoweredUp(unsigned iusb);
+        /* Sensor Enable Bit */
+        void powerUpSensors();
+        void powerDownSensors();
+        bool isSensorsPoweredUp();
 
-    /* Encoder Enable Bit */
-    void powerDownEncoders();
-    void powerUpEncoders();
-    bool isEncodersPoweredUp();
+        //------------------------------------------------------------------------------
+        // Motor Driver Function Prototypes
+        //------------------------------------------------------------------------------
 
-    /* Sensor Enable Bit */
-    void powerUpSensors();
-    void powerDownSensors();
-    bool isSensorsPoweredUp();
+        /* Motor Driver Sleep bit */
+        void powerDownDriveControllers();
+        void powerUpDriveControllers();
+        bool isDriveControllersPoweredUp();
 
-    //------------------------------------------------------------------------------
-    // Motor Driver Function Prototypes
-    //------------------------------------------------------------------------------
+        /*
+         * Steps motor a single step in a direction specified by dir, with some
+         * delay controlling the IO speed
+         */
+        void stepOneDrive(unsigned idrive, Dir dir, unsigned frequency = 1000);
 
-    /* Motor Driver Sleep bit */
-    void powerDownDriveControllers();
-    void powerUpDriveControllers();
-    bool isDriveControllersPoweredUp();
+        void setPhaseZeroOnAllDrives();
 
-    /*
-     * Steps motor a single step in a direction specified by dir, with some
-     * delay controlling the IO speed
-     */
-    void stepOneDrive(unsigned idrive, Dir dir, unsigned frequency = 1000);
+        void enableDriveSR(bool enable = true);
+        void disableDriveSR();
+        bool isDriveSREnabled();
 
-    void setPhaseZeroOnAllDrives();
+        void setUStep(UStep ustep);
+        UStep getUStep();
 
-    void enableDriveSR(bool enable = true);
-    void disableDriveSR();
-    bool isDriveSREnabled();
+        // Enable or Disable Stepper Motors
+        void enableDrive(unsigned idrive, bool enable = true);
+        void disableDrive(unsigned idrive);
+        bool isDriveEnabled(unsigned idrive);
 
-    void setUStep(UStep ustep);
-    UStep getUStep();
+        /* Driver High Current Mode */
+        void enableDriveHiCurrent(bool enable = true);
+        void disableDriveHiCurrent();
+        bool isDriveHiCurrentEnabled();
 
-    // Enable or Disable Stepper Motors
-    void enableDrive(unsigned idrive, bool enable = true);
-    void disableDrive(unsigned idrive);
-    bool isDriveEnabled(unsigned idrive);
+        //------------------------------------------------------------------------------
+        // ADC Function Prototypes
+        //------------------------------------------------------------------------------
 
-    /* Driver High Current Mode */
-    void enableDriveHiCurrent(bool enable = true);
-    void disableDriveHiCurrent();
-    bool isDriveHiCurrentEnabled();
+        // Asserts Correct ADC Chip Select Line
+        void selectADC(unsigned iadc);
 
-    //------------------------------------------------------------------------------
-    // ADC Function Prototypes
-    //------------------------------------------------------------------------------
+        // Writes initialization codes to ADC
+        void initializeADC(unsigned iadc);
 
-    // Asserts Correct ADC Chip Select Line
-    void selectADC(unsigned iadc);
+        // Measures ADC and returns result as value
+        uint32_t measureADC(unsigned iadc, unsigned ichan);
 
-    // Writes initialization codes to ADC
-    void initializeADC(unsigned iadc);
+        // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
+        void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned ndelay=100);
 
-    // Measures ADC and returns result as value
-    uint32_t measureADC(unsigned iadc, unsigned ichan);
+        // --------------------------------------------------------------------------
+        // Utility functions
+        // --------------------------------------------------------------------------
 
-    // Makes some specified number measurements on ADC and keeps track of sum, sum of squares, min and max for statistics..
-void measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned ndelay=0);
+        // Sleeps for a half-cycle of the frequency given in the argument...
+        void waitHalfPeriod(unsigned frequency);
 
+        void setCalibrationConstant(int constant);
+        int  getCalibrationConstant();
 
 
-    // --------------------------------------------------------------------------
-    // Utility functions
-    // --------------------------------------------------------------------------
-
-    // Sleeps for a half-cycle of the frequency given in the argument...
-    void waitHalfPeriod(unsigned frequency);
-
-    void setCalibrationConstant(int constant);
-    int  getCalibrationConstant();
-
-private:
-    GPIOInterface gpio;
-    Layout layout;
-    mcspiInterface spi;
-    TLC3548_ADC ADC;
-
-    int m_calibrationConstant;
-
-    static const unsigned m_nusb=7;
+        static const unsigned m_nusb=7;
 };
 
 #endif // defined MIRRORCONTROLBOARD_HPP

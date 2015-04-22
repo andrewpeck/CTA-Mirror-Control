@@ -1,10 +1,6 @@
 #ifndef CBC_H
 #define CBC_H
 
-class MirrorControlBoard;
-class TLC3548_ADC;
-class GPIOInterface;
-
 /*!
  * The CBC class is responsible for the control of all mirror control board functions.
  *
@@ -69,10 +65,6 @@ class CBC
 
         CBC(struct Config config=CBC::config_default);
         ~CBC();
-
-        GPIOInterface *gpio;
-        MirrorControlBoard *mcb;
-        TLC3548_ADC *tlcadc;
 
         /*! Power down CBC
          *

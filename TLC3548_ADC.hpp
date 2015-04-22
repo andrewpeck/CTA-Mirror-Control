@@ -8,12 +8,8 @@
 #include <stdint.h>
 #define NBIT 14
 
-class TLC3548_ADC
+namespace TLC3548
 {
-public:
-    TLC3548_ADC();
-    ~TLC3548_ADC();
-
     enum OutputFormat { OF_BOB, OF_USB, OF_BTC };
     enum SamplePeriod { SP_LONG, SP_SHORT };
     enum ReferenceSelect { RS_INTERNAL, RS_EXTERNAL };
@@ -55,7 +51,6 @@ public:
             OutputFormat    of = OF_BOB,
             PinFunction     pf = PF_EOC,
             TriggerLevel    tl = TL_50PC);
-private:
 };
 
 #endif // ndef TLC3548_ADC_HPP

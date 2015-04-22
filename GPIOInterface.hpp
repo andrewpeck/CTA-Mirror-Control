@@ -95,8 +95,5 @@ private:
     volatile void*  m_gpio6_base;
 
     uint32_t MaskPin (int ipin);
-
-    Layout layout;
-
 };
 #endif

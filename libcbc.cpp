@@ -15,23 +15,17 @@
 #include <stdio.h>
 #include <iostream>
 
-#include <MirrorControlBoard.hpp>
+#include "MirrorControlBoard.hpp"
+#include "TLC3548_ADC.hpp"
 
 // DESTROYER
 CBC::~CBC()
 {
-    delete gpio;
-    delete mcb;
-    delete tlcadc;
 };
 
 // Constructor..
 CBC::CBC (struct Config config) : usb(this), driver(this), encoder (this), adc (this), auxSensor(this)
 {
-    gpio   = new GPIOInterface;
-    mcb    = new MirrorControlBoard;
-    tlcadc = new TLC3548_ADC;
-
     configure(config);
     powerUp();
 }
@@ -87,18 +81,18 @@ void CBC::configure(struct Config config)
 void CBC::powerUp()
 {
     // Configure GPIOs
-    gpio->ConfigureAll();
+    //gpio->ConfigureAll();
 
     // turn on level shifters
-    mcb->enableIO();
+    MirrorControlBoard::enableIO();
 
     driver.wakeup();
     //driver.reset();
     encoder.enable();
     auxSensor.enable();
 
-    mcb->initializeADC(0);
-    mcb->initializeADC(1);
+    MirrorControlBoard::initializeADC(0);
+    MirrorControlBoard::initializeADC(1);
 }
 
 void CBC::powerDown() {
@@ -135,14 +129,14 @@ void CBC::USB::enable(int iusb)
 {
     if((iusb<1)||(iusb>6))
         return;
-    cbc->mcb->powerUpUSB(iusb);
+    MirrorControlBoard::powerUpUSB(iusb);
 }
 
 void CBC::USB::disable(int iusb)
 {
     if((iusb<1)||(iusb>6))
         return;
-    cbc->mcb->powerDownUSB(iusb);
+    MirrorControlBoard::powerDownUSB(iusb);
 }
 
 void CBC::USB::enableAll()
@@ -162,17 +156,17 @@ bool CBC::USB::isEnabled (int iusb)
     if ((iusb<1) | (iusb>6))
         return(-1);
     else
-        return (cbc->mcb->isUSBPoweredUp(iusb));
+        return (MirrorControlBoard::isUSBPoweredUp(iusb));
 }
 
 void CBC::USB::enableEthernet()
 {
-    cbc->mcb->powerUpUSB(0);
+    MirrorControlBoard::powerUpUSB(0);
 }
 
 void CBC::USB::disableEthernet()
 {
-    cbc->mcb->powerDownUSB(0);
+    MirrorControlBoard::powerDownUSB(0);
 }
 
 void CBC::USB::resetEthernet()
@@ -209,12 +203,12 @@ void CBC::Driver::setMicrosteps(int usint)
         default:
             return;
     }
-    cbc->mcb->setUStep(us);
+    MirrorControlBoard::setUStep(us);
 }
 
 int CBC::Driver::getMicrosteps()
 {
-    unsigned us = cbc->mcb->getUStep();
+    unsigned us = MirrorControlBoard::getUStep();
     int steps = 0;
     switch(us) {
         case 0:
@@ -242,7 +236,7 @@ void CBC::Driver::enable(int drive)
         return;
 
     //enable drive
-    cbc->mcb->enableDrive(drive-1); //MCB counts from zero
+    MirrorControlBoard::enableDrive(drive-1); //MCB counts from zero
     usleep(cbc->getDelayTime());
 }
 
@@ -254,7 +248,7 @@ void CBC::Driver::disable(int drive)
 
     //disable drive
     usleep(cbc->getDelayTime());
-    cbc->mcb->disableDrive(drive-1); //MCB counts from zero
+    MirrorControlBoard::disableDrive(drive-1); //MCB counts from zero
 }
 
 void CBC::Driver::enableAll()
@@ -271,54 +265,52 @@ void CBC::Driver::disableAll()
 
 bool CBC::Driver::isEnabled(int drive)
 {
-    return (cbc->mcb->isDriveEnabled(drive-1)); // MCB counts from zero
+    return (MirrorControlBoard::isDriveEnabled(drive-1)); // MCB counts from zero
 }
 
 void CBC::Driver::sleep()
 {
-    cbc->mcb->powerDownDriveControllers();
+    MirrorControlBoard::powerDownDriveControllers();
 }
 
 void CBC::Driver::wakeup()
 {
-    cbc->mcb->powerUpDriveControllers();
+    MirrorControlBoard::powerUpDriveControllers();
 }
 
 bool CBC::Driver::isAwake()
 {
-    MirrorControlBoard mcb;
-    return(cbc->mcb->isDriveControllersPoweredUp());
+    return(MirrorControlBoard::isDriveControllersPoweredUp());
 }
 
 bool CBC::Driver::isHighCurrentEnabled()
 {
-    MirrorControlBoard mcb;
-    return(cbc->mcb->isDriveHiCurrentEnabled());
+    return(MirrorControlBoard::isDriveHiCurrentEnabled());
 }
 
 void CBC::Driver::enableHighCurrent ()
 {
-    cbc->mcb->enableDriveHiCurrent();
+    MirrorControlBoard::enableDriveHiCurrent();
 }
 
 void CBC::Driver::disableHighCurrent ()
 {
-    cbc->mcb->disableDriveHiCurrent();
+    MirrorControlBoard::disableDriveHiCurrent();
 }
 
 bool CBC::Driver::isSREnabled()
 {
-    return(cbc->mcb->isDriveSREnabled());
+    return(MirrorControlBoard::isDriveSREnabled());
 }
 
 void CBC::Driver::enableSR()
 {
-    cbc->mcb->enableDriveSR();
+    MirrorControlBoard::enableDriveSR();
 }
 
 void CBC::Driver::disableSR()
 {
-    cbc->mcb->disableDriveSR();
+    MirrorControlBoard::disableDriveSR();
 }
 
 void CBC::Driver::setSteppingFrequency (int frequency)
@@ -328,7 +320,7 @@ void CBC::Driver::setSteppingFrequency (int frequency)
 
 void CBC::Driver::reset()
 {
-    cbc->mcb->setPhaseZeroOnAllDrives();
+    MirrorControlBoard::setPhaseZeroOnAllDrives();
 }
 
 void CBC::Driver::step(int drive, int nsteps)
@@ -370,7 +362,7 @@ void CBC::Driver::step(int drive, int nsteps, int frequency)
             pthread_setschedparam(this_thread, SCHED_FIFO, &params);
 
             /* Step the drive */
-            cbc->mcb->stepOneDrive(drive, dir, frequency * getMicrosteps());
+            MirrorControlBoard::stepOneDrive(drive, dir, frequency * getMicrosteps());
         }
         sched_yield();
         return;
@@ -387,17 +379,17 @@ CBC::Encoder::Encoder (CBC *thiscbc) : cbc(thiscbc)
 
 void CBC::Encoder::enable()
 {
-    cbc->mcb->powerUpEncoders();
+    MirrorControlBoard::powerUpEncoders();
 }
 
 void CBC::Encoder::disable()
 {
-    cbc->mcb->powerDownEncoders();
+    MirrorControlBoard::powerDownEncoders();
 }
 
 bool CBC::Encoder::isEnabled()
 {
-    return (cbc->mcb->isEncodersPoweredUp());
+    return (MirrorControlBoard::isEncodersPoweredUp());
 }
 
 //===========================================================================
@@ -427,18 +419,18 @@ CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples)
     if (nsamples < 0)
         return(data);
 
-    cbc->mcb->measureADCStat(adc, channel, nsamples, sum, sumsq, min, max, m_readDelay);
+    MirrorControlBoard::measureADCStat(adc, channel, nsamples, sum, sumsq, min, max, m_readDelay);
 
     uint32_t mean   = sum/nsamples;
     float    var    = (sumsq - (1.0*sum*sum)/nsamples)/nsamples;
     float    stddev = sqrt(var);
 
     static const float volt_full = 5.0f;
-    data.voltage      = cbc->tlcadc->voltData(mean,                  volt_full);
-    data.stddev       = cbc->tlcadc->voltData(stddev,                volt_full);
-    data.voltageMin   = cbc->tlcadc->voltData(min,                   volt_full);
-    data.voltageMax   = cbc->tlcadc->voltData(max,                   volt_full);
-    data.voltageError = cbc->tlcadc->voltData(stddev/sqrt(nsamples), volt_full);
+    data.voltage      = TLC3548::voltData(mean,                  volt_full);
+    data.stddev       = TLC3548::voltData(stddev,                volt_full);
+    data.voltageMin   = TLC3548::voltData(min,                   volt_full);
+    data.voltageMax   = TLC3548::voltData(max,                   volt_full);
+    data.voltageError = TLC3548::voltData(stddev/sqrt(nsamples), volt_full);
 
     return (data);
 }
@@ -554,17 +546,17 @@ CBC::AUXsensor::AUXsensor (CBC *thiscbc) : cbc(thiscbc)
 
 void CBC::AUXsensor::enable()
 {
-    cbc->mcb->powerUpSensors();
+    MirrorControlBoard::powerUpSensors();
 }
 
 void CBC::AUXsensor::disable()
 {
-    cbc->mcb->powerDownSensors();
+    MirrorControlBoard::powerDownSensors();
 }
 
 bool CBC::AUXsensor::isEnabled()
 {
-    return(cbc->mcb->isSensorsPoweredUp());
+    return(MirrorControlBoard::isSensorsPoweredUp());
 }
 
 struct CBC::Config CBC::config_default;
