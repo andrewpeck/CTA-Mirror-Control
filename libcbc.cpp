@@ -315,7 +315,7 @@ void CBC::Driver::disableSR()
 
 void CBC::Driver::setSteppingFrequency (int frequency)
 {
-        m_steppingFrequency = frequency;
+    m_steppingFrequency = frequency;
 }
 
 void CBC::Driver::reset()
@@ -439,36 +439,80 @@ CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples)
  * Encoders
  */
 
+float CBC::ADC::readEncoderVoltage (int encoder)
+{
+    return (readEncoder(encoder).voltage);
+}
+
 CBC::ADC::adcData CBC::ADC::readEncoder (int encoder)
 {
     return(readEncoder(encoder,m_defaultSamples));
 }
 
+void CBC::ADC::setEncodersCalibrated ()
+{
+    m_encodersCalibrated = true;
+}
+void CBC::ADC::setEncodersUncalibrated ()
+{
+    m_encodersCalibrated = false;
+}
 CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
 {
+    adcData data;
+
     /* Return all zeros if you read something wrong */
     if ( (encoder < 1) | (encoder > 6) ) {
-        adcData data;
         memset(&data, 0, sizeof(adcData));
         return (data);
     }
     else {
+
         /* we count from zero in MCB */
         encoder = (encoder-1);
         usleep(cbc->getDelayTime());
-        return(measure(0,encoder,nsamples));
+        data = measure(0,encoder,nsamples);
+
+        if (m_encodersCalibrated) {
+            float temperature = readTemperatureVolts().voltage;
+            const float temperature_ref = 0.75; // reference temperature = 25C=0.75V
+            float correction = (temperature - temperature_ref)*getEncoderTempCoefficient(encoder);
+            data.voltage    += correction;
+            data.voltageMin += correction;
+            data.voltageMax += correction;
+        }
+
+        return(data);
     }
+}
+
+float CBC::ADC::getEncoderTempCoefficient(int iencoder)
+{
+    if (overrideEncoderTempCoefficient[iencoder])
+        return (encoderTempCoefficients[iencoder]);
+    else
+        return (encoderTempCoefficient);
 }
 
 /*
  * Temperature Sensors
  */
-CBC::ADC::adcData CBC::ADC::readOnboardTemp ()
+float CBC::ADC::readTemperature()
 {
-    return(readOnboardTemp(m_defaultSamples));
+    return((readTemperatureVolts().voltage-0.5)*100);
 }
 
-CBC::ADC::adcData CBC::ADC::readOnboardTemp (int nsamples)
+float CBC::ADC::readTemperature(int nsamples)
+{
+    return((readTemperatureVolts(nsamples).voltage-0.5)*100);
+}
+
+CBC::ADC::adcData CBC::ADC::readTemperatureVolts ()
+{
+    return(readTemperatureVolts(m_defaultSamples));
+}
+
+CBC::ADC::adcData CBC::ADC::readTemperatureVolts (int nsamples)
 {
     return(measure(0,6,nsamples));
 }

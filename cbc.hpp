@@ -373,17 +373,27 @@ class CBC
                  *  @param nsamples Number of ADC Samples to average
                  */
                 adcData readEncoder (int encoder, int nsamples);
+                float readEncoderVoltage (int encoder);
                 ///@}
+
+
+                void setEncodersCalibrated();
+                void setEncodersUncalibrated();
+
 
                 ///@{
                 /*! @name Temperature Sensor Readout
                 */
 
+                float readTemperature();
+
+                float readTemperature(int nsamples);
+
                 /*! @brief Read Onboard temperature sensor voltage with default number of samples. */
-                adcData readOnboardTemp  ();
+                adcData readTemperatureVolts  ();
                 /*! @brief Read Onboard temperature sensor voltage with configurable number of samples.
                  *  @param nsamples Number of ADC Samples to average*/
-                adcData readOnboardTemp  (int nsamples);
+                adcData readTemperatureVolts  (int nsamples);
 
                 /*! @brief Read External temperature sensor voltage with default number of samples. */
                 adcData readExternalTemp ();
@@ -447,6 +457,11 @@ class CBC
                 CBC *cbc;
                 int m_readDelay;
                 int m_defaultSamples;
+                bool m_encodersCalibrated;
+                float getEncoderTempCoefficient(int iencoder);
+                const float encoderTempCoefficient = 0.03;
+                float encoderTempCoefficients[6] = {0};
+                bool  overrideEncoderTempCoefficient[6] = {0};
         } adc;
 
         //////////////////////////////////////////////////////////////////////////////
@@ -477,8 +492,6 @@ class CBC
         int m_delay; // in milliseconds
         void setDelayTime(int delay);
         int getDelayTime();
-
-    private:
 };
 
 #endif
