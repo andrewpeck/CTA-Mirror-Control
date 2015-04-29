@@ -451,11 +451,11 @@ CBC::ADC::adcData CBC::ADC::readEncoder (int encoder)
 
 void CBC::ADC::setEncodersCalibrated ()
 {
-    m_encodersCalibrated = true;
+    m_calibrateEncoderTemperature = true;
 }
 void CBC::ADC::setEncodersUncalibrated ()
 {
-    m_encodersCalibrated = false;
+    m_calibrateEncoderTemperature = false;
 }
 CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
 {
@@ -470,13 +470,14 @@ CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
 
         /* we count from zero in MCB */
         encoder = (encoder-1);
+
         usleep(cbc->getDelayTime());
         data = measure(0,encoder,nsamples);
 
-        if (m_encodersCalibrated) {
+        if (m_calibrateEncoderTemperature) {
             float temperature = readTemperatureVolts().voltage;
             const float temperature_ref = 0.75; // reference temperature = 25C=0.75V
-            float correction = (temperature - temperature_ref)*getEncoderTempCoefficient(encoder);
+            float correction = (temperature - temperature_ref)*getEncoderTemperatureCoefficient(encoder);
             data.voltage    += correction;
             data.voltageMin += correction;
             data.voltageMax += correction;
@@ -486,12 +487,13 @@ CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
     }
 }
 
-float CBC::ADC::getEncoderTempCoefficient(int iencoder)
+float CBC::ADC::getEncoderTemperatureCoefficient(int iencoder)
 {
-    if (overrideEncoderTempCoefficient[iencoder])
-        return (encoderTempCoefficients[iencoder]);
+    iencoder = (iencoder-1);
+    if (overrideEncoderTemperatureCoefficient[iencoder])
+        return (encoderTemperatureCoefficient[iencoder]);
     else
-        return (encoderTempCoefficient);
+        return (defaultEncoderTemperatureCoefficient);
 }
 
 /*
@@ -561,7 +563,7 @@ CBC::ADC::adcData CBC::ADC::readRefHigh(int adc, int nsamples) {
 }
 
 /*
- * Voltage References
+ * ADC Measurement Options
  */
 
 int  CBC::ADC::getReadDelay()

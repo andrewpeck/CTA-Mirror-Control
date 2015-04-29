@@ -451,17 +451,18 @@ class CBC
                 int  getDefaultSamples();
                 ///@}
 
-
                 ADC(CBC *cbc);
             private:
                 CBC *cbc;
                 int m_readDelay;
                 int m_defaultSamples;
-                bool m_encodersCalibrated;
-                float getEncoderTempCoefficient(int iencoder);
-                const float encoderTempCoefficient = 0.03;
-                float encoderTempCoefficients[6] = {0};
-                bool  overrideEncoderTempCoefficient[6] = {0};
+
+                bool  m_calibrateEncoderTemperature;
+                float getEncoderTemperatureCoefficient(int iencoder);
+                const float defaultEncoderTemperatureCoefficient = 0;
+                float encoderTemperatureCoefficient[6] = {0};
+                bool  overrideEncoderTemperatureCoefficient[6] = {0};
+
         } adc;
 
         //////////////////////////////////////////////////////////////////////////////
