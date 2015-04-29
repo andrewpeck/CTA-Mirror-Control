@@ -10,6 +10,7 @@
 #include <time.h>
 #include <cbc.hpp>
 #include <math.h>
+#include <chrono>
 
 
 #include <stdio.h>
@@ -17,6 +18,17 @@
 
 #include "MirrorControlBoard.hpp"
 #include "TLC3548_ADC.hpp"
+
+void usleep2 (int usdelay)
+{
+    static const int NANOS =  1000000000LL;
+    static const int MICROS = 1000000LL;
+    int nanodelay = usdelay * NANOS / MICROS;
+    struct timespec delay;
+    delay.tv_sec = 0;
+    delay.tv_nsec = nanodelay;
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &delay, NULL);
+}
 
 // DESTROYER
 CBC::~CBC()
@@ -237,7 +249,7 @@ void CBC::Driver::enable(int drive)
 
     //enable drive
     MirrorControlBoard::enableDrive(drive-1); //MCB counts from zero
-    usleep(cbc->getDelayTime());
+    usleep2(cbc->getDelayTime());
 }
 
 void CBC::Driver::disable(int drive)
@@ -247,7 +259,7 @@ void CBC::Driver::disable(int drive)
         return;
 
     //disable drive
-    usleep(cbc->getDelayTime());
+    usleep2(cbc->getDelayTime());
     MirrorControlBoard::disableDrive(drive-1); //MCB counts from zero
 }
 
@@ -340,7 +352,7 @@ void CBC::Driver::step(int drive, int nsteps, int frequency)
     if ((drive<1)||(drive>6))
         return;
 
-    usleep(cbc->getDelayTime());
+    usleep2(cbc->getDelayTime());
     if (isEnabled(drive)) {
         /* MCB counts from 0 */
         drive = drive - 1;
@@ -471,7 +483,7 @@ CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
         /* we count from zero in MCB */
         encoder = (encoder-1);
 
-        usleep(cbc->getDelayTime());
+        usleep2(cbc->getDelayTime());
         data = measure(0,encoder,nsamples);
 
         if (m_calibrateEncoderTemperature) {
