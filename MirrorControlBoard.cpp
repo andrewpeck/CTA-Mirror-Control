@@ -319,7 +319,7 @@ namespace MirrorControlBoard
     void waitHalfPeriod(unsigned frequency)
     {
 
-#define NANOS 1000000000LL
+        static const int NANOS = 1000000000LL;
         /*
          * Method 1: Sleep Method
          */
