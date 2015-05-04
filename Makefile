@@ -1,10 +1,10 @@
 # SJF
 
-LIBOBJECTS =  GPIOInterface.o MirrorControlBoard.o SpiInterface.o Layout.o TLC3548_ADC.o minIni.o configurator.o
+LIBOBJECTS =  GPIOInterface.o MirrorControlBoard.o Layout.o TLC3548_ADC.o minIni.o configurator.o mcspiInterface.o
 #	  OmniORBHelper.o VSAssert.o VSDataConverter.o VSOptions.o 
 ALLOBJECTS = cbc.o demo.o $(LIBOBJECTS)
 
-MYCXXFLAGS = -Wall -O3 -I. -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS #-DNOCOSEVENT -IomniORB4
+MYCXXFLAGS = -Wall -O3 -I. -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS --std=c++11 #-DNOCOSEVENT -IomniORB4
 MYLDFLAGS  = 
 MYLIBS     = #-lomniDynamic4 -lomniORB4 
 

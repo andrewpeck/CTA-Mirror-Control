@@ -23,9 +23,9 @@ int main(int argc, const char** argv)
 
     cbc cbc;
     MirrorControlBoard mcb;
-    configurator config; 
+    configurator config;
 
-    int stepping_frequency = config.frequency(); 
+    int stepping_frequency = config.frequency();
 
     if(argc == 0)
         cbc.usage();
@@ -151,8 +151,8 @@ int main(int argc, const char** argv)
         if (argc==0)
             cbc.usage();
         uint32_t data = strtol(*argv, NULL, 16);
-        SpiInterface spi;
-        spi.Configure();
+        mcspiInterface spi;
+        //spi.Configure();
         printf("write: %04X", data);
         data = spi.WriteRead(data);
         printf("read: %04X", data);
@@ -335,11 +335,11 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        // delay (burn an argument for legacy purposes). 
+        // delay (burn an argument for legacy purposes).
         if(argc) {
             argc--, argv++;
         }
-        
+
         // voltage reference
         float volt_full = 5.00;
         if(argc)
@@ -348,7 +348,7 @@ int main(int argc, const char** argv)
             argc--, argv++;
         }
 
-        // hex out yes or no ? 
+        // hex out yes or no ?
         int hex_out = 0;
         if(argc)
         {
@@ -360,7 +360,7 @@ int main(int argc, const char** argv)
     }
     else if (command == "measure_full")
     {
-        // adc number 
+        // adc number
         if(argc==0)
             cbc.usage();
         unsigned iadc = atoi(*argv);
@@ -474,7 +474,7 @@ int main(int argc, const char** argv)
 
 int cbc::initialize()
 {
-    configurator config; 
+    configurator config;
 
     // configure gpio directions
     printf("Configuring GPIOs...\n");
@@ -486,8 +486,8 @@ int cbc::initialize()
 
     if (config.drivesr())
         mcb.enableDriveSR();
-    else 
-        mcb.disableDriveSR(); 
+    else
+        mcb.disableDriveSR();
 
     if (config.hicurrent())
         mcb.enableDriveHiCurrent();
@@ -495,11 +495,11 @@ int cbc::initialize()
         mcb.disableDriveHiCurrent();
 
 
-    unsigned microsteps = config.microsteps(); 
-    set_microstep(microsteps); 
+    unsigned microsteps = config.microsteps();
+    set_microstep(microsteps);
 
     printf("Configure USBs...\n");
-    for (int i=1; i<=7; i++) 
+    for (int i=1; i<=7; i++)
     {
         if (config.usbenabled(i))
             enableusb(i);
@@ -508,7 +508,7 @@ int cbc::initialize()
     }
 
     printf("Configure Motor Drivers...\n");
-    for (int i=1; i<=6; i++) 
+    for (int i=1; i<=6; i++)
     {
         if (config.driveenabled(i))
             enable(i);
@@ -719,9 +719,9 @@ void cbc::freqloop(unsigned nloop)
 
 void cbc::step(unsigned idrive, int nstep, unsigned frequency)
 {
-    pthread_t this_thread = pthread_self(); 
-    struct sched_param params; 
-    params.sched_priority = sched_get_priority_max(SCHED_FIFO); 
+    pthread_t this_thread = pthread_self();
+    struct sched_param params;
+    params.sched_priority = sched_get_priority_max(SCHED_FIFO);
     pthread_setschedparam(this_thread, SCHED_FIFO, &params);
 
     // whine if invalid actuator number
@@ -932,14 +932,14 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
         zchan--;
 
     //------------------------------------------------------------------------------
-    // good code: 
+    // good code:
     // printf("ADC:        %i\n",          iadc+1);
     // printf("Channels:   %i to %i\n",    zchan+1,nchan);
     // printf("Nburn:      %i\n",          nburn);
     // printf("FullVolt    %f\n\n",        volt_full);
     //------------------------------------------------------------------------------
     // bad code
-    std::cout 
+    std::cout
         << "ADC:      " << iadc+1       << '\n'
 		<< "Channels: " << zchan+1      << " to " << nchan << '\n'
 		<< "NMeas:    " << nmeas        << '\n'
@@ -957,12 +957,12 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
         mcb.measureADCStat(iadc, ichan, nmeas, sum[ichan], sum2[ichan], min[ichan], max[ichan], nburn);
 
     //------------------------------------------------------------------------------
-    // good code: 
-    //if (hex_out == 0) 
+    // good code:
+    //if (hex_out == 0)
     //{
     //    printf("i  mean   rms    max    min     \n");
     //}
-    //else 
+    //else
     //{
     //    good code: // printf("i  mean     rms      max      min     \n");
     //}
@@ -982,18 +982,18 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
             float adcmax  = adc.voltData(max[ichan],volt_full);
             float adcmin  = adc.voltData(min[ichan],volt_full);
 
-            
+
             //------------------------------------------------------------------------------
             //bad code
-            std::cout 
+            std::cout
                 << std::setw(2) << ichan+1 << ' '
-                << std::fixed   
+                << std::fixed
                 << std::setw(6) << std::setprecision(4) << adcmean      << ' '
                 << std::setw(6) << std::setprecision(4) << adcrms       << ' '
                 << std::setw(6) << std::setprecision(4) << adcmax       << ' '
                 << std::setw(6) << std::setprecision(4) << adcmin       << '\n';
             //------------------------------------------------------------------------------
-            // good code: 
+            // good code:
             // printf("%02i %06.04f %06.04f %06.04f %06.04f\n",ichan+1,adcmean,adcrms,adcmax,adcmin);
             //------------------------------------------------------------------------------
         }
@@ -1001,16 +1001,16 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
         {
             //------------------------------------------------------------------------------
             //bad code
-            std::cout 
+            std::cout
                 << std::setw(2) << ichan+1 << ' '
-                << std::hex << std::fixed 
+                << std::hex << std::fixed
                 << std::setw(6) << mean << ' '
                 << std::setw(6) << rms << ' '
                 << std::setw(6) << max[ichan] << ' '
-                << std::setw(6) << min[ichan] 
+                << std::setw(6) << min[ichan]
                 << std::dec << '\n';
             //------------------------------------------------------------------------------
-            // good code 
+            // good code
             // printf("%02i 0x%06X 0x%06X 0x%06X 0x%06X\n", ichan+1, mean, rms, max[ichan], min[ichan]);
             //------------------------------------------------------------------------------
         }
@@ -1026,20 +1026,20 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
 
         //------------------------------------------------------------------------------
         //bad code
-        std::cout 
+        std::cout
             << "POS " << std::setw(7) << std::setprecision(4)
             << double(v[0] + v[1] - v[2] - v[3])/(v[0] + v[1] + v[2] + v[3]) << " ";
-        std::cout 
-            << std::setw(7) << std::setprecision(4) 
+        std::cout
+            << std::setw(7) << std::setprecision(4)
             << double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]) << "\n";
-        std::cout 
-            << "POS " << std::setw(7) << std::setprecision(4) 
+        std::cout
+            << "POS " << std::setw(7) << std::setprecision(4)
             << double(v[0] + v[2] - v[1] - v[3])/(v[0] + v[1] + v[2] + v[3]) << " ";
-        std::cout 
-            << std::setw(7) << std::setprecision(4) 
+        std::cout
+            << std::setw(7) << std::setprecision(4)
             << double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]) << "\n";
         //------------------------------------------------------------------------------
-        // good code 
+        // good code
         //printf("POS %07.04f ", double(v[0] + v[1] - v[2] - v[3])/(v[0] + v[1] + v[2] + v[3]));
         //printf("%07.04f\n",    double(v[1] + v[2] - v[3] - v[0])/(v[0] + v[1] + v[2] + v[3]));
         //printf("POS %07.04f ", double(v[0] + v[2] - v[1] - v[3])/(v[0] + v[1] + v[2] + v[3]));
@@ -1076,7 +1076,7 @@ void cbc::measure_full(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned v
             uint32_t datum = mcb.measureADC(iadc,ichan);
             printf("%06.04f ", adc.voltData(datum));
         }
-        printf("\n"); 
+        printf("\n");
     }
 }
 
@@ -1162,10 +1162,10 @@ void cbc::calibrate(unsigned idrive, unsigned nstep, unsigned ncycle, unsigned f
             //printf("%02i %06.04f %06.04f %06.04f %06.04f\n",idatum,adcmean,adcrms,adcmax,adcmin);
             //------------------------------------------------------------------------------
             // bad code
-            std::cout 
+            std::cout
             << mean << ' '
-			<< std::fixed 
-            << std::setw(6) << std::setprecision(4) << adcmean << ' ' 
+			<< std::fixed
+            << std::setw(6) << std::setprecision(4) << adcmean << ' '
             << std::setw(6) << std::setprecision(4) << adcrms  << ' '
 			<< std::setw(6) << std::setprecision(4) << adcmax  << ' '
 			<< std::setw(6) << std::setprecision(4) << adcmin  << '\n';
@@ -1210,7 +1210,7 @@ std::string cbc::usage_text =
 "\n    command                {required arguments} [optional arguments]\n"
 "\n    initialize             Initialize the hardware. Should be done once"
 "                             after boot-up. Configures GPIOs, turns on all"
-"                             hardware except USBs." 
+"                             hardware except USBs."
 "\n"
 "\n    power down             Go into power saving mode. Power down encoders, USB and A3977."
 "\n    power up               Power up all on-board and off-board electronics."
@@ -1273,7 +1273,7 @@ std::string cbc::usage_text =
 "\n                           given as zero to specify all channels on one ADC. Channels 9, 10"
 "\n                           and 11 correspond to internal reference voltages on the ADC."
 "\n                           Prints out raw data."
-"\n                           Note that delay does nothing but you have to put" 
+"\n                           Note that delay does nothing but you have to put"
 "\n                           it anyway if you want to chance the scale."
 "\n"
 "\n    calibrate              {DR 1-6} [NSTEP=10000 NCYCLE=0 FREQUENCY=4000 ADC=7 MEAS=1]"

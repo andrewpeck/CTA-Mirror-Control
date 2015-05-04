@@ -8,6 +8,7 @@
 
 #include <Layout.hpp>
 #include <SpiInterface.hpp>
+#include <mcspiInterface.hpp>
 #include <TLC3548_ADC.hpp>
 #include <GPIOInterface.hpp>
 #include <vector>
@@ -120,7 +121,7 @@ public:
 private:
     GPIOInterface gpio;
     Layout layout;
-    SpiInterface spi;
+    mcspiInterface spi;
     TLC3548_ADC ADC;
     static const unsigned m_nusb=7;
     unsigned          m_ssp_clk_div;

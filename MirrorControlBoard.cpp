@@ -46,7 +46,7 @@ void MirrorControlBoard::powerUpBase()
 
     gpio.WriteLevel(layout.igpioADCSel1, 1);
     gpio.WriteLevel(layout.igpioADCSel2, 1);
-    spi.Configure();
+    //spi.Configure();
     spi.WriteRead(0x0000);
 
     // Initialize on-board ADC
@@ -58,7 +58,7 @@ void MirrorControlBoard::powerDownBase()
 {
     // Set on-board ADC into sleep mode
     selectADC(7);
-    spi.Configure();
+    //spi.Configure();
     spi.WriteRead(ADC.codeSWPowerDown());
 
     // Power down ADCs
@@ -295,7 +295,7 @@ bool MirrorControlBoard::isDriveHiCurrentEnabled()
 
 void MirrorControlBoard::initializeADC(unsigned iadc)
 {
-    spi.Configure();
+    //spi.Configure();
     selectADC(iadc);                                        // Assert Chip Select for ADC in question
     spi.WriteRead(ADC.codeInitialize());
     spi.WriteRead(ADC.codeConfig());
@@ -309,9 +309,9 @@ void MirrorControlBoard::selectADC(unsigned iadc)
 
 uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 {
-    spi.Configure();
+    //spi.Configure();
 
-    initializeADC(iadc); 
+    initializeADC(iadc);
 
     // Assert Chip Select
     selectADC(iadc);
@@ -328,8 +328,8 @@ uint32_t MirrorControlBoard::measureADC(unsigned iadc, unsigned ichan)
 
 void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned nmeas, uint32_t& sum, uint64_t& sumsq, uint32_t& min, uint32_t& max, unsigned nburn)
 {
-    spi.Configure();
-    initializeADC(iadc); 
+    //spi.Configure();
+    initializeADC(iadc);
     selectADC(iadc);
     uint32_t code   = ADC.codeSelect(ichan);
     unsigned nloop  = nburn + nmeas;
