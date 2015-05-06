@@ -977,7 +977,7 @@ float cbc::measure(unsigned iadc, unsigned zchan, unsigned nmeas, unsigned nburn
 
         if(hex_out == 0)
         {
-            float adcmean = adc.voltData(mean,      volt_full);
+            float adcmean = adc.voltData(double(sum[ichan])/double(nmeas),      volt_full);
             float adcrms  = adc.voltData(rms,       volt_full);
             float adcmax  = adc.voltData(max[ichan],volt_full);
             float adcmin  = adc.voltData(min[ichan],volt_full);
