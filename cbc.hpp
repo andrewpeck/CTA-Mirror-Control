@@ -45,7 +45,7 @@ class CBC
              * @param delayTime           Microseconds delay to pad between stepping, reading encoders, enable/disable motors
              */
             Config() : steppingFrequency(400), highCurrentMode(false),
-            driveSR(true), adcReadDelay(0), defaultADCSamples(100), usbEnable(0),
+            driveSR(true), adcReadDelay(0), defaultADCSamples(1000), usbEnable(0),
             driveEnable(0), microsteps(8), delayTime(15000) {}
 
             int  steppingFrequency ;
