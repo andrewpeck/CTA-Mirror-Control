@@ -341,6 +341,8 @@ void MirrorControlBoard::measureADCStat(unsigned iadc, unsigned ichan, unsigned 
     // Loop over number of measurements
     for(unsigned iloop=0; iloop<nloop; iloop++)
     {
+        initializeADC(iadc);
+
         // Read data
         uint32_t datum = spi.WriteRead(code);
 
