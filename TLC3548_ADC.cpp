@@ -161,7 +161,17 @@ namespace TLC3548 {
         return float(data)/float(fullScaleUSB());
     }
 
+    float fracData(float data)
+    {
+        return float(data)/float(fullScaleUSB());
+    }
+
     float voltData(const uint32_t data, const float full_volt)
+    {
+        return fracData(data)*full_volt;
+    }
+
+    float voltData(float data, const float full_volt)
     {
         return fracData(data)*full_volt;
     }
