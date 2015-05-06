@@ -74,24 +74,24 @@
 //------------------------------------------------------------------------------
 
 // constructor
-mcspiInterface::mcspiInterface() :
-    cm_fclken1_core   (NULL),
-    cm_iclken1_core   (NULL),
-    mcspi_sysconfig   (NULL),
-    mcspi_sysstatus   (NULL),
-    mcspi_wakeupenable(NULL),
-    mcspi_modulctrl   (NULL),
-    mcspi_chconf      (NULL),
-    mcspi_chstat      (NULL),
-    mcspi_chctrl      (NULL),
-    mcspi_tx          (NULL),
-    mcspi_rx          (NULL),
-    mcspi_irqstatus   (NULL),
-    mcspi_irqenable   (NULL),
-    m_mmap_fd(-1),
-    m_cm_core_base(NULL),
-    m_mcspi1_base(NULL)
-    //m_padconf(),
+mcspiInterface::mcspiInterface ( ) :
+    cm_fclken1_core            (NULL),
+    cm_iclken1_core            (NULL),
+    mcspi_sysconfig            (NULL),
+    mcspi_sysstatus            (NULL),
+    mcspi_wakeupenable         (NULL),
+    mcspi_modulctrl            (NULL),
+    mcspi_chconf               (NULL),
+    mcspi_chstat               (NULL),
+    mcspi_chctrl               (NULL),
+    mcspi_tx                   (NULL),
+    mcspi_rx                   (NULL),
+    mcspi_irqstatus            (NULL),
+    mcspi_irqenable            (NULL),
+    m_mmap_fd                  (-1),
+    m_cm_core_base             (NULL),
+    m_mcspi1_base              (NULL)
+    //m_padconf                (),
 {
     debug_print("%s\n", "Start of MCSPI Constructor");
 
@@ -112,17 +112,17 @@ mcspiInterface::mcspiInterface() :
     cm_fclken1_core    = mappedAddress(OFF_CM_FCLKEN1_CORE, m_cm_core_base);
     cm_iclken1_core    = mappedAddress(OFF_CM_ICLKEN1_CORE, m_cm_core_base);
 
-    mcspi_sysconfig    = mappedAddress(OFF_MCSPI_SYSCONFIG , m_mcspi1_base);
-    mcspi_sysstatus    = mappedAddress(OFF_MCSPI_SYSSTATUS , m_mcspi1_base);
+    mcspi_sysconfig    = mappedAddress(OFF_MCSPI_SYSCONFIG    , m_mcspi1_base);
+    mcspi_sysstatus    = mappedAddress(OFF_MCSPI_SYSSTATUS    , m_mcspi1_base);
     mcspi_wakeupenable = mappedAddress(OFF_MCSPI_WAKEUPENABLE , m_mcspi1_base);
-    mcspi_modulctrl    = mappedAddress(OFF_MCSPI_MODULCTRL, m_mcspi1_base);
-    mcspi_chconf       = mappedAddress(OFF_MCSPI_CHCONF, m_mcspi1_base);
-    mcspi_chstat       = mappedAddress(OFF_MCSPI_CHSTAT, m_mcspi1_base);
-    mcspi_chctrl       = mappedAddress(OFF_MCSPI_CHCTRL, m_mcspi1_base);
-    mcspi_tx           = mappedAddress(OFF_MCSPI_TX, m_mcspi1_base);
-    mcspi_rx           = mappedAddress(OFF_MCSPI_RX, m_mcspi1_base);
-    mcspi_irqstatus    = mappedAddress(OFF_MCSPI_IRQSTATUS, m_mcspi1_base);
-    mcspi_irqenable    = mappedAddress(OFF_MCSPI_IRQENABLE, m_mcspi1_base);
+    mcspi_modulctrl    = mappedAddress(OFF_MCSPI_MODULCTRL    , m_mcspi1_base);
+    mcspi_chconf       = mappedAddress(OFF_MCSPI_CHCONF       , m_mcspi1_base);
+    mcspi_chstat       = mappedAddress(OFF_MCSPI_CHSTAT       , m_mcspi1_base);
+    mcspi_chctrl       = mappedAddress(OFF_MCSPI_CHCTRL       , m_mcspi1_base);
+    mcspi_tx           = mappedAddress(OFF_MCSPI_TX           , m_mcspi1_base);
+    mcspi_rx           = mappedAddress(OFF_MCSPI_RX           , m_mcspi1_base);
+    mcspi_irqstatus    = mappedAddress(OFF_MCSPI_IRQSTATUS    , m_mcspi1_base);
+    mcspi_irqenable    = mappedAddress(OFF_MCSPI_IRQENABLE    , m_mcspi1_base);
 
     //makeMap(m_padconf,      ADR_PADCONF_BASE);
     debug_print("%s\n", "End of MCSPI Constructor");
