@@ -451,61 +451,111 @@ CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples)
  * Encoders
  */
 
-float CBC::ADC::readEncoderVoltage (int encoder)
+float CBC::ADC::readEncoderVoltage (int iencoder)
 {
-    return (readEncoder(encoder).voltage);
+    return (readEncoder(iencoder).voltage);
 }
 
-CBC::ADC::adcData CBC::ADC::readEncoder (int encoder)
+CBC::ADC::adcData CBC::ADC::readEncoder (int iencoder)
 {
-    return(readEncoder(encoder,m_defaultSamples));
+    return(readEncoder(iencoder,m_defaultSamples));
 }
 
-void CBC::ADC::setEncodersCalibrated ()
-{
-    m_calibrateEncoderTemperature = true;
-}
-void CBC::ADC::setEncodersUncalibrated ()
-{
-    m_calibrateEncoderTemperature = false;
-}
-CBC::ADC::adcData CBC::ADC::readEncoder (int encoder, int nsamples)
+CBC::ADC::adcData CBC::ADC::readEncoder (int iencoder, int nsamples)
 {
     adcData data;
 
-    /* Return all zeros if you read something wrong */
-    if ( (encoder < 1) | (encoder > 6) ) {
-        memset(&data, 0, sizeof(adcData));
-        return (data);
-    }
-    else {
+    assert(iencoder>0);
+    assert(iencoder<7);
 
-        /* we count from zero in MCB */
-        encoder = (encoder-1);
+    /* we count from zero in MCB */
+    iencoder = (iencoder-1);
 
-        usleep2(cbc->getDelayTime());
-        data = measure(0,encoder,nsamples);
+    usleep2(cbc->getDelayTime());
+    data = measure(0,iencoder,nsamples);
 
-        if (m_calibrateEncoderTemperature) {
-            float temperature = readTemperatureVolts().voltage;
-            const float temperature_ref = 0.75; // reference temperature = 25C=0.75V
-            float correction = (temperature - temperature_ref)*getEncoderTemperatureCoefficient(encoder);
-            data.voltage    += correction;
-            data.voltageMin += correction;
-            data.voltageMax += correction;
-        }
+    /* Encoder Voltage Conditioning Circuit Offset and Slope Correction */
+    float offset = getEncoderConditioningOffset(iencoder+1);
+    float slope  = getEncoderConditioningSlope (iencoder+1);
+    data.voltage    = (data.voltage    - offset)/slope;
+    data.voltageMin = (data.voltageMin - offset)/slope;
+    data.voltageMax = (data.voltageMax - offset)/slope;
 
-        return(data);
-    }
+    /* Temperature Correction */
+    float temperature = readTemperatureVolts().voltage;
+    const float temperature_ref = 0.75; // reference temperature = 25C=0.75V
+    float correction = (temperature - temperature_ref)*getEncoderTemperatureSlope(iencoder+1);
+    data.voltage    += correction;
+    data.voltageMin += correction;
+    data.voltageMax += correction;
+
+    return(data);
 }
 
-float CBC::ADC::getEncoderTemperatureCoefficient(int iencoder)
+float CBC::ADC::getEncoderTemperatureSlope(int iencoder)
 {
+    assert(iencoder>0);
+    assert(iencoder<7);
+
     iencoder = (iencoder-1);
-    if (overrideEncoderTemperatureCoefficient[iencoder])
-        return (encoderTemperatureCoefficient[iencoder]);
+    if (overrideEncoderTemperatureSlope[iencoder])
+        return (encoderTemperatureSlope[iencoder]);
     else
-        return (defaultEncoderTemperatureCoefficient);
+        return (defaultEncoderTemperatureSlope);
+}
+
+void CBC::ADC::setEncoderTemperatureSlope (int iencoder, float slope)
+{
+    assert(iencoder>0);
+    assert(iencoder<7);
+
+    iencoder = (iencoder-1);
+    encoderTemperatureSlope[iencoder] = slope;
+    overrideEncoderTemperatureSlope[iencoder] = 1;
+}
+
+float CBC::ADC::getEncoderConditioningSlope(int iencoder)
+{
+    assert(iencoder>0);
+    assert(iencoder<7);
+
+    iencoder = (iencoder-1);
+    if (overrideEncoderConditioningSlope[iencoder])
+        return (encoderConditioningSlope[iencoder]);
+    else
+        return (defaultEncoderConditioningSlope);
+}
+
+void CBC::ADC::setEncoderConditioningSlope (int iencoder, float slope)
+{
+    assert(iencoder>0);
+    assert(iencoder<7);
+
+    iencoder = (iencoder-1);
+    encoderConditioningSlope[iencoder] = slope;
+    overrideEncoderConditioningSlope[iencoder] = 1;
+}
+
+float CBC::ADC::getEncoderConditioningOffset(int iencoder)
+{
+    assert(iencoder>0);
+    assert(iencoder<7);
+
+    iencoder = (iencoder-1);
+    if (overrideEncoderConditioningOffset[iencoder])
+        return (encoderConditioningOffset[iencoder]);
+    else
+        return (defaultEncoderConditioningOffset);
+}
+
+void CBC::ADC::setEncoderConditioningOffset (int iencoder, float offset)
+{
+    assert(iencoder>0);
+    assert(iencoder<7);
+
+    iencoder = (iencoder-1);
+    encoderConditioningOffset[iencoder] = offset;
+    overrideEncoderConditioningOffset[iencoder] = 1;
 }
 
 /*
