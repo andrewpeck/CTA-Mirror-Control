@@ -367,18 +367,14 @@ class CBC
                 /*! @brief Read encoder with global default number of ADC samples.
                  *  @param encoder Select from encoders 1-6
                  */
-                adcData readEncoder (int encoder);
+                adcData readEncoder (int iencoder);
                 /*! @brief Read encoder with specified number of ADC samples.
                  *  @param encoder Select from encoders 1-6
                  *  @param nsamples Number of ADC Samples to average
                  */
-                adcData readEncoder (int encoder, int nsamples);
-                float readEncoderVoltage (int encoder);
+                adcData readEncoder (int iencoder, int nsamples);
+                float readEncoderVoltage (int iencoder);
                 ///@}
-
-
-                void setEncodersCalibrated();
-                void setEncodersUncalibrated();
 
 
                 ///@{
@@ -451,17 +447,33 @@ class CBC
                 int  getDefaultSamples();
                 ///@}
 
+                float getEncoderTemperatureSlope (int iencoder);
+                void  setEncoderTemperatureSlope (int iencoder, float slope);
+
+                void  setEncoderConditioningSlope (int iencoder, float slope);
+                float getEncoderConditioningSlope (int iencoder);
+
+                void  setEncoderConditioningOffset (int iencoder, float offset);
+                float getEncoderConditioningOffset (int iencoder);
+
                 ADC(CBC *cbc);
+
             private:
                 CBC *cbc;
                 int m_readDelay;
                 int m_defaultSamples;
 
-                bool  m_calibrateEncoderTemperature;
-                float getEncoderTemperatureCoefficient(int iencoder);
-                const float defaultEncoderTemperatureCoefficient = 0;
-                float encoderTemperatureCoefficient[6] = {0};
-                bool  overrideEncoderTemperatureCoefficient[6] = {0};
+                const float defaultEncoderTemperatureSlope = 0;
+                float encoderTemperatureSlope[6] = {0};
+                bool  overrideEncoderTemperatureSlope[6] = {0};
+
+                const float defaultEncoderConditioningSlope = 1;
+                float encoderConditioningSlope[6] = {0};
+                bool  overrideEncoderConditioningSlope[6] = {0};
+
+                const float defaultEncoderConditioningOffset = 0;
+                float encoderConditioningOffset[6] = {0};
+                bool  overrideEncoderConditioningOffset[6] = {0};
 
         } adc;
 
