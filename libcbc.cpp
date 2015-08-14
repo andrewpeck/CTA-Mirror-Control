@@ -434,15 +434,14 @@ CBC::ADC::adcData CBC::ADC::measure(int adc, int channel, int nsamples)
     MirrorControlBoard::measureADCStat(adc, channel, nsamples, sum, sumsq, min, max, m_readDelay);
 
     float mean   = double(sum)/nsamples;
-    float var    = double((sumsq - (1.0*sum*sum))/nsamples)/nsamples;
+    float var    = double((1.0*sumsq) - ((1.0*sum*sum)/nsamples))/nsamples;
     float stddev = sqrt(var);
 
-    static const float volt_full = 5.0f;
-    data.voltage      = TLC3548::voltData(mean,                  volt_full);
-    data.stddev       = TLC3548::voltData(stddev,                volt_full);
-    data.voltageMin   = TLC3548::voltData(min,                   volt_full);
-    data.voltageMax   = TLC3548::voltData(max,                   volt_full);
-    data.voltageError = TLC3548::voltData(stddev/sqrt(nsamples), volt_full);
+    data.voltage      = TLC3548::voltData(mean);
+    data.stddev       = TLC3548::voltData(stddev);
+    data.voltageMin   = TLC3548::voltData(min);
+    data.voltageMax   = TLC3548::voltData(max);
+    data.voltageError = TLC3548::voltData(stddev/sqrt(nsamples));
 
     return (data);
 }

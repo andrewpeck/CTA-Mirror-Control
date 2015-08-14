@@ -266,50 +266,90 @@ namespace MirrorControlBoard
         max             = 0;
         min             = ~max;
 
+        uint32_t measurement [nmeas];
+
+        /* Increase Thread Priority */
         pthread_t this_thread = pthread_self();
         struct sched_param params;
         params.sched_priority = sched_get_priority_max(SCHED_FIFO);
         pthread_setschedparam(this_thread, SCHED_FIFO, &params);
 
-        // Loop over number of measurements
-        for(unsigned iloop=0; iloop<nloop; iloop++) {
+        uint32_t datum;
+
+        /* Loop over number of measurements */
+        for(unsigned iloop=0; iloop < nloop; iloop++) {
             // Read data
-            uint32_t datum = spi.WriteRead(code);
-
-            if (iloop>nburn) {
-                // Decode data
+            datum = spi.WriteRead(code);
+            /* Decode data and accumulate statistics*/
+            if (iloop >= nburn) {
                 datum = TLC3548::decodeUSB(datum);
-                // Typecast to 64 bit integer..
-                uint64_t datum64 = datum;
+                measurement[iloop-nburn] = datum;
+                if(datum>max) max=datum;
+                if(datum<min) min=datum;
 
-                // Accumulate statistics
-                sum+=datum;
-                sumsq+=datum64*datum64;
-                if(datum>max)
-                    max=datum;
-                if(datum<min)
-                    min=datum;
+                sum  +=datum;
+                sumsq+=static_cast<uint64_t>(datum) * static_cast<uint64_t>(datum);
             }
-
             for (volatile unsigned i=0; i<ndelay; i++);
         }
 
+        /* Read last FIFO, Clear Buffer */
+        datum = spi.WriteRead(TLC3548::codeReadFIFO());
+
+        float voltage_range = TLC3548::voltData((max-min));
+
+        bool at_home;
+        if (voltage_range>1.) at_home = true;
+        else                  at_home = false;
+
+        int cnt_high=0;
+        int cnt_low =0;
+        uint32_t encoder_midpoint = 5734; /* 1.75 volts */
+
+        /* Determine whether the high side or low side has more measurements
+         * for the case that the encoder is at 0 degrees */
+        if (at_home) {
+
+            for (unsigned iloop=0; iloop < nmeas; iloop++) {
+                if (measurement[iloop] > encoder_midpoint)
+                    cnt_high++;
+                else if (measurement[iloop] <= encoder_midpoint)
+                    cnt_low++;
+            }
+
+            bool meas_high;
+            if   (cnt_high>cnt_low) meas_high = true;
+            else                    meas_high = false;
+
+            int nmeas_used=0;
+
+            max   = 0;
+            min   = ~max;
+            sum   = 0;
+            sumsq = 0;
+
+            /* Loop over the data again and accumulate statistics only in the case that the data meets criteria,
+             * viz that if there are more low than high measurements, we only accept the low
+             * and if there are more high than low measurements, we accept only the high */
+            for (unsigned iloop=0; iloop<nmeas; iloop++) {
+                datum = measurement[iloop];
+                if ((datum>encoder_midpoint && meas_high) || (datum<encoder_midpoint && !meas_high)) {
+                    sum  +=datum;
+                    sumsq+=static_cast<uint64_t>(datum) * static_cast<uint64_t>(datum);
+
+                    nmeas_used++;
+
+                    if(datum>max) max=datum;
+                    if(datum<min) min=datum;
+                }
+            }
+
+            /* Compensate for the Fact that We Didn't Really Take nmeas Samples */
+            sum   = sum   * nmeas/nmeas_used;
+            sumsq = sumsq * nmeas/nmeas_used;
+        }
+
         sched_yield();
-
-        // Read last FIFO
-        uint32_t datum = spi.WriteRead(TLC3548::codeReadFIFO());
-        //decode data
-        datum = TLC3548::decodeUSB(datum);
-
-        //typecast and accumulate statistics
-        uint64_t datum64 = datum;
-        sum+=datum;
-        sumsq+=datum64*datum64;
-
-        if(datum>max)
-            max=datum;
-        if(datum<min)
-            min=datum;
     }
 
     //------------------------------------------------------------------------------
