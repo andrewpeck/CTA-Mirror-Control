@@ -1,6 +1,8 @@
 #ifndef CBC_H
 #define CBC_H
 
+#include <vector>
+
 /*!
  * The CBC class is responsible for the control of all mirror control board functions.
  *
@@ -22,32 +24,6 @@ class CBC
 
         struct Config
         {
-            /* @param microsteps          Number of microsteps [1,2,4 or 8]
-             * @param steppingFrequency   Stepping frequency [in Hertz]
-             * @param highCurrentMode     Stepper motor High Current Mode [true/false]
-             * @param driveSR             Drive synchronous rectification mode [true/false]
-             * @param adcReadDelay        Delay inserted between subsequent ADC reads [any integer]
-             * @param defaultADCSamples   Set a global default number of ADC samples. Can be overrode for individual measurements.
-             * @param usbEnable           Integer bitmask to enable USB channels according to the simple scheme:
-             *                            <UL>
-             *                            <LI> (0x00) 000000 Disable All
-             *                            <LI> (0x01) 000001 Enable USB 1
-             *                            <LI> (0x02) 000010 Enable USB 2
-             *                            <LI> (0x04) 000100 Enable USB 3
-             *                            <LI> (0x08) 001000 Enable USB 4
-             *                            <LI> (0x10) 010000 Enable USB 5
-             *                            <LI> (0x20) 100000 Enable USB 6
-             *                            <LI> (0x3F) 111111 Enable All
-             *                            </UL>
-             *                            You enable arbitrary combinations of USBs by just forming the 'bitwise or'
-             *                            of the individual masks. Use a calculator or just put "usbEnable = (0x1 | 0x2 | 0x4)", for example...
-             * @param driveEnable         Integer bitmask to enable encoder drives, working ala usbEnable
-             * @param delayTime           Microseconds delay to pad between stepping, reading encoders, enable/disable motors
-             */
-            Config() : steppingFrequency(400), highCurrentMode(false),
-            driveSR(true), adcReadDelay(0), defaultADCSamples(1000), usbEnable(0),
-            driveEnable(0), microsteps(8), delayTime(25000) {}
-
             int  steppingFrequency ;
             bool highCurrentMode   ;
             bool driveSR           ;
@@ -57,6 +33,54 @@ class CBC
             int  driveEnable       ;
             int  microsteps        ;
             int  delayTime         ;
+
+            std::vector<float>  encoderVoltageSlope      = {1,1,1,1,1,1};
+            std::vector<float>  encoderVoltageOffset     = {0,0,0,0,0,0};
+            std::vector<float>  encoderTemperatureSlope  = {1,1,1,1,1,1};
+            std::vector<float>  encoderTemperatureOffset = {0,0,0,0,0,0};
+
+            /* @param microsteps                      Number of microsteps [1,2,4 or 8]
+             * @param steppingFrequency               Stepping frequency [in Hertz]
+             * @param highCurrentMode                 Stepper motor High Current Mode [true/false]
+             * @param driveSR                         Drive synchronous rectification mode [true/false]
+             * @param adcReadDelay                    Delay inserted between subsequent ADC reads [any integer]
+             * @param defaultADCSamples               Set a global default number of ADC samples. Can be overrode for individual measurements.
+             * @param usbEnable                       Integer bitmask to enable USB channels according to the simple scheme:
+             *                                        <UL>
+             *                                        <LI> (0x00) 000000 Disable All
+             *                                        <LI> (0x01) 000001 Enable USB 1
+             *                                        <LI> (0x02) 000010 Enable USB 2
+             *                                        <LI> (0x04) 000100 Enable USB 3
+             *                                        <LI> (0x08) 001000 Enable USB 4
+             *                                        <LI> (0x10) 010000 Enable USB 5
+             *                                        <LI> (0x20) 100000 Enable USB 6
+             *                                        <LI> (0x3F) 111111 Enable All
+             *                                        </UL>
+             *                                        You enable arbitrary combinations of USBs by just forming the 'bitwise or'
+             *                                        of the individual masks. Use a calculator or just put "usbEnable = (0x1 | 0x2 | 0x4)", for example...
+             * @param driveEnable                     Integer bitmask to enable encoder drives, working ala usbEnable
+             * @param delayTime                       Microseconds delay to pad between stepping, reading encoders, enable/disable motors
+             * @param encoderVoltageSlope             C++ std::vector containing 6 floats
+             * @param encoderVoltageOffset            C++ std::vector containing 6 floats
+             * @param encoderTemperatureSlope         C++ std::vector containing 6 floats
+             * @param encoderTemperatureOffset        C++ std::vector containing 6 floats
+             */
+
+            Config                   () :
+            steppingFrequency        (400),
+            highCurrentMode          (false),
+            driveSR                  (true),
+            adcReadDelay             (0),
+            defaultADCSamples        (1000),
+            usbEnable                (0),
+            driveEnable              (0),
+            microsteps               (8),
+            delayTime                (25000),
+            encoderVoltageSlope      {1,1,1,1,1,1},
+            encoderVoltageOffset     {0,0,0,0,0,0},
+            encoderTemperatureSlope  {1,1,1,1,1,1},
+            encoderTemperatureOffset {0,0,0,0,0,0}
+            {}
         };
 
         static struct Config config_default;
@@ -450,11 +474,14 @@ class CBC
                 float getEncoderTemperatureSlope (int iencoder);
                 void  setEncoderTemperatureSlope (int iencoder, float slope);
 
-                void  setEncoderConditioningSlope (int iencoder, float slope);
-                float getEncoderConditioningSlope (int iencoder);
+                void  setEncoderTemperatureOffset (int iencoder, float offset);
+                float getEncoderTemperatureOffset (int iencoder);
 
-                void  setEncoderConditioningOffset (int iencoder, float offset);
-                float getEncoderConditioningOffset (int iencoder);
+                void  setEncoderVoltageSlope (int iencoder, float slope);
+                float getEncoderVoltageSlope (int iencoder);
+
+                void  setEncoderVoltageOffset (int iencoder, float offset);
+                float getEncoderVoltageOffset (int iencoder);
 
                 ADC(CBC *cbc);
 
@@ -463,18 +490,10 @@ class CBC
                 int m_readDelay;
                 int m_defaultSamples;
 
-                const float defaultEncoderTemperatureSlope = 0;
-                float encoderTemperatureSlope[6] = {0};
-                bool  overrideEncoderTemperatureSlope[6] = {0};
-
-                const float defaultEncoderConditioningSlope = 1;
-                float encoderConditioningSlope[6] = {0};
-                bool  overrideEncoderConditioningSlope[6] = {0};
-
-                const float defaultEncoderConditioningOffset = 0;
-                float encoderConditioningOffset[6] = {0};
-                bool  overrideEncoderConditioningOffset[6] = {0};
-
+                float m_encoderTemperatureOffset [6];
+                float m_encoderTemperatureSlope  [6];
+                float m_encoderVoltageOffset     [6];
+                float m_encoderVoltageSlope      [6];
         } adc;
 
         //////////////////////////////////////////////////////////////////////////////

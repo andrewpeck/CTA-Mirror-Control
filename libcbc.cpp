@@ -11,8 +11,6 @@
 #include <cbc.hpp>
 #include <math.h>
 #include <chrono>
-
-
 #include <stdio.h>
 #include <iostream>
 
@@ -87,7 +85,16 @@ void CBC::configure(struct Config config)
             driver.disable(i+1);
     }
 
+    /* CBC Delay Times */
     setDelayTime(config.delayTime);
+
+    /* Encoder Calibration */
+    for (int i=0; i<6; i++) {
+        adc.setEncoderTemperatureSlope  (i+1, config.encoderTemperatureSlope  [i]);
+        adc.setEncoderTemperatureOffset (i+1, config.encoderTemperatureOffset [i]);
+        adc.setEncoderVoltageSlope      (i+1, config.encoderVoltageSlope      [i]);
+        adc.setEncoderVoltageOffset     (i+1, config.encoderVoltageOffset     [i]);
+    }
 }
 
 void CBC::powerUp()
@@ -473,20 +480,44 @@ CBC::ADC::adcData CBC::ADC::readEncoder (int iencoder, int nsamples)
     usleep2(cbc->getDelayTime());
     data = measure(0,iencoder,nsamples);
 
-    /* Encoder Voltage Conditioning Circuit Offset and Slope Correction */
-    float offset = getEncoderConditioningOffset(iencoder+1);
-    float slope  = getEncoderConditioningSlope (iencoder+1);
-    data.voltage    = (data.voltage    - offset)/slope;
-    data.voltageMin = (data.voltageMin - offset)/slope;
-    data.voltageMax = (data.voltageMax - offset)/slope;
+    /* Encoder Voltage Voltage Circuit Offset and Slope Correction
+     *  Note: Let's say that the voltage we read is a polynomic function of the "actual voltage",
+     *  i.e., the voltage that we should be reading based on the actual physical position of the encoder.
+     *
+     *  This is dependent on the temperature of the encoder, as well as the properties of a voltage conditioning
+     *  circuit that shapes the encoder voltage for input to the ADC.
+     *
+     *  So we say,
+     *
+     *  V_meas = a + b*V_act + c*(T-T0) + d*V_act*(T-T0)
+     *
+     *  we solve for V_act = (V_meas - a - c(T-T0)) / (b+d(T-T0))
+     *
+     *  let's name these parameters:
+     *
+     *  a = voltage_offset
+     *  b = voltage_slope
+     *  c = temperature_slope
+     *  d = temperature_offset
+     *
+     *  This correction is applied below.
+     */
 
-    /* Temperature Correction */
-    float temperature = readTemperatureVolts().voltage;
-    const float temperature_ref = 0.75; // reference temperature = 25C=0.75V
-    float correction = (temperature - temperature_ref)*getEncoderTemperatureSlope(iencoder+1);
-    data.voltage    += correction;
-    data.voltageMin += correction;
-    data.voltageMax += correction;
+    float voltage_offset     = getEncoderVoltageOffset     (iencoder+1);
+    float voltage_slope      = getEncoderVoltageSlope      (iencoder+1);
+
+    float temperature_offset = getEncoderTemperatureOffset (iencoder+1);
+    float temperature_slope  = getEncoderTemperatureSlope  (iencoder+1);
+
+    const float temperature_ref  = 0.75; // reference temperature = 25C=0.75V
+          float temperature_diff = (readTemperatureVolts().voltage - temperature_ref);
+
+    data.voltage    = (data.voltage - voltage_offset - temperature_offset*temperature_diff ) /
+                      (voltage_slope + temperature_slope*temperature_diff);
+    data.voltageMin = (data.voltage - voltage_offset - temperature_offset*temperature_diff ) /
+                      (voltage_slope + temperature_slope*temperature_diff);
+    data.voltageMax = (data.voltage - voltage_offset - temperature_offset*temperature_diff ) /
+                      (voltage_slope + temperature_slope*temperature_diff);
 
     return(data);
 }
@@ -497,10 +528,7 @@ float CBC::ADC::getEncoderTemperatureSlope(int iencoder)
     assert(iencoder<7);
 
     iencoder = (iencoder-1);
-    if (overrideEncoderTemperatureSlope[iencoder])
-        return (encoderTemperatureSlope[iencoder]);
-    else
-        return (defaultEncoderTemperatureSlope);
+    return (m_encoderTemperatureSlope[iencoder]);
 }
 
 void CBC::ADC::setEncoderTemperatureSlope (int iencoder, float slope)
@@ -509,52 +537,61 @@ void CBC::ADC::setEncoderTemperatureSlope (int iencoder, float slope)
     assert(iencoder<7);
 
     iencoder = (iencoder-1);
-    encoderTemperatureSlope[iencoder] = slope;
-    overrideEncoderTemperatureSlope[iencoder] = 1;
+    m_encoderTemperatureSlope[iencoder] = slope;
 }
 
-float CBC::ADC::getEncoderConditioningSlope(int iencoder)
+float CBC::ADC::getEncoderTemperatureOffset(int iencoder)
 {
     assert(iencoder>0);
     assert(iencoder<7);
 
     iencoder = (iencoder-1);
-    if (overrideEncoderConditioningSlope[iencoder])
-        return (encoderConditioningSlope[iencoder]);
-    else
-        return (defaultEncoderConditioningSlope);
+    return (m_encoderTemperatureOffset[iencoder]);
 }
 
-void CBC::ADC::setEncoderConditioningSlope (int iencoder, float slope)
+void CBC::ADC::setEncoderTemperatureOffset (int iencoder, float offset)
 {
     assert(iencoder>0);
     assert(iencoder<7);
 
     iencoder = (iencoder-1);
-    encoderConditioningSlope[iencoder] = slope;
-    overrideEncoderConditioningSlope[iencoder] = 1;
+    m_encoderTemperatureOffset[iencoder] = offset;
 }
 
-float CBC::ADC::getEncoderConditioningOffset(int iencoder)
+float CBC::ADC::getEncoderVoltageSlope(int iencoder)
 {
     assert(iencoder>0);
     assert(iencoder<7);
 
     iencoder = (iencoder-1);
-    if (overrideEncoderConditioningOffset[iencoder])
-        return (encoderConditioningOffset[iencoder]);
-    else
-        return (defaultEncoderConditioningOffset);
+    return (m_encoderVoltageSlope[iencoder]);
 }
 
-void CBC::ADC::setEncoderConditioningOffset (int iencoder, float offset)
+void CBC::ADC::setEncoderVoltageSlope (int iencoder, float slope)
 {
     assert(iencoder>0);
     assert(iencoder<7);
 
     iencoder = (iencoder-1);
-    encoderConditioningOffset[iencoder] = offset;
-    overrideEncoderConditioningOffset[iencoder] = 1;
+    m_encoderVoltageSlope[iencoder] = slope;
+}
+
+float CBC::ADC::getEncoderVoltageOffset(int iencoder)
+{
+    assert(iencoder>0);
+    assert(iencoder<7);
+
+    iencoder = (iencoder-1);
+    return (m_encoderVoltageOffset[iencoder]);
+}
+
+void CBC::ADC::setEncoderVoltageOffset (int iencoder, float offset)
+{
+    assert(iencoder>0);
+    assert(iencoder<7);
+
+    iencoder = (iencoder-1);
+    m_encoderVoltageOffset[iencoder] = offset;
 }
 
 /*
@@ -666,4 +703,7 @@ bool CBC::AUXsensor::isEnabled()
     return(MirrorControlBoard::isSensorsPoweredUp());
 }
 
+//===========================================================================
+//=CBC Config Structure======================================================
+//===========================================================================
 struct CBC::Config CBC::config_default;
