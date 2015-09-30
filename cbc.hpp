@@ -60,10 +60,11 @@ class CBC
              *                                        of the individual masks. Use a calculator or just put "usbEnable = (0x1 | 0x2 | 0x4)", for example...
              * @param driveEnable                     Integer bitmask to enable encoder drives, working ala usbEnable
              * @param delayTime                       Microseconds delay to pad between stepping, reading encoders, enable/disable motors
-             * @param encoderVoltageSlope             C++ std::vector containing 6 floats
-             * @param encoderVoltageOffset            C++ std::vector containing 6 floats
-             * @param encoderTemperatureSlope         C++ std::vector containing 6 floats
-             * @param encoderTemperatureOffset        C++ std::vector containing 6 floats
+             * @param encoderVoltageSlope             C++ std::vector containing 6 floats for correcting the encoder readings (c.f. libcbc.cpp for notes on how the correction is applied)
+             * @param encoderVoltageOffset            C++ std::vector containing 6 floats for correcting the encoder readings (c.f. libcbc.cpp for notes on how the correction is applied)
+             * @param encoderTemperatureSlope         C++ std::vector containing 6 floats for correcting the encoder readings (c.f. libcbc.cpp for notes on how the correction is applied)
+             * @param encoderTemperatureOffset        C++ std::vector containing 6 floats for correcting the encoder readings (c.f. libcbc.cpp for notes on how the correction is applied)
+
              */
 
             Config                   () :
@@ -352,6 +353,13 @@ class CBC
                     float voltageMax;
                     /*! Defined as stddev / sqrt(N) */
                     float voltageError;
+
+                    /*! Uncorrected voltage reading */
+                    float rawVoltage;
+                    /*! Uncorrected voltage Min reading */
+                    float rawVoltageMin;
+                    /*! Uncorrected voltage Max reading */
+                    float rawVoltageMax;
                 };
 
                 ///@{
@@ -471,17 +479,15 @@ class CBC
                 int  getDefaultSamples();
                 ///@}
 
-                float getEncoderTemperatureSlope (int iencoder);
-                void  setEncoderTemperatureSlope (int iencoder, float slope);
-
-                void  setEncoderTemperatureOffset (int iencoder, float offset);
+                float getEncoderTemperatureSlope  (int iencoder);
                 float getEncoderTemperatureOffset (int iencoder);
-
-                void  setEncoderVoltageSlope (int iencoder, float slope);
-                float getEncoderVoltageSlope (int iencoder);
-
-                void  setEncoderVoltageOffset (int iencoder, float offset);
+                float getEncoderVoltageSlope  (int iencoder);
                 float getEncoderVoltageOffset (int iencoder);
+
+                void  setEncoderTemperatureSlope  (int iencoder, float slope);
+                void  setEncoderTemperatureOffset (int iencoder, float offset);
+                void  setEncoderVoltageSlope  (int iencoder, float slope);
+                void  setEncoderVoltageOffset (int iencoder, float offset);
 
                 ADC(CBC *cbc);
 
