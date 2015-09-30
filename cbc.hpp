@@ -34,10 +34,12 @@ class CBC
             int  microsteps        ;
             int  delayTime         ;
 
-            std::vector<float>  encoderVoltageSlope      = {1,1,1,1,1,1};
+            std::vector<float>  encoderVoltageSlope      = {0,0,0,0,0,0};
             std::vector<float>  encoderVoltageOffset     = {0,0,0,0,0,0};
-            std::vector<float>  encoderTemperatureSlope  = {1,1,1,1,1,1};
+            std::vector<float>  encoderTemperatureSlope  = {0,0,0,0,0,0};
             std::vector<float>  encoderTemperatureOffset = {0,0,0,0,0,0};
+
+            float encoderTemperatureRef;
 
             /* @param microsteps                      Number of microsteps [1,2,4 or 8]
              * @param steppingFrequency               Stepping frequency [in Hertz]
@@ -77,10 +79,11 @@ class CBC
             driveEnable              (0),
             microsteps               (8),
             delayTime                (25000),
-            encoderVoltageSlope      {1,1,1,1,1,1},
+            encoderVoltageSlope      {0,0,0,0,0,0},
             encoderVoltageOffset     {0,0,0,0,0,0},
-            encoderTemperatureSlope  {1,1,1,1,1,1},
-            encoderTemperatureOffset {0,0,0,0,0,0}
+            encoderTemperatureSlope  {0,0,0,0,0,0},
+            encoderTemperatureOffset {0,0,0,0,0,0},
+            encoderTemperatureRef    (0.75)
             {}
         };
 
@@ -479,15 +482,18 @@ class CBC
                 int  getDefaultSamples();
                 ///@}
 
-                float getEncoderTemperatureSlope  (int iencoder);
-                float getEncoderTemperatureOffset (int iencoder);
-                float getEncoderVoltageSlope  (int iencoder);
-                float getEncoderVoltageOffset (int iencoder);
+                float getEncoderTemperatureSlope  ( int iencoder ) ;
+                float getEncoderTemperatureOffset ( int iencoder ) ;
+                float getEncoderTemperatureRef    (              ) ;
+                float getEncoderVoltageSlope      ( int iencoder ) ;
+                float getEncoderVoltageOffset     ( int iencoder ) ;
 
-                void  setEncoderTemperatureSlope  (int iencoder, float slope);
-                void  setEncoderTemperatureOffset (int iencoder, float offset);
-                void  setEncoderVoltageSlope  (int iencoder, float slope);
-                void  setEncoderVoltageOffset (int iencoder, float offset);
+                void  setEncoderTemperatureSlope  ( int iencoder, float slope  ) ;
+                void  setEncoderTemperatureOffset ( int iencoder, float offset ) ;
+                void  setEncoderTemperatureRef    ( float reference            ) ;
+                void  setEncoderVoltageSlope      ( int iencoder, float slope  ) ;
+                void  setEncoderVoltageOffset     ( int iencoder, float offset ) ;
+
 
                 ADC(CBC *cbc);
 
@@ -498,6 +504,7 @@ class CBC
 
                 float m_encoderTemperatureOffset [6];
                 float m_encoderTemperatureSlope  [6];
+                float m_encoderTemperatureRef       ;
                 float m_encoderVoltageOffset     [6];
                 float m_encoderVoltageSlope      [6];
         } adc;

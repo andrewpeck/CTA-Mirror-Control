@@ -503,14 +503,14 @@ void usleep2 (int usdelay)
         *
         *  So we say,
         *
-        *  V_meas = a + b*V_act + c*(T-T0) + d*V_act*(T-T0)
+        *  V_meas = a + (1+b)*V_act + c*(T-T0) + d*V_act*(T-T0)
         *
-        *  we solve for V_act = (V_meas - a - c(T-T0)) / (b+d(T-T0))
+        *  we solve for V_act = (V_meas - a - c(T-T0)) / (1+b+d(T-T0))
         *
         *  let's name these parameters:
         *
         *  a = voltage_offset
-        *  b = voltage_slope
+        *  b = voltage_slope CORRECTION
         *  c = temperature_slope
         *  d = temperature_offset
         *
@@ -523,17 +523,15 @@ void usleep2 (int usdelay)
         float temperature_offset = getEncoderTemperatureOffset (iencoder+1);  // we count from one in CBC
         float temperature_slope  = getEncoderTemperatureSlope  (iencoder+1);  // we count from one in CBC
 
-        const float temperature_ref  = 0.75; // reference temperature = 25C=0.75V
-              float temperature_diff = (readTemperatureVolts().voltage - temperature_ref);
-
+        float temperature_diff = (readTemperatureVolts().voltage - getEncoderTemperatureRef());
 
         // correct data
         data.voltage    = (data.voltage    - voltage_offset - temperature_offset*temperature_diff ) /
-                            (voltage_slope + temperature_slope*temperature_diff);
+                            (1+voltage_slope + temperature_slope*temperature_diff);
         data.voltageMin = (data.voltageMin - voltage_offset - temperature_offset*temperature_diff ) /
-                            (voltage_slope + temperature_slope*temperature_diff);
+                            (1+voltage_slope + temperature_slope*temperature_diff);
         data.voltageMax = (data.voltageMax - voltage_offset - temperature_offset*temperature_diff ) /
-                            (voltage_slope + temperature_slope*temperature_diff);
+                            (1+voltage_slope + temperature_slope*temperature_diff);
 
         return(data);
     }
@@ -548,6 +546,16 @@ void usleep2 (int usdelay)
 
         iencoder = (iencoder-1);
         return (m_encoderTemperatureSlope[iencoder]);
+    }
+
+    void CBC::ADC::setEncoderTemperatureRef   (float ref)
+    {
+        m_encoderTemperatureRef = ref;
+    }
+
+    float CBC::ADC::getEncoderTemperatureRef ()
+    {
+        return (m_encoderTemperatureRef);
     }
 
     void CBC::ADC::setEncoderTemperatureSlope (int iencoder, float slope)
